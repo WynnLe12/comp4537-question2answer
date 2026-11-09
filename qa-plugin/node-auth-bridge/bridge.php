@@ -1,11 +1,17 @@
 <?php
 if (!defined('QA_VERSION')) { http_response_code(404); exit; }
 
+function node_bridge_valid_token($token)
+{
+    return is_string($token) && strlen($token) <= 2048 &&
+        preg_match('/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/D', $token);
+}
+
 function node_bridge_request($action, $body = null)
 {
     $token = $_COOKIE['q2a_node_bridge'] ?? '';
     $headers = "Accept: application/json\r\n";
-    if (preg_match('/^[a-f0-9]{64}$/', $token)) $headers .= "Cookie: q2a_node_session=" . $token . "\r\n";
+    if (node_bridge_valid_token($token)) $headers .= "Cookie: q2a_node_session=" . $token . "\r\n";
     if ($body !== null) $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
     $context = stream_context_create(array('http' => array(
         'method' => $body === null ? 'GET' : 'POST', 'header' => $headers,
@@ -17,7 +23,7 @@ function node_bridge_request($action, $body = null)
     $cookie = null;
     foreach ($http_response_header ?? array() as $header) {
         if (preg_match('/^HTTP\/\S+ (\d+)/', $header, $match)) $status = (int)$match[1];
-        if (preg_match('/^Set-Cookie: q2a_node_session=([a-f0-9]{64});/i', $header, $match)) $cookie = $match[1];
+        if (preg_match('/^Set-Cookie: q2a_node_session=([^;]+);/i', $header, $match) && node_bridge_valid_token($match[1])) $cookie = $match[1];
     }
     return array('status' => $status, 'data' => json_decode($raw ?: '{}', true), 'token' => $cookie);
 }

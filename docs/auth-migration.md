@@ -41,6 +41,9 @@ production mode adds Secure. No CORS origins are enabled. Responses expose only
 the signed-in user's id, handle, email, level, and flags. Errors contain
 `error.code` and optional `error.fields`: invalid input 400, invalid credentials
 or unauthenticated 401, duplicate registration 409, unavailable dependencies 503.
+The cookie contains an HS256-signed JWT with issuer, audience, subject, random ID,
+and expiry. `AUTH_JWT_SECRET` must be at least 32 bytes and must be supplied as
+a private runtime environment variable outside this local demo Compose profile.
 
 ```sh
 curl -i -c /tmp/q2a-cookies.txt http://localhost:3000/api/v1/auth/login \
@@ -93,10 +96,12 @@ Intentional changes and remaining scope:
 
 - JSON replaces forms/redirects. Unknown-user and wrong-password errors are identical
   in the API to reduce account enumeration.
-- API sessions use random 256-bit tokens stored as SHA-256 digests in the added
-  `node_auth_sessions` table. They do not share PHP cookies. Normal sessions last
-  one day server-side; remembered sessions last 30 days. PHP backup-cookie and
-  concurrent-session behavior is not reproduced.
+- API sessions use signed JWTs with random token IDs. The JWT is checked for its
+  signature, HS256 algorithm, issuer, audience, and expiry; its SHA-256 digest is
+  stored in `node_auth_sessions` for immediate revocation and server-side expiry.
+  They do not share PHP cookies. Normal sessions last one day; remembered sessions
+  last 30 days. Existing opaque Node sessions become invalid on this change and
+  require login again. PHP backup-cookie and concurrent-session behavior is not reproduced.
 - JSON-only POSTs and a custom request header replace PHP's form CSRF mechanism.
   The shared-frontend bridge additionally checks Q2A's original CSRF token before
   forwarding forms to Node. It is enabled only in the `migrated-ui` service; PHP

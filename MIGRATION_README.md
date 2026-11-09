@@ -10,6 +10,7 @@ For an annotated, file-by-file code walkthrough, see
 
 - Register with username, email, and password; automatically sign in.
 - Log in with username or email, check the current session, and log out.
+- Use signed JWT cookies with database-backed revocation; logout invalidates the token immediately.
 - Verify existing PHP bcrypt passwords and upgrade legacy salted-SHA-1 hashes.
 - Preserve tested validation, duplicate checks, account flags, and initial reputation.
 - Demonstrate authentication through Q2A's original pages, theme, CSS, and JavaScript.
@@ -113,8 +114,9 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/auth/logout` | Revoke the session |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
-these after checking Q2A's existing CSRF token and stores the Node session token
-in an HttpOnly cookie. No tokens are stored in browser localStorage.
+these after checking Q2A's existing CSRF token and stores the signed JWT
+in an HttpOnly cookie. The API verifies its signature and expiry, then checks
+the token hash in MySQL so logout can revoke it. No tokens are stored in browser localStorage.
 Use v2 only for breaking contract changes; compatible changes remain in v1.
 
 | Location | Responsibility |
@@ -144,4 +146,7 @@ for supported settings, implementation choices, and remaining parity gaps.
 - **Stop:** `docker compose down` preserves data. `docker compose down -v` deletes
   these development databases; use only when intentionally resetting synthetic data.
 
-Local credentials and settings are for demonstration, not production deployment.
+Local credentials and the Compose `AUTH_JWT_SECRET` are for demonstration, not
+production deployment. A production host must supply its own secret of at least
+32 bytes. Deploying this change invalidates previously issued opaque sessions;
+users must log in again.

@@ -1,6 +1,7 @@
 // Business rules derived from Q2A pages/login.php, app/users-edit.php and db/users.php.
 // See the repository LICENSE and docs/auth-migration.md for supported scope.
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { createHash, randomBytes, timingSafeEqual } = require('node:crypto');
 const isEmail = require('validator/lib/isEmail');
 
@@ -45,11 +46,30 @@ async function verifyPassword(user, password) {
 
 const publicUser = user => ({ id: user.userid, handle: user.handle, email: user.email, level: user.level, flags: user.flags });
 const tokenHash = token => createHash('sha256').update(token).digest('hex');
+const jwtIssuer = 'q2a-node-api';
+const jwtAudience = 'q2a-auth';
 
-function createAuthService(repository) {
+function createAuthService(repository, { jwtSecret } = {}) {
+  if (typeof jwtSecret !== 'string' || Buffer.byteLength(jwtSecret) < 32) {
+    throw new Error('AUTH_JWT_SECRET must contain at least 32 bytes');
+  }
+
+  function verifiedClaims(token) {
+    if (typeof token !== 'string' || token.length > 2048 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) return null;
+    try {
+      const claims = jwt.verify(token, jwtSecret, { algorithms: ['HS256'], issuer: jwtIssuer, audience: jwtAudience });
+      return /^\d+$/.test(claims.sub) && /^[a-f0-9]{32}$/.test(claims.jti) && Number.isInteger(claims.exp) ? claims : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function session(user, remember, ip) {
-    const token = randomBytes(32).toString('hex');
     const ttl = remember ? 30 * 86400 : 86400;
+    const token = jwt.sign({}, jwtSecret, {
+      algorithm: 'HS256', issuer: jwtIssuer, audience: jwtAudience,
+      subject: String(user.userid), jwtid: randomBytes(16).toString('hex'), expiresIn: ttl,
+    });
     await repository.createSession(user.userid, tokenHash(token), ttl, ip);
     return { user: publicUser(user), token, ttl, remember };
   }
@@ -77,12 +97,13 @@ function createAuthService(repository) {
       return session(user, false, ip);
     },
     async me(token) {
-      const user = token && /^[a-f0-9]{64}$/.test(token) ? await repository.findSession(tokenHash(token)) : null;
-      if (!user) throw new AuthError(401, 'unauthenticated');
+      const claims = verifiedClaims(token);
+      const user = claims ? await repository.findSession(tokenHash(token)) : null;
+      if (!user || String(user.userid) !== claims.sub) throw new AuthError(401, 'unauthenticated');
       return publicUser(user);
     },
     async logout(token) {
-      if (token && /^[a-f0-9]{64}$/.test(token)) await repository.deleteSession(tokenHash(token));
+      if (verifiedClaims(token)) await repository.deleteSession(tokenHash(token));
     },
   };
 }

@@ -13,7 +13,7 @@ async function start() {
   for (const [key, value] of Object.entries(expected)) {
     if (options[key] !== value) throw new Error(`Unsupported authentication profile: ${key}`);
   }
-  const service = createAuthService(createUserRepository(pool));
+  const service = createAuthService(createUserRepository(pool), { jwtSecret: process.env.AUTH_JWT_SECRET });
   const app = createApp({ service, health: () => pool.query('SELECT 1'), secureCookies: process.env.NODE_ENV === 'production' });
   const server = app.listen(3000, '0.0.0.0', () => console.log('Q2A API listening on port 3000'));
   for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {

@@ -1,8 +1,10 @@
 const request = require('supertest');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { createHash } = require('node:crypto');
 const { createApp } = require('../../src/app');
 const { createAuthService, registrationInput, verifyPassword } = require('../../src/services/auth');
+const jwtSecret = 'test-only-q2a-jwt-signing-secret-not-for-production';
 
 describe('API authentication contract (repository replaced in these tests)', () => {
   let app, repository, alice;
@@ -17,7 +19,7 @@ describe('API authentication contract (repository replaced in these tests)', () 
       findSession: jest.fn(async hash => sessions.get(hash)),
       deleteSession: jest.fn(async hash => sessions.delete(hash)),
     };
-    app = createApp({ service: createAuthService(repository) });
+    app = createApp({ service: createAuthService(repository, { jwtSecret }) });
   });
   function post(client, path, body) { return client.post(`/api/v1/auth/${path}`).set('X-Q2A-Request', '1').send(body); }
 
@@ -28,10 +30,27 @@ describe('API authentication contract (repository replaced in these tests)', () 
     expect(response.headers['set-cookie'][0]).toMatch(/HttpOnly/);
     expect(response.headers['set-cookie'][0]).toMatch(/SameSite=Strict/);
     expect(response.body.user).not.toHaveProperty('passhash');
+    const token = response.headers['set-cookie'][0].split(';')[0].split('=')[1];
+    expect(jwt.verify(token, jwtSecret, { algorithms: ['HS256'], issuer: 'q2a-node-api', audience: 'q2a-auth' }))
+      .toMatchObject({ sub: '1', iss: 'q2a-node-api', aud: 'q2a-auth' });
     expect((await client.get('/api/v1/auth/me').expect(200)).body.user.handle).toBe('alice');
     const oldCookie = response.headers['set-cookie'][0].split(';')[0];
     await post(client, 'logout', {}).expect(204);
     await request(app).get('/api/v1/auth/me').set('Cookie', oldCookie).expect(401);
+  });
+  test('rejects tampered, expired and wrong-audience JWTs before database lookup', async () => {
+    const response = await post(request(app), 'login', { emailhandle: 'alice', password: 'Password123!' }).expect(200);
+    const token = response.headers['set-cookie'][0].split(';')[0].split('=')[1];
+    const invalid = [
+      token.slice(0, -10) + (token.at(-10) === 'a' ? 'b' : 'a') + token.slice(-9),
+      jwt.sign({}, jwtSecret, { algorithm: 'HS256', issuer: 'q2a-node-api', audience: 'q2a-auth', subject: '1', jwtid: 'a'.repeat(32), expiresIn: -1 }),
+      jwt.sign({}, jwtSecret, { algorithm: 'HS256', issuer: 'q2a-node-api', audience: 'other', subject: '1', jwtid: 'a'.repeat(32), expiresIn: 60 }),
+    ];
+    repository.findSession.mockClear();
+    for (const value of invalid) {
+      await request(app).get('/api/v1/auth/me').set('Cookie', `q2a_node_session=${value}`).expect(401);
+    }
+    expect(repository.findSession).not.toHaveBeenCalled();
   });
   test('registration automatically authenticates', async () => {
     const client = request.agent(app);
@@ -57,7 +76,7 @@ describe('API authentication contract (repository replaced in these tests)', () 
     expect(response.text).not.toContain('secret');
   });
   test('rate limits authentication attempts', async () => {
-    app = createApp({ service: createAuthService(repository), rateLimitMax: 1 });
+    app = createApp({ service: createAuthService(repository, { jwtSecret }), rateLimitMax: 1 });
     await post(request(app), 'login', {}).expect(400);
     await post(request(app), 'login', {}).expect(429);
   });

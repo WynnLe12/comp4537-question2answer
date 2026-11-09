@@ -110,7 +110,7 @@ The PHP-to-Node call happens **server to server**. A browser network trace there
 
 ```php
 // Condensed from qa-plugin/node-auth-bridge/bridge.php
-if (preg_match('/^[a-f0-9]{64}$/', $token))
+if (node_bridge_valid_token($token))
     $headers .= "Cookie: q2a_node_session=" . $token . "\r\n";
 if ($body !== null)
     $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
@@ -153,7 +153,9 @@ The static values avoid repeated `/me` calls during one PHP request. Logout call
 const pool = createPool();
 await pool.query('SELECT 1');
 // Check the expected Q2A authentication options before serving requests.
-const service = createAuthService(createUserRepository(pool));
+const service = createAuthService(createUserRepository(pool), {
+  jwtSecret: process.env.AUTH_JWT_SECRET,
+});
 const app = createApp({
   service,
   health: () => pool.query('SELECT 1'),
@@ -196,7 +198,10 @@ function postText(value) {
     .replace(/\r\n?/g, '\n');
 }
 
-const token = randomBytes(32).toString('hex');
+const token = jwt.sign({}, jwtSecret, {
+  algorithm: 'HS256', issuer: 'q2a-node-api', audience: 'q2a-auth',
+  subject: String(user.userid), jwtid: randomBytes(16).toString('hex'), expiresIn: ttl,
+});
 await repository.createSession(user.userid, tokenHash(token), ttl, ip);
 ```
 
@@ -214,7 +219,7 @@ return {
 };
 ```
 
-The repository uses parameterized MySQL values and Q2A's existing tables. Registration takes a MySQL advisory lock because Q2A's handle/email indexes are not unique; inside a transaction it checks duplicates, inserts `qa_users`, initializes `qa_userpoints` to 100, updates cached counts in `qa_options`, then commits. A failure rolls everything back. A Node session stores only the **SHA-256 digest** of the random token, not the raw bearer token:
+The repository uses parameterized MySQL values and Q2A's existing tables. Registration takes a MySQL advisory lock because Q2A's handle/email indexes are not unique; inside a transaction it checks duplicates, inserts `qa_users`, initializes `qa_userpoints` to 100, updates cached counts in `qa_options`, then commits. A failure rolls everything back. The service verifies the JWT signature, algorithm, issuer, audience, and expiry before looking it up. A Node session stores only the **SHA-256 digest** of the signed JWT, not the raw bearer token, so logout can revoke it immediately:
 
 ```js
 // node-api/src/repositories/users.js (selected statements)
@@ -234,7 +239,7 @@ await connection.execute(
 );
 ```
 
-`findSession()` joins `node_auth_sessions` to `qa_users` and requires `expires_at > UTC_TIMESTAMP()`; `deleteSession()` removes that digest on logout. The advisory lock serializes **Node** registrations. This milestone does not support concurrent original-PHP and Node registration into one shared database.
+`findSession()` joins `node_auth_sessions` to `qa_users` and requires `expires_at > UTC_TIMESTAMP()`; `deleteSession()` removes that digest on logout. The Compose secret is local-only; a production host must provide its own `AUTH_JWT_SECRET` of at least 32 bytes. Old opaque sessions require a new login after this change. The advisory lock serializes **Node** registrations. This milestone does not support concurrent original-PHP and Node registration into one shared database.
 
 ## How parity is checked
 
