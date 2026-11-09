@@ -71,8 +71,9 @@ and rejected actions, authentication, user/points state, and password upgrades.
 Random salted hashes are verified rather than compared byte-for-byte. Additional
 Node tests cover concurrent duplicate registrations. Test runs create uniquely
 named synthetic users and reset the legacy fixture password for its upgrade test.
-Use only these development databases. GitHub Actions runs both suites and uploads
-test reports and service logs.
+Use only these development databases. The inactive GitHub Actions template in
+[`node-auth-workflow.yml`](node-auth-workflow.yml) runs both suites and uploads
+test reports and service logs once installed under `.github/workflows/`.
 
 ## Supported profile and differences
 

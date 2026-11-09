@@ -1,0 +1,44 @@
+name: Node authentication parity
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: node-api/package-lock.json
+      - run: npm ci
+        working-directory: node-api
+      - run: |
+          mkdir -p test-results
+          npm test -- --json --outputFile=test-results/contract.json
+        working-directory: node-api
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: node-api
+      - run: docker compose up --build -d --wait
+      - name: Compare PHP and Node
+        run: |
+          mkdir -p node-api/test-results
+          docker compose run --build --rm tests 2>&1 | tee node-api/test-results/parity.log
+      - name: Capture service logs
+        if: always()
+        run: |
+          mkdir -p node-api/test-results
+          docker compose logs --no-color > node-api/test-results/services.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auth-test-results
+          path: node-api/test-results/
+      - run: docker compose down -v
+        if: always()

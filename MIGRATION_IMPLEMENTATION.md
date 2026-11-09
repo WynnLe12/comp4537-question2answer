@@ -40,7 +40,7 @@ Browser ── next page + bridge cookie ────> PHP bridge ── GET /me
 | [`node-api/tests/integration/auth.test.js`](node-api/tests/integration/auth.test.js) | Tests API contracts/security with an in-memory repository. |
 | [`node-api/tests/parity/auth.test.js`](node-api/tests/parity/auth.test.js) | Compares real original-PHP form outcomes and Node JSON/database outcomes. |
 | [`node-api/tests/parity/shared-ui.test.js`](node-api/tests/parity/shared-ui.test.js) | Checks shared CSS/form structure and end-to-end bridge sessions. |
-| [`.github/workflows/node-auth.yml`](.github/workflows/node-auth.yml) | Runs contract and Docker parity suites in CI and saves logs. |
+| [`docs/node-auth-workflow.yml`](docs/node-auth-workflow.yml) | GitHub Actions template for contract and Docker parity suites; install under `.github/workflows/` to activate CI. |
 
 The upstream `qa-include/` controllers and frontend assets are reference code, not migrated files. `MIGRATION_README.md` is the run/demo guide; `docs/auth-migration.md` records scope and parity limits. `.dockerignore` and `.gitignore` keep build context and generated files out of Docker/Git.
 
@@ -272,4 +272,4 @@ docker compose run --rm --no-deps tests npm test
 docker compose run --build --rm tests
 ```
 
-The last command runs the parity suite; GitHub Actions runs both suites on push and pull request. Tests create synthetic users in the two **development** databases. The code currently checks identical CSS content and form structure, not pixel-perfect screenshots across browsers or every Q2A page. Authentication is the only migrated feature in this slice.
+The last command runs the parity suite. The workflow template can run both suites on push and pull request once installed under `.github/workflows/`. Tests create synthetic users in the two **development** databases. The code currently checks identical CSS content and form structure, not pixel-perfect screenshots across browsers or every Q2A page. Authentication is the only migrated feature in this slice.

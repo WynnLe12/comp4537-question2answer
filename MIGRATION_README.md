@@ -99,8 +99,9 @@ Node JSON requests to separate MySQL databases. It checks successful/failed
 operations, authenticated state, user records, points, password upgrades, duplicate
 registration races, transaction rollback, and session expiry. It does not compare
 HTML with JSON or randomly salted hashes byte-for-byte. Tests add synthetic users;
-run them only against the development stack. CI is configured in
-`.github/workflows/node-auth.yml`.
+run them only against the development stack. A GitHub Actions workflow template is
+in [`docs/node-auth-workflow.yml`](docs/node-auth-workflow.yml); CI is not active
+until it is installed under `.github/workflows/`.
 
 ## API and code map
 
