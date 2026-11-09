@@ -1,0 +1,7 @@
+.git
+.env
+node-api/node_modules
+node-api/coverage
+node-api/test-results
+work
+qa-config.php

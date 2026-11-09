@@ -1,6 +1,9 @@
 Question2Answer
 -----------------------------
 
+This fork includes a Node.js authentication migration. See the
+[migration README and UI demo walkthrough](MIGRATION_README.md).
+
 [Question2Answer][Q2A] (Q2A) is a popular free open source Q&A platform for PHP/MySQL, used by over 20,898 [sites] in 40 languages.
 
 **Note:** if you're using Q2A directly from git, make sure to use the master branch as that is the latest stable version. Or download an official release from the [Q2A website][Q2A].

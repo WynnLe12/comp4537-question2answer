@@ -1,0 +1,101 @@
+name: q2a-migration
+
+x-db: &db
+  image: mysql:8.4
+  environment:
+    MYSQL_DATABASE: q2a
+    MYSQL_USER: q2a
+    MYSQL_PASSWORD: local-q2a-only
+    MYSQL_ROOT_PASSWORD: local-root-only
+  healthcheck:
+    test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+    interval: 5s
+    timeout: 5s
+    retries: 30
+
+x-php: &php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  environment: &credentials
+    DB_HOST: php-db
+    DB_USER: q2a
+    DB_PASSWORD: local-q2a-only
+    DB_NAME: q2a
+
+services:
+  php-db:
+    <<: *db
+    volumes: [php-data:/var/lib/mysql]
+  node-db:
+    <<: *db
+    volumes: [node-data:/var/lib/mysql]
+  seed-php:
+    <<: *php
+    command: ["php", "docker/php/seed.php"]
+    depends_on:
+      php-db: {condition: service_healthy}
+  seed-node:
+    <<: *php
+    environment:
+      <<: *credentials
+      DB_HOST: node-db
+    command: ["php", "docker/php/seed.php"]
+    depends_on:
+      node-db: {condition: service_healthy}
+  php:
+    <<: *php
+    ports: ["127.0.0.1:8080:80"]
+    depends_on:
+      seed-php: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(file_get_contents('http://localhost/?qa=login') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build: ./node-api
+    environment: &api-env
+      <<: *credentials
+      DB_HOST: node-db
+      NODE_ENV: development
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      seed-node: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  migrated-ui:
+    <<: *php
+    environment:
+      <<: *credentials
+      DB_HOST: node-db
+      NODE_AUTH_API: http://api:3000
+    ports: ["127.0.0.1:8081:80"]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(file_get_contents('http://localhost/?qa=login') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  tests:
+    build: ./node-api
+    profiles: [test]
+    environment:
+      <<: *api-env
+      PHP_URL: http://php
+      PHP_DB_HOST: php-db
+      API_URL: http://api:3000
+      MIGRATED_UI_URL: http://migrated-ui
+    command: ["npm", "run", "test:parity"]
+    depends_on:
+      php: {condition: service_healthy}
+      api: {condition: service_healthy}
+      migrated-ui: {condition: service_healthy}
+
+volumes:
+  php-data:
+  node-data:

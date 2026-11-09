@@ -1,0 +1,27 @@
+{
+  "name": "q2a-node-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Selected Q2A functionality migrated to a versioned Node.js API",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --runInBand --testPathIgnorePatterns=tests/parity",
+    "test:parity": "jest --runInBand tests/parity",
+    "check": "node --check src/app.js && node --check src/services/auth.js && node --check src/repositories/users.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "mysql2": "^3.15.0",
+    "validator": "^13.15.20"
+  },
+  "devDependencies": {
+    "cheerio": "^1.1.2",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
+  },
+  "jest": { "testEnvironment": "node", "testTimeout": 30000 }
+}

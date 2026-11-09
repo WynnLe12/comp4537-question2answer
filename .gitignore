@@ -15,3 +15,8 @@
 ehthumbs.db
 Thumbs.db
 .idea/
+node_modules/
+coverage/
+test-results/
+.env
+work/
