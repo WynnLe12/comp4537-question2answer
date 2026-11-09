@@ -17,7 +17,7 @@ require_once QA_INCLUDE_DIR . 'app/emails.php';
 qa_db_install_tables();
 qa_suspend_notifications();
 $profile = array(
-    'site_url' => 'http://localhost:8080/', 'site_title' => 'Q2A migration reference',
+    'site_url' => 'http://localhost:8080/', 'site_title' => 'Question2Answer Q&A',
     'site_theme' => 'SnowFlat', 'site_language' => '', 'enabled_plugins' => '',
     'captcha_on_register' => 0, 'confirm_user_emails' => 0, 'confirm_user_required' => 0,
     'show_register_terms' => 0, 'show_notice_welcome' => 0, 'suspend_register_users' => 0,

@@ -21,6 +21,8 @@ describe('Original Q2A frontend using Node authentication', () => {
   test('serves the same theme CSS and form structure as the PHP reference', async () => {
     const [original, migrated] = await Promise.all([request(reference).get('/?qa=login'), request(ui).get('/?qa=login')]);
     const a = cheerio.load(original.text), b = cheerio.load(migrated.text);
+    expect(a('.qa-logo-link').text()).toBe('Question2Answer Q&A');
+    expect(b('.qa-logo-link').text()).toBe(a('.qa-logo-link').text());
     const fields = $ => $('[name=dologin]').closest('form').last().find('input').map((i, el) => $(el).attr('name')).get();
     expect(fields(b)).toEqual(fields(a));
     const stylesheet = a('link[rel=stylesheet]').map((i, el) => a(el).attr('href')).get().find(href => href.includes('qa-theme/'));
