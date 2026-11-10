@@ -59,7 +59,8 @@ services:
       <<: *credentials
       DB_HOST: node-db
       NODE_ENV: development
-      AUTH_JWT_SECRET: local-only-q2a-jwt-signing-secret-change-for-production
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Create .env from .env.example and set AUTH_JWT_SECRET}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-10}
     ports: ["127.0.0.1:3000:3000"]
     depends_on:
       seed-node: {condition: service_completed_successfully}

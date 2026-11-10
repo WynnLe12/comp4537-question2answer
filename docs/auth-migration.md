@@ -8,6 +8,7 @@ The Node API lives in `node-api/`; upstream PHP remains unchanged. Reference:
 Start Docker Desktop, then from the repository root:
 
 ```sh
+cp .env.example .env # First setup only; preserve an existing .env
 docker compose up --build -d
 docker compose ps
 ```
@@ -43,7 +44,10 @@ the signed-in user's id, handle, email, level, and flags. Errors contain
 or unauthenticated 401, duplicate registration 409, unavailable dependencies 503.
 The cookie contains an HS256-signed JWT with issuer, audience, subject, random ID,
 and expiry. `AUTH_JWT_SECRET` must be at least 32 bytes and must be supplied as
-a private runtime environment variable outside this local demo Compose profile.
+a private runtime environment variable. Compose reads it from the root `.env`,
+along with `BCRYPT_SALT_ROUNDS` (default `10`, integer from 4 to 31). The latter
+controls new password hashes, rehash checks, and password upgrades. Changing the
+JWT secret invalidates existing sessions. Commit only `.env.example`, not `.env`.
 The API stores only a SHA-256 digest of the JWT in `node_auth_sessions`; `/me`
 requires both a valid signature and a live database row. Logout deletes that row.
 The browser sends the HttpOnly cookie automatically; there is no bearer-header

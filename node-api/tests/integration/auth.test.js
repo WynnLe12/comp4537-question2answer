@@ -57,6 +57,24 @@ describe('API authentication contract (repository replaced in these tests)', () 
     await post(client, 'register', { handle: 'alice', email: 'alice@example.test', password: 'Password123!' }).expect(201);
     await client.get('/api/v1/auth/me').expect(200);
   });
+  test('configured bcrypt cost applies to registration and login upgrades', async () => {
+    const service = createAuthService(repository, { jwtSecret, saltRounds: 5 });
+    await service.register({ handle: 'alice', email: 'alice@example.test', password: 'Password123!' }, '127.0.0.1');
+    const registeredHash = repository.createUser.mock.calls[0][0].hash;
+    expect(bcrypt.getRounds(registeredHash)).toBe(5);
+    expect(await bcrypt.compare('Password123!', registeredHash)).toBe(true);
+    await service.login({ emailhandle: 'alice', password: 'Password123!' }, '127.0.0.1');
+    const upgradedHash = repository.upgradePassword.mock.calls[0][1];
+    expect(bcrypt.getRounds(upgradedHash)).toBe(5);
+    expect(await bcrypt.compare('Password123!', upgradedHash)).toBe(true);
+    alice.passhash = upgradedHash;
+    repository.upgradePassword.mockClear();
+    await service.login({ emailhandle: 'alice', password: 'Password123!' }, '127.0.0.1');
+    expect(repository.upgradePassword).not.toHaveBeenCalled();
+  });
+  test.each([0, 3, 32, 5.5, NaN])('rejects invalid bcrypt cost %s', saltRounds => {
+    expect(() => createAuthService(repository, { jwtSecret, saltRounds })).toThrow('BCRYPT_SALT_ROUNDS');
+  });
   test('wrong passwords and unknown accounts have the same public error', async () => {
     const wrong = await post(request(app), 'login', { emailhandle: 'alice', password: 'incorrect' }).expect(401);
     const missing = await post(request(app), 'login', { emailhandle: 'missing', password: 'incorrect' }).expect(401);

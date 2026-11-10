@@ -20,8 +20,18 @@ For an annotated, file-by-file code walkthrough, see
 With Docker Desktop running, execute from the repository root:
 
 ```sh
+# First setup only: create the local configuration
+cp .env.example .env
 docker compose up --build -d --wait
 ```
+
+Edit the root `.env` to set `AUTH_JWT_SECRET` and `BCRYPT_SALT_ROUNDS` (default `10`).
+Compose passes these to the API and test containers. `.env` is ignored by Git and
+excluded from Docker build contexts; `.env.example` is the committed demo template.
+After changing values, run `docker compose up --build -d --wait` again. Changing
+the JWT secret invalidates existing sessions. For local Node startup,
+`npm --prefix node-api start` also loads the root `.env`; database settings must
+point to an accessible MySQL instance.
 
 | Open | Purpose |
 | --- | --- |
@@ -151,7 +161,7 @@ for supported settings, implementation choices, and remaining parity gaps.
 - **Stop:** `docker compose down` preserves data. `docker compose down -v` deletes
   these development databases; use only when intentionally resetting synthetic data.
 
-Local credentials and the Compose `AUTH_JWT_SECRET` are for demonstration, not
+Local credentials and the `.env.example` JWT secret are for demonstration, not
 production deployment. A production host must supply its own secret of at least
 32 bytes. Deploying this change invalidates previously issued opaque sessions;
 users must log in again.

@@ -25,6 +25,7 @@ jobs:
         working-directory: node-api
       - run: npm audit --omit=dev --audit-level=high
         working-directory: node-api
+      - run: cp .env.example .env
       - run: docker compose up --build -d --wait
       - name: Compare PHP and Node
         run: |

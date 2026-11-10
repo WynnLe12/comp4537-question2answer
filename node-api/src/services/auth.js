@@ -32,7 +32,7 @@ function registrationInput(body) {
   return { handle, email, password };
 }
 
-async function verifyPassword(user, password) {
+async function verifyPassword(user, password, saltRounds = 10) {
   let legacyValid = false;
   if (user.passsalt && user.passcheck) {
     const salt = Buffer.isBuffer(user.passsalt) ? user.passsalt.toString() : user.passsalt;
@@ -41,7 +41,7 @@ async function verifyPassword(user, password) {
     legacyValid = expected.length === actual.length && timingSafeEqual(expected, actual);
   }
   const modernValid = user.passhash ? await bcrypt.compare(password, user.passhash) : false;
-  return { valid: legacyValid || modernValid, rehash: legacyValid || (modernValid && bcrypt.getRounds(user.passhash) !== 10) };
+  return { valid: legacyValid || modernValid, rehash: legacyValid || (modernValid && bcrypt.getRounds(user.passhash) !== saltRounds) };
 }
 
 const publicUser = user => ({ id: user.userid, handle: user.handle, email: user.email, level: user.level, flags: user.flags });
@@ -49,10 +49,14 @@ const tokenHash = token => createHash('sha256').update(token).digest('hex');
 const jwtIssuer = 'q2a-node-api';
 const jwtAudience = 'q2a-auth';
 
-function createAuthService(repository, { jwtSecret } = {}) {
+function createAuthService(repository, { jwtSecret, saltRounds = 10 } = {}) {
   if (typeof jwtSecret !== 'string' || Buffer.byteLength(jwtSecret) < 32) {
     throw new Error('AUTH_JWT_SECRET must contain at least 32 bytes');
   }
+  if (!Number.isInteger(saltRounds) || saltRounds < 4 || saltRounds > 31) {
+    throw new Error('BCRYPT_SALT_ROUNDS must be an integer between 4 and 31');
+  }
+  let dummyPasswordHash;
 
   function verifiedClaims(token) {
     if (typeof token !== 'string' || token.length > 2048 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) return null;
@@ -82,17 +86,18 @@ function createAuthService(repository, { jwtSecret } = {}) {
       const user = users.length === 1 ? users[0] : null;
       if (!user) {
         // Avoid returning a different public error for unknown users and wrong passwords.
-        await bcrypt.compare(password, '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy');
+        dummyPasswordHash ??= bcrypt.hash(randomBytes(32).toString('hex'), saltRounds);
+        await bcrypt.compare(password, await dummyPasswordHash);
         throw new AuthError(401, 'invalid_credentials');
       }
-      const result = await verifyPassword(user, password);
+      const result = await verifyPassword(user, password, saltRounds);
       if (!result.valid) throw new AuthError(401, 'invalid_credentials');
-      if (result.rehash) await repository.upgradePassword(user.userid, await bcrypt.hash(password, 10));
+      if (result.rehash) await repository.upgradePassword(user.userid, await bcrypt.hash(password, saltRounds));
       return session(user, body.remember === true, ip);
     },
     async register(body, ip) {
       const input = registrationInput(body);
-      const hash = await bcrypt.hash(input.password, 10);
+      const hash = await bcrypt.hash(input.password, saltRounds);
       const user = await repository.createUser({ ...input, hash }, ip);
       return session(user, false, ip);
     },

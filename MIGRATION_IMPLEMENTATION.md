@@ -146,15 +146,14 @@ The static values avoid repeated `/me` calls during one PHP request. Logout call
 
 ## Node layers and v1 contract
 
-`server.js` assembles `db → repository → service → app`; it reads `qa_options` and refuses to start if unsupported authentication settings are enabled. This prevents a misleading parity claim if, for example, CAPTCHA or confirmation is turned on in PHP while Node lacks those flows. `app.js` mounts only `/api/v1/auth`; unversioned and `/api/v2/...` paths return 404. Compatible changes stay in v1, while breaking API contracts would require v2.
+`server.js` assembles `db → repository → service → app` and passes the environment-configured JWT secret and bcrypt cost to the service. It assumes the documented Q2A authentication profile without validating database options at startup. `app.js` mounts only `/api/v1/auth`; unversioned and `/api/v2/...` paths return 404. Compatible changes stay in v1, while breaking API contracts would require v2.
 
 ```js
 // node-api/src/server.js (excerpt)
 const pool = createPool();
-await pool.query('SELECT 1');
-// Check the expected Q2A authentication options before serving requests.
 const service = createAuthService(createUserRepository(pool), {
   jwtSecret: process.env.AUTH_JWT_SECRET,
+  saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
 });
 const app = createApp({
   service,
@@ -211,7 +210,7 @@ database user matches the JWT subject. A valid signature alone is insufficient:
 logout removes the digest, and the next `/me` returns 401. The JWT travels in
 HttpOnly cookies, not a browser bearer header or localStorage.
 
-`verifyPassword()` accepts Q2A's bcrypt hashes and its older salted SHA-1 `passsalt`/`passcheck` format. A successful legacy login (or an outdated bcrypt cost) replaces the stored password with bcrypt cost 10 and clears the legacy fields:
+`verifyPassword()` accepts Q2A's bcrypt hashes and its older salted SHA-1 `passsalt`/`passcheck` format. A successful legacy login (or an outdated bcrypt cost) replaces the stored password with the configured `BCRYPT_SALT_ROUNDS` cost (default 10) and clears the legacy fields:
 
 ```js
 // node-api/src/services/auth.js (excerpt)
@@ -221,7 +220,7 @@ legacyValid = expected.length === actual.length && timingSafeEqual(expected, act
 const modernValid = user.passhash ? await bcrypt.compare(password, user.passhash) : false;
 return {
   valid: legacyValid || modernValid,
-  rehash: legacyValid || (modernValid && bcrypt.getRounds(user.passhash) !== 10),
+  rehash: legacyValid || (modernValid && bcrypt.getRounds(user.passhash) !== saltRounds),
 };
 ```
 
@@ -245,7 +244,7 @@ await connection.execute(
 );
 ```
 
-`findSession()` joins `node_auth_sessions` to `qa_users` and requires `expires_at > UTC_TIMESTAMP()`; `deleteSession()` removes that digest on logout. The Compose secret is local-only; a production host must provide its own `AUTH_JWT_SECRET` of at least 32 bytes. Old opaque sessions require a new login after this change. The advisory lock serializes **Node** registrations. This milestone does not support concurrent original-PHP and Node registration into one shared database.
+`findSession()` joins `node_auth_sessions` to `qa_users` and requires `expires_at > UTC_TIMESTAMP()`; `deleteSession()` removes that digest on logout. Compose reads the JWT secret and bcrypt cost from the root `.env` (see `.env.example`); a production host must provide its own `AUTH_JWT_SECRET` of at least 32 bytes. Old opaque sessions require a new login after this change. The advisory lock serializes **Node** registrations. This milestone does not support concurrent original-PHP and Node registration into one shared database.
 
 ## How parity is checked
 
