@@ -90,7 +90,8 @@ This first slice supports built-in username/email authentication, standard `qa_`
 tables, eight-character minimum passwords, 20-character handles, 80-character
 emails, and 100 initial points. CAPTCHA, terms, email confirmation, custom fields,
 registration suspension, and external/plugin authentication are disabled. The API
-checks configured options at startup; do not change PHP admin settings while it runs.
+assumes this profile without validating Q2A options at startup; changing those
+settings does not change the Node authentication behavior.
 
 Source rules: `qa-include/pages/login.php`, `pages/register.php`,
 `app/users-edit.php`, `plugins/qa-filter-basic.php`, and `db/users.php`.
