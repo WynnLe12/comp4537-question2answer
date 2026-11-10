@@ -95,6 +95,9 @@ docker compose run --build --rm tests
 Alternatively, with Node 24 installed: `cd node-api`, `npm ci`, then `npm test`.
 
 The API suite replaces database access with an in-memory test implementation.
+Its authentication tests verify JWT claims and reject tampered, expired, and
+wrong-audience tokens before a session database lookup. Logout checks that a
+previously valid cookie can no longer access `/me`.
 The parity suite submits real PHP forms with CSRF tokens and sends equivalent
 Node JSON requests to separate MySQL databases. It checks successful/failed
 operations, authenticated state, user records, points, password upgrades, duplicate
@@ -116,7 +119,9 @@ until it is installed under `.github/workflows/`.
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
 in an HttpOnly cookie. The API verifies its signature and expiry, then checks
-the token hash in MySQL so logout can revoke it. No tokens are stored in browser localStorage.
+the token hash in MySQL so logout can revoke it. The browser sends the cookie
+automatically; the frontend does not store the JWT in localStorage or send an
+`Authorization: Bearer` header. PHP's reference login uses its own session flow.
 Use v2 only for breaking contract changes; compatible changes remain in v1.
 
 | Location | Responsibility |

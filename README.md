@@ -1,7 +1,8 @@
 Question2Answer
 -----------------------------
 
-This fork includes a Node.js authentication migration. See the
+This fork includes a Node.js authentication migration with signed JWT cookies
+and database-backed logout. See the
 [migration README and UI demo walkthrough](MIGRATION_README.md).
 
 [Question2Answer][Q2A] (Q2A) is a popular free open source Q&A platform for PHP/MySQL, used by over 20,898 [sites] in 40 languages.

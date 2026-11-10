@@ -44,6 +44,11 @@ or unauthenticated 401, duplicate registration 409, unavailable dependencies 503
 The cookie contains an HS256-signed JWT with issuer, audience, subject, random ID,
 and expiry. `AUTH_JWT_SECRET` must be at least 32 bytes and must be supplied as
 a private runtime environment variable outside this local demo Compose profile.
+The API stores only a SHA-256 digest of the JWT in `node_auth_sessions`; `/me`
+requires both a valid signature and a live database row. Logout deletes that row.
+The browser sends the HttpOnly cookie automatically; there is no bearer-header
+or localStorage flow in this slice. The PHP reference uses its original session
+system, so its cookies are not interchangeable with Node's.
 
 ```sh
 curl -i -c /tmp/q2a-cookies.txt http://localhost:3000/api/v1/auth/login \
@@ -68,7 +73,8 @@ docker compose run --build --rm tests
 ```
 
 The first suite tests HTTP/security contracts and password/input compatibility
-without MySQL. The parity suite uses real PHP forms (including their own CSRF
+without MySQL, including JWT claims, tampering, expiry, audience, and revocation.
+The parity suite uses real PHP forms (including their own CSRF
 tokens and cookies), Node JSON endpoints, and both databases. It compares accepted
 and rejected actions, authentication, user/points state, and password upgrades.
 Random salted hashes are verified rather than compared byte-for-byte. Additional

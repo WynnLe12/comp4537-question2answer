@@ -123,7 +123,7 @@ $raw = @file_get_contents(
 
 On success, the bridge copies the returned token into its own `q2a_node_bridge` HttpOnly, SameSite=Strict cookie scoped to `/`, then redirects using Q2A's original page flow. On failure, `node_bridge_errors()` puts API errors into the original Q2A form and restores non-password field values. Auth submissions include `X-Q2A-Auth-Backend: node-api-v1` in their HTTP response, making the active backend visible in browser developer tools. There is no fallback to PHP password verification if Node is unavailable.
 
-For every subsequent Q2A page, the override asks Node who owns the bridge token instead of trusting PHP's login cookie:
+For every subsequent Q2A page, the override asks Node who owns the bridge token instead of trusting PHP's login cookie. The bridge checks only the JWT's compact shape before forwarding it; cryptographic verification belongs to Node:
 
 ```php
 // qa-plugin/node-auth-bridge/overrides.php
@@ -205,6 +205,12 @@ const token = jwt.sign({}, jwtSecret, {
 await repository.createSession(user.userid, tokenHash(token), ttl, ip);
 ```
 
+`me()` verifies the HS256 signature, issuer, audience, expiry, numeric user ID,
+and random token ID before querying the stored digest. It also checks that the
+database user matches the JWT subject. A valid signature alone is insufficient:
+logout removes the digest, and the next `/me` returns 401. The JWT travels in
+HttpOnly cookies, not a browser bearer header or localStorage.
+
 `verifyPassword()` accepts Q2A's bcrypt hashes and its older salted SHA-1 `passsalt`/`passcheck` format. A successful legacy login (or an outdated bcrypt cost) replaces the stored password with bcrypt cost 10 and clears the legacy fields:
 
 ```js
@@ -243,7 +249,7 @@ await connection.execute(
 
 ## How parity is checked
 
-Two suites serve different purposes. `npm test` uses Jest and Supertest with a replaceable in-memory repository, so it quickly checks response codes, cookie flags, invalid/oversized JSON, rate limiting, hidden errors, versioning, and password/input compatibility. `npm run test:parity` needs the Docker stack: it sends real form POSTs to the PHP reference and JSON requests to Node against separately seeded MySQL databases.
+Two suites serve different purposes. `npm test` uses Jest and Supertest with a replaceable in-memory repository, so it quickly checks response codes, cookie flags, JWT claims, tampered/expired/wrong-audience tokens, logout revocation, invalid/oversized JSON, rate limiting, hidden errors, versioning, and password/input compatibility. `npm run test:parity` needs the Docker stack: it sends real form POSTs to the PHP reference and JSON requests to Node against separately seeded MySQL databases.
 
 ```js
 // Condensed from node-api/tests/parity/auth.test.js
