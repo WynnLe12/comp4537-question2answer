@@ -282,4 +282,4 @@ docker compose run --rm --no-deps tests npm test
 docker compose run --build --rm tests
 ```
 
-The last command runs the parity suite. The workflow template can run both suites on push and pull request once installed under `.github/workflows/`. Tests create synthetic users in the two **development** databases. The code currently checks identical CSS content and form structure, not pixel-perfect screenshots across browsers or every Q2A page. Authentication is the only migrated feature in this slice.
+The last command runs the parity suite. The workflow template can run both suites on push and pull request once installed under `.github/workflows/`. Tests create synthetic users in the two **development** databases. The code currently checks identical CSS content and form structure, not pixel-perfect screenshots across browsers or every Q2A page. This guide covers authentication; voting is described in [docs/votes-migration.md](docs/votes-migration.md).

@@ -1,6 +1,8 @@
 const { createPool } = require('./db');
 const { createUserRepository } = require('./repositories/users');
 const { createAuthService } = require('./services/auth');
+const { createVoteRepository } = require('./repositories/votes');
+const { createVoteService } = require('./services/votes');
 const { createApp } = require('./app');
 
 async function start() {
@@ -9,7 +11,14 @@ async function start() {
     jwtSecret: process.env.AUTH_JWT_SECRET,
     saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
   });
-  const app = createApp({ service, health: () => pool.query('SELECT 1'), secureCookies: process.env.NODE_ENV === 'production' });
+  // Resolves the session cookie to a user, or null for anonymous requests.
+  const identify = token => (token ? service.me(token).catch(error => { if (error.status === 401) return null; throw error; }) : null);
+  const voteService = createVoteService(createVoteRepository(pool), { identify });
+  const app = createApp({
+    service, voteService, health: () => pool.query('SELECT 1'),
+    secureCookies: process.env.NODE_ENV === 'production',
+    trustProxy: process.env.TRUST_PROXY || false,
+  });
   const server = app.listen(3000, '0.0.0.0', () => console.log('Q2A API listening on port 3000'));
   for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
     server.close(() => pool.end().then(() => process.exit(0)));

@@ -1,7 +1,8 @@
 # Q2A → Node.js migration
 
 This fork explores whether AI-assisted development can reproduce selected Q2A
-backend behavior using Node.js REST APIs. The first working slice is authentication.
+backend behavior using Node.js REST APIs. Migrated slices so far: authentication and
+voting (see [the voting notes](docs/votes-migration.md)).
 The original PHP application remains the reference; this is not a full Q2A rewrite.
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
@@ -14,6 +15,8 @@ For an annotated, file-by-file code walkthrough, see
 - Verify existing PHP bcrypt passwords and upgrade legacy salted-SHA-1 hashes.
 - Preserve tested validation, duplicate checks, account flags, and initial reputation.
 - Demonstrate authentication through Q2A's original pages, theme, CSS, and JavaScript.
+- Vote on questions, answers and comments through Node, with PHP's permission checks, rate
+  limits, points, hotness and cached counts. The original vote buttons call it through the bridge.
 
 ## Start the demo
 
@@ -48,8 +51,9 @@ Both have separately seeded MySQL databases. Registering a new user in one does
 Both sites use the same frontend files from `qa-theme/`, `qa-content/`, and Q2A's
 existing page controllers. There is no separate demo design or duplicated frontend.
 On port 8081, a small PHP bridge forwards authentication to the Node REST API;
-PHP still renders the existing UI. Only authentication has been migrated. Other
+PHP still renders the existing UI. Only authentication and voting have been migrated. Other
 Q2A features visible in the UI still run PHP and are not evidence of Node migration.
+Vote responses on port 8081 carry `X-Q2A-Vote-Backend: node-api-v1`.
 
 ## Five-minute presentation walkthrough
 
@@ -125,6 +129,7 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/auth/login` | Authenticate and create a session |
 | `GET /api/v1/auth/me` | Read the signed-in user |
 | `POST /api/v1/auth/logout` | Revoke the session |
+| `PUT /api/v1/posts/:postid/vote` | Set, change or remove a vote (`-1`, `0`, `1`) |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -139,6 +144,8 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/routes/v1/auth.js` | HTTP routes, cookies, request protection, rate limiting |
 | `node-api/src/services/auth.js` | Validation and password/authentication logic |
 | `node-api/src/repositories/users.js` | MySQL queries and transactions |
+| `node-api/src/routes/v1/posts.js`, `services/votes.js`, `repositories/votes.js` | Voting route, rules and SQL |
+| `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits and points formulas |
 | `qa-plugin/node-auth-bridge/` | Thin adapter from original Q2A forms to Node authentication |
 | `qa-theme/`, `qa-content/` | Existing shared frontend assets; no redesign |
 | `node-api/tests/` | API and parity suites |

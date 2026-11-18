@@ -9,16 +9,24 @@ function node_bridge_valid_token($token)
 
 function node_bridge_request($action, $body = null)
 {
+    return node_bridge_api($body === null ? 'GET' : 'POST', '/api/v1/auth/' . $action, $body);
+}
+
+// Calls the Node API server to server. The browser's address is forwarded so Node records
+// the same IP that PHP's qa_remote_ip_address() would (Node trusts it only from TRUST_PROXY).
+function node_bridge_api($method, $path, $body = null)
+{
     $token = $_COOKIE['q2a_node_bridge'] ?? '';
     $headers = "Accept: application/json\r\n";
     if (node_bridge_valid_token($token)) $headers .= "Cookie: q2a_node_session=" . $token . "\r\n";
+    if (isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) $headers .= "X-Forwarded-For: " . $_SERVER['REMOTE_ADDR'] . "\r\n";
     if ($body !== null) $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
     $context = stream_context_create(array('http' => array(
-        'method' => $body === null ? 'GET' : 'POST', 'header' => $headers,
+        'method' => $method, 'header' => $headers,
         'content' => $body === null ? '' : json_encode($body),
         'ignore_errors' => true, 'timeout' => 5, 'follow_location' => 0,
     )));
-    $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . '/api/v1/auth/' . $action, false, $context);
+    $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . $path, false, $context);
     $status = 503;
     $cookie = null;
     foreach ($http_response_header ?? array() as $header) {
@@ -55,4 +63,24 @@ function node_bridge_errors($content, $result, $input, $action)
         }
     }
     return $content;
+}
+
+// Sends a vote to Node and returns false on success, or the same HTML error qa_vote_error_html() shows.
+function node_bridge_vote($postid, $vote, $topage)
+{
+    header('X-Q2A-Vote-Backend: node-api-v1');
+    $result = node_bridge_api('PUT', '/api/v1/posts/' . (int)$postid . '/vote', array('vote' => $vote));
+    if ($result['status'] === 200) return false;
+    switch ($result['data']['error']['code'] ?? '') {
+        case 'vote_disabled_hidden': return qa_lang_html('main/vote_disabled_hidden');
+        case 'vote_disabled_queued': return qa_lang_html('main/vote_disabled_queued');
+        case 'vote_not_allowed':
+        case 'post_not_found': return qa_lang_html('main/vote_not_allowed');
+        case 'unauthenticated': return qa_insert_login_links(qa_lang_html('main/vote_must_login'), $topage);
+        case 'vote_must_confirm': return qa_insert_login_links(qa_lang_html('main/vote_must_confirm'), $topage);
+        case 'vote_down_must_confirm': return qa_insert_login_links(qa_lang_html('main/vote_down_must_confirm'), $topage);
+        case 'vote_limit': return qa_lang_html('main/vote_limit');
+        case 'no_permission': return qa_lang_html('users/no_permission');
+    }
+    return 'Voting service unavailable. Please try again.';
 }

@@ -9,6 +9,8 @@ function createPool(overrides = {}) {
     connectionLimit: 10,
     charset: 'utf8mb4',
     timezone: 'Z',
+    // Report changed rather than matched rows, like PHP's mysqli affected_rows.
+    flags: ['-FOUND_ROWS'],
     ...overrides,
   });
 }

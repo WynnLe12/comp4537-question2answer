@@ -53,3 +53,30 @@ function qa_get_request_content()
     }
     return node_bridge_errors(qa_get_request_content_base(), $result, $input, $action);
 }
+
+// Voting. Both callers (ajax/vote.php and qa_check_page_clicks() in app/page.php) call
+// qa_vote_error_html() and, only if it returns false, qa_vote_set(). Node performs the check and
+// the write in one request, so the check override sends the vote and qa_vote_set() skips a repeat.
+function node_bridge_vote_value($vote)
+{
+    return (int)min(1, max(-1, $vote)); // the same clamping as qa_vote_set()
+}
+
+function qa_vote_error_html($post, $vote, $userid, $topage)
+{
+    global $node_bridge_applied_votes;
+    if (!is_array($post)) return qa_lang_html('main/vote_not_allowed'); // as PHP does for a missing post
+    $vote = node_bridge_vote_value($vote);
+    $error = node_bridge_vote($post['postid'], $vote, $topage);
+    if ($error === false) $node_bridge_applied_votes[$post['postid']] = $vote;
+    return $error;
+}
+
+function qa_vote_set($post, $userid, $handle, $cookieid, $vote)
+{
+    global $node_bridge_applied_votes;
+    $vote = node_bridge_vote_value($vote);
+    if (isset($node_bridge_applied_votes[$post['postid']]) && $node_bridge_applied_votes[$post['postid']] === $vote) return;
+    $error = node_bridge_vote($post['postid'], $vote, qa_request());
+    if ($error !== false) qa_fatal_error('Node vote failed: ' . strip_tags($error));
+}
