@@ -113,3 +113,27 @@ function node_bridge_post_body($content, $format, $notify, $email, $name)
         'email' => isset($email) ? (string)$email : null, 'name' => isset($name) ? (string)$name : null,
     );
 }
+
+// Sends a change to an existing post to Node. Returns Node's result, or stops with an error.
+function node_bridge_change_post($method, $path, $body)
+{
+    header('X-Q2A-Post-Backend: node-api-v1');
+    $result = node_bridge_api($method, $path, $body);
+    if ($result['status'] >= 200 && $result['status'] < 300) return $result['data'];
+    $code = $result['data']['error']['code'] ?? 'service_unavailable';
+    qa_fatal_error('Node could not change the post: ' . $code . ' ' . json_encode($result['data']['error']['fields'] ?? array()));
+}
+
+// The page passes the combined notify value (null, '@' or an address); Node takes the form's two fields.
+function node_bridge_notify_fields($notify)
+{
+    if (!isset($notify)) return array('notify' => false, 'email' => '');
+    return array('notify' => true, 'email' => $notify === '@' ? '' : (string)$notify);
+}
+
+function node_bridge_edit_body($content, $format, $notify, $name, $silent)
+{
+    $body = array('content' => (string)$content, 'format' => (string)$format, 'silent' => (bool)$silent) + node_bridge_notify_fields($notify);
+    if (isset($name)) $body['name'] = (string)$name;
+    return $body;
+}

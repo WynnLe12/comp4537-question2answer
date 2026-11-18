@@ -4,8 +4,9 @@ This fork explores whether AI-assisted development can reproduce selected Q2A
 backend using Node.js REST APIs, one feature at a time, with the original PHP application as
 the reference. The goal is the whole backend; [the roadmap](docs/migration-roadmap.md) lists
 every slice and its status. Done so far: authentication, voting
-([notes](docs/votes-migration.md)) and posting questions, answers and comments
-([notes](docs/posts-migration.md)).
+([notes](docs/votes-migration.md)), posting questions, answers and comments
+([notes](docs/posts-migration.md)), and changing them: editing, selecting answers, closing,
+hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -22,6 +23,9 @@ For an annotated, file-by-file code walkthrough, see
 - Ask questions, answer and comment through Node, signed in or anonymously, including the
   moderation queue, the search word index, cached counts, points and update streams. The
   original ask page and question page forms call it through the bridge.
+- Edit, retag and move posts, turn answers into comments, select the best answer, close and
+  reopen, hide and show, approve and reject queued posts, delete hidden posts and claim
+  anonymous ones through Node, from the original question page buttons and forms.
 
 ## Start the demo
 
@@ -170,6 +174,12 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/questions` | Ask a question |
 | `POST /api/v1/questions/:id/answers` | Answer a question |
 | `POST /api/v1/posts/:id/comments` | Comment on a question or answer |
+| `PATCH /api/v1/posts/:id` | Edit a post, or turn an answer into a comment |
+| `PUT /api/v1/questions/:id/selected-answer` | Select or unselect the best answer |
+| `POST`, `DELETE /api/v1/questions/:id/close` | Close (note or duplicate link) or reopen |
+| `POST /api/v1/posts/:id/status` | Hide, reshow, approve or reject |
+| `DELETE /api/v1/posts/:id` | Delete a hidden post |
+| `POST /api/v1/posts/:id/claim` | Claim an anonymous post |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -187,6 +197,8 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/routes/v1/posts.js` | Vote, question, answer and comment routes |
 | `node-api/src/services/votes.js`, `repositories/votes.js` | Voting rules and SQL |
 | `node-api/src/services/posts.js`, `repositories/posts.js` | Posting rules and SQL |
+| `node-api/src/services/post-changes.js` | Editing, selecting, closing, status, deleting and claiming |
+| `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |
 | `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits, points formulas and text/word splitting |
 | `qa-plugin/node-auth-bridge/` | Thin adapter from original Q2A forms to Node authentication |

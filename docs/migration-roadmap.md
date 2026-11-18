@@ -21,7 +21,7 @@ the hook does nothing, so the PHP reference keeps its behaviour.
 | 1 | Authentication: register, login, logout, session | `app/users.php`, `app/users-edit.php`, `pages/login.php`, `pages/register.php` | Done ([notes](auth-migration.md)) |
 | 2 | Voting | `app/votes.php` (votes) | Done ([notes](votes-migration.md)) |
 | 3 | Posting: ask, answer, comment, moderation queue, search index, counts, update streams | `app/post-create.php`, `app/posts.php`, `plugins/qa-search-basic.php`, `plugins/qa-event-updates.php`, `pages/ask.php`, `pages/question-post.php`, `ajax/answer.php`, `ajax/comment.php` | Done ([notes](posts-migration.md)) |
-| 4 | Post changes: edit, retag, recategorize, close/reopen, hide/reshow/delete, select answer, convert answer↔comment | `app/post-update.php`, `pages/question-post.php`, `ajax/click-*.php` | Not started |
+| 4 | Post changes: edit, retag, recategorize, close/reopen, hide/reshow/delete, select answer, convert answer↔comment | `app/post-update.php`, `pages/question-post.php`, `ajax/click-*.php` | Done ([notes](post-changes-migration.md)) |
 | 5 | Flags | `app/votes.php` (flags) | Not started |
 | 6 | Favorites | `app/favorites.php`, `ajax/favorite.php` | Not started |
 | 7 | Messages and wall posts | `app/messages.php`, `pages/message.php`, `pages/user-wall.php` | Not started |

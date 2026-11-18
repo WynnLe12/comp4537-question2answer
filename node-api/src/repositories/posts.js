@@ -1,5 +1,5 @@
-// SQL for creating questions, answers and comments, ported statement-by-statement from
-// qa-include/db/post-create.php, db/events.php, db/cookies.php and db/selects.php.
+// SQL for creating and changing questions, answers and comments, ported statement-by-statement from
+// qa-include/db/post-create.php, db/post-update.php, db/votes.php, db/events.php, db/cookies.php and db/selects.php.
 const { randomBytes } = require('node:crypto');
 const { createTransactor, sharedQueries } = require('./shared');
 const { phpInt } = require('../q2a/php');
@@ -7,7 +7,8 @@ const { phpInt } = require('../q2a/php');
 const MAX_EVENTS_PER_Q = 5; // QA_DB_MAX_EVENTS_PER_Q
 const MAX_WORD_COUNT = 255; // QA_DB_MAX_WORD_COUNT
 const POST_COLUMNS = "postid, type, LEFT(type, 1) AS basetype, INSTR(type, '_HIDDEN')>0 AS hidden, INSTR(type, '_QUEUED')>0 AS queued, " +
-  'userid, cookieid, parentid, categoryid, acount, closedbyid, selchildid, lastuserid, flagcount, title, content, format, ' +
+  'userid, CAST(cookieid AS CHAR) AS cookieid, parentid, categoryid, acount, amaxvote, netvotes, closedbyid, selchildid, lastuserid, flagcount, ' +
+  'title, content, format, tags, notify, name, updated, created, ' +
   "CONCAT_WS(',', catidpath1, catidpath2, catidpath3, categoryid) AS categoryids";
 
 function createPostRepository(pool) {
@@ -211,6 +212,96 @@ function createPostRepository(pool) {
           "INSERT INTO qa_userevents (userid, entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) VALUES (?, '-', 0, ?, ?, ?, ?, NOW())",
           [userid, questionid, lastpostid, updatetype, lastuserid]);
         await userEventsTruncate(userid, questionid);
+      },
+
+      // --- changing posts (db/post-update.php) ---
+      async indexedWordIds(table, postid) {
+        const [rows] = await db.query(`SELECT wordid FROM ${table} WHERE postid=?`, [postid]);
+        return rows.map(row => row.wordid);
+      },
+      async deleteIndexed(table, postid) { await db.query(`DELETE FROM ${table} WHERE postid=?`, [postid]); },
+
+      // Each setter records the editor (updated/updatetype/lastuserid/lastip) only when PHP passes them.
+      async setContent(postid, { title, content, format, tagstring, notify, name }, edit) {
+        const fields = 'title=?, content=?, format=?, tags=?, name=COALESCE(?, name), notify=?';
+        const values = [title, content, format, tagstring, name, notify];
+        if (edit) await db.query(`UPDATE qa_posts SET ${fields}, updated=NOW(), updatetype=?, lastuserid=?, lastip=INET6_ATON(?) WHERE postid=?`, [...values, edit.updatetype, edit.userid, edit.ip, postid]);
+        else await db.query(`UPDATE qa_posts SET ${fields} WHERE postid=?`, [...values, postid]);
+      },
+      async setType(postid, type, edit) {
+        if (edit) await db.query('UPDATE qa_posts SET type=?, updated=NOW(), updatetype=?, lastuserid=?, lastip=INET6_ATON(?) WHERE postid=?', [type, edit.updatetype, edit.userid, edit.ip, postid]);
+        else await db.query('UPDATE qa_posts SET type=? WHERE postid=?', [type, postid]);
+      },
+      async setParent(postid, parentid) { await db.query('UPDATE qa_posts SET parentid=? WHERE postid=?', [parentid, postid]); },
+      async setCategory(postid, categoryid, edit) {
+        if (edit) await db.query("UPDATE qa_posts SET categoryid=?, updated=NOW(), updatetype='A', lastuserid=?, lastip=INET6_ATON(?) WHERE postid=?", [categoryid, edit.userid, edit.ip, postid]);
+        else await db.query('UPDATE qa_posts SET categoryid=? WHERE postid=?', [categoryid, postid]);
+      },
+      async getCategoryPath(postid) {
+        const [[row]] = await db.execute('SELECT categoryid, catidpath1, catidpath2, catidpath3 FROM qa_posts WHERE postid=?', [postid]);
+        return row;
+      },
+      async setPostsCategoryPath(postids, path) {
+        if (postids.length) await db.query('UPDATE qa_posts SET categoryid=?, catidpath1=?, catidpath2=?, catidpath3=? WHERE postid IN (?)', [path.categoryid, path.catidpath1, path.catidpath2, path.catidpath3, postids]);
+      },
+      // qa_db_category_path_qcount_update() for a path read earlier.
+      async pathQcountUpdate(path) {
+        for (const id of [path.categoryid, path.catidpath1, path.catidpath2, path.catidpath3]) {
+          if (id === null || id === undefined) continue;
+          await db.query(
+            "UPDATE qa_categories SET qcount=GREATEST( (SELECT COUNT(*) FROM qa_posts WHERE categoryid=? AND type='Q'), (SELECT COUNT(*) FROM qa_posts WHERE catidpath1=? AND type='Q'), (SELECT COUNT(*) FROM qa_posts WHERE catidpath2=? AND type='Q'), (SELECT COUNT(*) FROM qa_posts WHERE catidpath3=? AND type='Q') ) WHERE categoryid=?",
+            [id, id, id, id, id]);
+        }
+      },
+      async setCreatedNow(postid) { await db.query('UPDATE qa_posts SET created=NOW() WHERE postid=?', [postid]); },
+      async setUpdatedNow(postid) { await db.query('UPDATE qa_posts SET updated=NOW() WHERE postid=?', [postid]); },
+      async deletePost(postid) { await db.query('DELETE FROM qa_posts WHERE postid=?', [postid]); },
+      async setUserid(postid, userid) {
+        await db.query('UPDATE qa_posts SET userid=?, lastuserid=IF(updated IS NULL, lastuserid, COALESCE(lastuserid,?)) WHERE postid=?', [userid, userid, postid]);
+      },
+      async uservoteRemoveOwn(postid) {
+        await db.query('DELETE uv FROM qa_uservotes uv JOIN qa_posts p ON uv.postid=p.postid AND uv.userid=p.userid WHERE uv.postid=?', [postid]);
+      },
+      async recountVotes(postid) {
+        await db.query(
+          'UPDATE qa_posts AS x, (SELECT COALESCE(SUM(GREATEST(0,vote)),0) AS upvotes, -COALESCE(SUM(LEAST(0,vote)),0) AS downvotes FROM qa_uservotes WHERE postid=?) AS a SET x.upvotes=a.upvotes, x.downvotes=a.downvotes, x.netvotes=a.upvotes-a.downvotes WHERE x.postid=?',
+          [postid, postid]);
+      },
+      // qa_db_uservote_post_get(): non-zero votes on a post, by user.
+      async postUserVotes(postid) {
+        const [rows] = await db.query('SELECT userid, vote FROM qa_uservotes WHERE postid=? AND vote!=0', [postid]);
+        return rows;
+      },
+      async setSelchildid(questionid, selchildid, edit) {
+        await db.query("UPDATE qa_posts AS x, (SELECT selchildid FROM qa_posts WHERE postid=?) AS a SET x.updated=NULL, x.updatetype=NULL, x.lastuserid=NULL, x.lastip=NULL WHERE x.postid=a.selchildid AND x.updatetype='S'", [questionid]);
+        await db.query('UPDATE qa_posts SET selchildid=? WHERE postid=?', [selchildid, questionid]);
+        if (selchildid !== null && edit) {
+          await db.query("UPDATE qa_posts SET updated=NOW(), updatetype='S', lastuserid=?, lastip=INET6_ATON(?) WHERE postid=?", [edit.userid, edit.ip, selchildid]);
+        }
+      },
+      async setClosed(questionid, closedbyid, edit) {
+        if (edit) await db.query("UPDATE qa_posts SET closedbyid=?, updated=NOW(), updatetype='C', lastuserid=?, lastip=INET6_ATON(?) WHERE postid=?", [closedbyid, edit.userid, edit.ip, questionid]);
+        else await db.query('UPDATE qa_posts SET closedbyid=? WHERE postid=?', [closedbyid, questionid]);
+      },
+      // qa_db_amaxvote_update_for_q(): add to it, set it, or recount it (value undefined). Returns rows changed.
+      async amaxvoteUpdateForQ(questionid, value, relative = true) {
+        let newValue = value;
+        if (newValue === undefined) {
+          [[{ newValue }]] = await db.query("SELECT COALESCE(GREATEST(MAX(netvotes), 0), 0) AS newValue FROM qa_posts WHERE parentid = ? AND type = 'A'", [questionid]);
+        }
+        const [result] = await db.query(`UPDATE qa_posts SET amaxvote = ? ${value !== undefined && relative ? '+ amaxvote ' : ''}WHERE postid = ?`, [newValue, questionid]);
+        return result.changedRows;
+      },
+      async questionAmaxvote(questionid) {
+        const [[row]] = await db.query('SELECT amaxvote FROM qa_posts WHERE postid=?', [questionid]);
+        return Number(row.amaxvote);
+      },
+      flaggedcountUpdate: counted('cache_flaggedcount', "SELECT COUNT(*) FROM qa_posts WHERE flagcount > 0 AND type IN ('Q', 'A', 'C')"),
+      // qa_db_posts_filter_q_postids()
+      async filterQuestionIds(postids) {
+        if (!postids.length) return [];
+        const [rows] = await db.query("SELECT postid FROM qa_posts WHERE type='Q' AND postid IN (?)", [postids]);
+        return rows.map(row => row.postid);
       },
 
       // Remembered for the event truncation queries, which read the option as (int).

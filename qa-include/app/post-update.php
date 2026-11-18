@@ -61,6 +61,8 @@ define('QA_POST_STATUS_QUEUED', 2);
  */
 function qa_question_set_content($oldquestion, $title, $content, $format, $text, $tagstring, $notify, $userid, $handle, $cookieid, $extravalue = null, $name = null, $remoderate = false, $silent = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	qa_post_unindex($oldquestion['postid']);
 
 	$wasqueued = ($oldquestion['type'] == 'Q_QUEUED');
@@ -157,6 +159,8 @@ function qa_question_set_content($oldquestion, $title, $content, $format, $text,
  */
 function qa_question_set_selchildid($userid, $handle, $cookieid, $oldquestion, $selchildid, $answers)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$oldselchildid = $oldquestion['selchildid'];
 
 	$lastip = qa_remote_ip_address();
@@ -227,6 +231,8 @@ function qa_question_set_selchildid($userid, $handle, $cookieid, $oldquestion, $
  */
 function qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (isset($oldquestion['closedbyid'])) {
 		qa_db_post_set_closed($oldquestion['postid'], null, $userid, qa_remote_ip_address());
 
@@ -258,6 +264,8 @@ function qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, 
  */
 function qa_question_close_duplicate($oldquestion, $oldclosepost, $originalpostid, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, $cookieid);
 
 	qa_db_post_set_closed($oldquestion['postid'], $originalpostid, $userid, qa_remote_ip_address());
@@ -287,6 +295,8 @@ function qa_question_close_duplicate($oldquestion, $oldclosepost, $originalposti
  */
 function qa_question_close_other($oldquestion, $oldclosepost, $note, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, $cookieid);
 
 	$postid = qa_db_post_create('NOTE', $oldquestion['postid'], $userid, isset($userid) ? null : $cookieid,
@@ -347,6 +357,8 @@ function qa_question_set_hidden($oldquestion, $hidden, $userid, $handle, $cookie
  */
 function qa_question_set_status($oldquestion, $status, $userid, $handle, $cookieid, $answers, $commentsfollows, $closepost = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/format.php';
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
@@ -521,6 +533,8 @@ function qa_question_set_status($oldquestion, $status, $userid, $handle, $cookie
  */
 function qa_question_set_category($oldquestion, $categoryid, $userid, $handle, $cookieid, $answers, $commentsfollows, $closepost = null, $silent = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$oldpath = qa_db_post_get_category_path($oldquestion['postid']);
 
 	qa_db_post_set_category($oldquestion['postid'], $categoryid, $silent ? null : $userid, $silent ? null : qa_remote_ip_address());
@@ -576,6 +590,8 @@ function qa_question_set_category($oldquestion, $categoryid, $userid, $handle, $
  */
 function qa_question_delete($oldquestion, $userid, $handle, $cookieid, $oldclosepost = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	if ($oldquestion['type'] != 'Q_HIDDEN')
@@ -621,6 +637,8 @@ function qa_question_delete($oldquestion, $userid, $handle, $cookieid, $oldclose
  */
 function qa_question_set_userid($oldquestion, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	$postid = $oldquestion['postid'];
@@ -693,6 +711,8 @@ function qa_question_uncache($questionId)
  */
 function qa_answer_set_content($oldanswer, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $name = null, $remoderate = false, $silent = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	qa_post_unindex($oldanswer['postid']);
 
 	$wasqueued = ($oldanswer['type'] == 'A_QUEUED');
@@ -786,6 +806,8 @@ function qa_answer_set_hidden($oldanswer, $hidden, $userid, $handle, $cookieid, 
  */
 function qa_answer_set_status($oldanswer, $status, $userid, $handle, $cookieid, $question, $commentsfollows)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/format.php';
 
 	$washidden = ($oldanswer['type'] == 'A_HIDDEN');
@@ -1022,6 +1044,8 @@ function qa_private_question_cache_recalc($oldquestion, $difference)
  */
 function qa_answer_delete($oldanswer, $question, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	if ($oldanswer['type'] != 'A_HIDDEN')
@@ -1066,6 +1090,8 @@ function qa_answer_delete($oldanswer, $question, $userid, $handle, $cookieid)
  */
 function qa_answer_set_userid($oldanswer, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	$postid = $oldanswer['postid'];
@@ -1109,6 +1135,8 @@ function qa_answer_set_userid($oldanswer, $userid, $handle, $cookieid)
  */
 function qa_comment_set_content($oldcomment, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $parent, $name = null, $remoderate = false, $silent = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (!isset($parent))
 		$parent = $question; // for backwards compatibility with old answer parameter
 
@@ -1195,6 +1223,8 @@ function qa_comment_set_content($oldcomment, $content, $format, $text, $notify, 
  */
 function qa_answer_to_comment($oldanswer, $parentid, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $answers, $commentsfollows, $name = null, $remoderate = false, $silent = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	$parent = isset($answers[$parentid]) ? $answers[$parentid] : $question;
@@ -1320,6 +1350,8 @@ function qa_comment_set_hidden($oldcomment, $hidden, $userid, $handle, $cookieid
  */
 function qa_comment_set_status($oldcomment, $status, $userid, $handle, $cookieid, $question, $parent)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/format.php';
 
 	if (!isset($parent))
@@ -1463,6 +1495,8 @@ function qa_comment_set_status($oldcomment, $status, $userid, $handle, $cookieid
  */
 function qa_comment_delete($oldcomment, $question, $parent, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (!isset($parent))
 		$parent = $question; // for backwards compatibility with old answer parameter
 
@@ -1497,6 +1531,8 @@ function qa_comment_delete($oldcomment, $question, $parent, $userid, $handle, $c
  */
 function qa_comment_set_userid($oldcomment, $userid, $handle, $cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/votes.php';
 
 	$postid = $oldcomment['postid'];

@@ -113,3 +113,131 @@ function qa_comment_create($userid, $handle, $cookieid, $content, $format, $text
     return node_bridge_create_post('/api/v1/posts/' . (int)$parentid . '/comments',
         node_bridge_post_body($content, $format, $notify, $email, $name));
 }
+
+// Editing. pages/question-post.php validates each edit form for redisplay, then calls these.
+function qa_question_set_content($oldquestion, $title, $content, $format, $text, $tagstring, $notify, $userid, $handle, $cookieid, $extravalue = null, $name = null, $remoderate = false, $silent = false)
+{
+    global $node_bridge_moved_questions;
+    $body = node_bridge_edit_body($content, $format, $notify, $name, $silent);
+    $body['title'] = (string)$title;
+    $body['tags'] = qa_tagstring_to_tags($tagstring);
+    if (isset($extravalue)) $body['extra'] = (string)$extravalue;
+    // The page moves the question with a separate call; Node takes the new category with the edit.
+    if (qa_using_categories() && qa_post_text('q_dosave') !== null) {
+        $categoryid = qa_get_category_field_value('q_category');
+        $body['categoryid'] = strlen((string)$categoryid) ? (int)$categoryid : null;
+        $node_bridge_moved_questions[$oldquestion['postid']] = true;
+    }
+    node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldquestion['postid'], $body);
+}
+
+function qa_question_set_category($oldquestion, $categoryid, $userid, $handle, $cookieid, $answers, $commentsfollows, $closepost = null, $silent = false)
+{
+    global $node_bridge_moved_questions;
+    if (!empty($node_bridge_moved_questions[$oldquestion['postid']])) return; // already sent with the edit
+    node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldquestion['postid'],
+        array('categoryid' => isset($categoryid) ? (int)$categoryid : null, 'silent' => (bool)$silent));
+}
+
+function qa_answer_set_content($oldanswer, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $name = null, $remoderate = false, $silent = false)
+{
+    node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldanswer['postid'], node_bridge_edit_body($content, $format, $notify, $name, $silent));
+}
+
+function qa_answer_to_comment($oldanswer, $parentid, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $answers, $commentsfollows, $name = null, $remoderate = false, $silent = false)
+{
+    $body = node_bridge_edit_body($content, $format, $notify, $name, $silent);
+    $body['convertToCommentOn'] = (int)$parentid;
+    node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldanswer['postid'], $body);
+}
+
+function qa_comment_set_content($oldcomment, $content, $format, $text, $notify, $userid, $handle, $cookieid, $question, $parent, $name = null, $remoderate = false, $silent = false)
+{
+    node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldcomment['postid'], node_bridge_edit_body($content, $format, $notify, $name, $silent));
+}
+
+// Selecting, closing, hiding/approving, deleting and claiming. A call with no user is a system
+// action (for example a post hidden by flags, which is not migrated yet) and stays in PHP.
+function node_bridge_is_system($userid, $cookieid)
+{
+    return !isset($userid) && !isset($cookieid);
+}
+
+function qa_question_set_selchildid($userid, $handle, $cookieid, $oldquestion, $selchildid, $answers)
+{
+    if (node_bridge_is_system($userid, $cookieid)) return qa_question_set_selchildid_base($userid, $handle, $cookieid, $oldquestion, $selchildid, $answers);
+    node_bridge_change_post('PUT', '/api/v1/questions/' . (int)$oldquestion['postid'] . '/selected-answer', array('answerId' => isset($selchildid) ? (int)$selchildid : null));
+}
+
+function qa_question_close_clear($oldquestion, $oldclosepost, $userid, $handle, $cookieid)
+{
+    if (node_bridge_is_system($userid, $cookieid)) return qa_question_close_clear_base($oldquestion, $oldclosepost, $userid, $handle, $cookieid);
+    node_bridge_change_post('DELETE', '/api/v1/questions/' . (int)$oldquestion['postid'] . '/close', new stdClass());
+}
+
+function qa_question_close_duplicate($oldquestion, $oldclosepost, $originalpostid, $userid, $handle, $cookieid)
+{
+    // Node reads the duplicate's ID from a link to it, as the close form does.
+    node_bridge_change_post('POST', '/api/v1/questions/' . (int)$oldquestion['postid'] . '/close', array('details' => qa_path_absolute((string)(int)$originalpostid)));
+}
+
+function qa_question_close_other($oldquestion, $oldclosepost, $note, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('POST', '/api/v1/questions/' . (int)$oldquestion['postid'] . '/close', array('details' => (string)$note));
+}
+
+// The click that led here, from the old type and the new status (Node decides a reshown post's status itself).
+function node_bridge_status_action($oldtype, $status)
+{
+    $queued = substr($oldtype, 1) === '_QUEUED';
+    if ($status == QA_POST_STATUS_HIDDEN) return $queued ? 'reject' : 'hide';
+    return $queued ? 'approve' : 'reshow';
+}
+
+function qa_question_set_status($oldquestion, $status, $userid, $handle, $cookieid, $answers, $commentsfollows, $closepost = null)
+{
+    if (node_bridge_is_system($userid, $cookieid)) return qa_question_set_status_base($oldquestion, $status, $userid, $handle, $cookieid, $answers, $commentsfollows, $closepost);
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldquestion['postid'] . '/status', array('action' => node_bridge_status_action($oldquestion['type'], $status)));
+}
+
+function qa_answer_set_status($oldanswer, $status, $userid, $handle, $cookieid, $question, $commentsfollows)
+{
+    if (node_bridge_is_system($userid, $cookieid)) return qa_answer_set_status_base($oldanswer, $status, $userid, $handle, $cookieid, $question, $commentsfollows);
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldanswer['postid'] . '/status', array('action' => node_bridge_status_action($oldanswer['type'], $status)));
+}
+
+function qa_comment_set_status($oldcomment, $status, $userid, $handle, $cookieid, $question, $parent)
+{
+    if (node_bridge_is_system($userid, $cookieid)) return qa_comment_set_status_base($oldcomment, $status, $userid, $handle, $cookieid, $question, $parent);
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldcomment['postid'] . '/status', array('action' => node_bridge_status_action($oldcomment['type'], $status)));
+}
+
+function qa_question_delete($oldquestion, $userid, $handle, $cookieid, $oldclosepost = null)
+{
+    node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldquestion['postid'], new stdClass());
+}
+
+function qa_answer_delete($oldanswer, $question, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldanswer['postid'], new stdClass());
+}
+
+function qa_comment_delete($oldcomment, $question, $parent, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldcomment['postid'], new stdClass());
+}
+
+function qa_question_set_userid($oldquestion, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldquestion['postid'] . '/claim', new stdClass());
+}
+
+function qa_answer_set_userid($oldanswer, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldanswer['postid'] . '/claim', new stdClass());
+}
+
+function qa_comment_set_userid($oldcomment, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldcomment['postid'] . '/claim', new stdClass());
+}

@@ -8,7 +8,7 @@ function created(res, result, secureCookies) {
   res.status(201).json({ id: result.id, type: result.type, queued: result.queued });
 }
 
-function postRoutes({ voteService, postService, secureCookies }) {
+function postRoutes({ voteService, postService, postChangeService, secureCookies }) {
   const router = Router();
   router.use(requireApiRequest);
   // Equivalent of the original ajax "vote" operation; the body holds -1, 0 or 1.
@@ -23,15 +23,43 @@ function postRoutes({ voteService, postService, secureCookies }) {
       token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), parentid: postIdParam(req.params.postid), body: req.body,
     }), secureCookies);
   });
+  // Edit a question, answer or comment; an answer can also become a comment (convertToCommentOn).
+  if (postChangeService) router.patch('/:postid', async (req, res) => {
+    res.json(await postChangeService.editPost({
+      token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), postid: postIdParam(req.params.postid), body: req.body,
+    }));
+  });
+  // Hide, reshow, approve or reject ({ action }), delete a hidden post, or claim an anonymous one.
+  if (postChangeService) {
+    const change = method => async (req, res) => {
+      res.json(await postChangeService[method]({
+        token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), postid: postIdParam(req.params.postid), body: req.body,
+      }));
+    };
+    router.post('/:postid/status', change('setStatus'));
+    router.delete('/:postid', change('deletePost'));
+    router.post('/:postid/claim', change('claimPost'));
+  }
   return router;
 }
 
-function questionRoutes({ postService, secureCookies }) {
+function questionRoutes({ postService, postChangeService, secureCookies }) {
   const router = Router();
   router.use(requireApiRequest);
   router.post('/', async (req, res) => {
     created(res, await postService.createQuestion({ token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), body: req.body }), secureCookies);
   });
+  // Select or unselect the best answer ({ answerId } or null), close ({ details }) and reopen.
+  if (postChangeService) {
+    const change = method => async (req, res) => {
+      res.json(await postChangeService[method]({
+        token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), questionid: postIdParam(req.params.questionid), body: req.body,
+      }));
+    };
+    router.put('/:questionid/selected-answer', change('selectAnswer'));
+    router.post('/:questionid/close', change('closeQuestion'));
+    router.delete('/:questionid/close', change('reopenQuestion'));
+  }
   router.post('/:questionid/answers', async (req, res) => {
     created(res, await postService.createAnswer({
       token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), questionid: postIdParam(req.params.questionid), body: req.body,
