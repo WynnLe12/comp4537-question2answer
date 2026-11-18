@@ -29,7 +29,7 @@ function postRoutes({ voteService, postService, postChangeService, secureCookies
       token: readToken(req), cookieid: readVisitorCookie(req), ip: clientIp(req.ip), postid: postIdParam(req.params.postid), body: req.body,
     }));
   });
-  // Hide, reshow, approve or reject ({ action }), delete a hidden post, or claim an anonymous one.
+  // Hide, reshow, approve or reject ({ action }), delete a hidden post, claim an anonymous one, or flag.
   if (postChangeService) {
     const change = method => async (req, res) => {
       res.json(await postChangeService[method]({
@@ -39,6 +39,10 @@ function postRoutes({ voteService, postService, postChangeService, secureCookies
     router.post('/:postid/status', change('setStatus'));
     router.delete('/:postid', change('deletePost'));
     router.post('/:postid/claim', change('claimPost'));
+    // Flag a post (hiding it once it has enough flags), take the flag back, or clear every flag.
+    router.put('/:postid/flag', change('flagPost'));
+    router.delete('/:postid/flag', change('unflagPost'));
+    router.delete('/:postid/flags', change('clearFlags'));
   }
   return router;
 }

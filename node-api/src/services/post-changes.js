@@ -607,6 +607,7 @@ function createPostChangeService(repository, { identify }) {
     const { q } = ctx;
     const post = postid ? await q.findPost(postid, { lock: true }) : undefined;
     if (!post || !['Q', 'A', 'C'].includes(post.basetype)) throw new ApiError(404, 'post_not_found');
+    post.userflag = ctx.userid !== null ? await q.userFlag(post.postid, ctx.userid) : null;
     const page = await questionPage(ctx, post);
     let rules;
     if (post.basetype === 'Q') rules = postRules(ctx, post, null, null, page.children);
@@ -708,7 +709,70 @@ function createPostChangeService(repository, { identify }) {
     });
   }
 
-  return { editPost, selectAnswer, closeQuestion, reopenQuestion, setStatus, deletePost, claimPost, internals: { questionPage, questionCacheRecalc, questionBasicCacheRecalc, disableAnswerRecalc, flaggedChange, eventsForCategory } };
+  // ---------------------------------------------------------------------------------------------
+  // Flags: the flag, unflag and clear-flags buttons of qa_page_q_single_click_q/a/c, with
+  // qa_flag_error_html(), qa_flag_set_tohide(), qa_flag_clear() and qa_flags_clear_all().
+
+  const FLAG_ERRORS = { login: [401, 'unauthenticated'], confirm: [403, 'flag_must_confirm'], limit: [429, 'flag_limit'] };
+
+  async function flagPost(request) {
+    return transaction(request, async ctx => {
+      const { q, options } = ctx;
+      const { post, page, rules } = await postWithRules(ctx, request.postid);
+      if (!rules.flagbutton) throw new ApiError(403, 'flag_not_allowed');
+      // qa_flag_error_html()
+      if (post.userid !== null && Number(post.userid) === Number(ctx.userid)) throw new ApiError(403, 'flag_not_allowed');
+      const limits = await q.findLimits(ctx.userid, ctx.ip, LIMIT.FLAGS);
+      const error = permit(ctx, 'permit_flag', rules.userlevel, LIMIT.FLAGS, limits);
+      if (error) throw new ApiError(...(FLAG_ERRORS[error] ?? [403, 'no_permission']));
+      // qa_flag_set_tohide()
+      await q.userflagSet(post.postid, ctx.userid, true);
+      await q.recountFlags(post.postid, 1);
+      await q.flaggedcountUpdate(1);
+      await report(ctx, actorOf(ctx), LIMIT.FLAGS); // *_flag
+      const flagcount = Number(post.flagcount) + 1;
+      let type = post.type;
+      if (flagcount >= Number(options.get('flagging_hide_after'))) {
+        // The page hides it as a system action ("not really by this user"), passing the post as it
+        // was loaded before the flag.
+        const change = { Q: questionSetStatus, A: answerSetStatus, C: commentSetStatus }[post.basetype];
+        type = await change(ctx, page, post, STATUS.HIDDEN, null);
+      }
+      return { id: post.postid, flagcount, type };
+    });
+  }
+
+  async function unflagPost(request) {
+    return transaction(request, async ctx => {
+      const { q } = ctx;
+      const { post, rules } = await postWithRules(ctx, request.postid);
+      if (!rules.unflaggable) throw new ApiError(403, 'unflag_not_allowed');
+      // qa_flag_clear()
+      await q.userflagSet(post.postid, ctx.userid, false);
+      await q.recountFlags(post.postid, -1);
+      await q.flaggedcountUpdate(-1);
+      await report(ctx, actorOf(ctx)); // *_unflag
+      return { id: post.postid, flagcount: Number(post.flagcount) - 1 };
+    });
+  }
+
+  // The question page offers this button (clearflaggable); the admin flagged-posts page only checks
+  // permit_hide_show (qa_admin_single_click), so either is accepted.
+  async function clearFlags(request) {
+    return transaction(request, async ctx => {
+      const { q } = ctx;
+      const { post, rules } = await postWithRules(ctx, request.postid);
+      if (!rules.clearflaggable && permit(ctx, 'permit_hide_show', rules.userlevel)) throw new ApiError(403, 'clearflags_not_allowed');
+      // qa_flags_clear_all()
+      const cleared = await q.userflagsClearAll(post.postid);
+      await q.flaggedcountUpdate(-cleared);
+      await q.resetFlags(post.postid);
+      await report(ctx, actorOf(ctx)); // *_clearflags
+      return { id: post.postid, flagcount: 0 };
+    });
+  }
+
+  return { flagPost, unflagPost, clearFlags, editPost, selectAnswer, closeQuestion, reopenQuestion, setStatus, deletePost, claimPost, internals: { questionPage, questionCacheRecalc, questionBasicCacheRecalc, disableAnswerRecalc, flaggedChange, eventsForCategory } };
 }
 // PHP's FILTER_VALIDATE_URL: a scheme and, for web addresses, a host.
 function isUrl(value) {

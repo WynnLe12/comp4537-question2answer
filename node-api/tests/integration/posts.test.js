@@ -44,3 +44,23 @@ describe('posting API request handling (service replaced in these tests)', () =>
     await request(app).post('/api/v1/questions').set('X-Q2A-Request', '1').send({ content: 'é'.repeat(12000) }).expect(201);
   });
 });
+
+describe('flag routes (service replaced in these tests)', () => {
+  const calls = [];
+  const postChangeService = new Proxy({}, { get: (target, name) => async request => { calls.push([name, request]); return { id: request.postid }; } });
+  const app = createApp({ service: {}, postChangeService });
+  test.each([
+    ['put', '/api/v1/posts/12/flag', 'flagPost'],
+    ['delete', '/api/v1/posts/12/flag', 'unflagPost'],
+    ['delete', '/api/v1/posts/12/flags', 'clearFlags'],
+  ])('%s %s calls %s with the post ID', async (method, path, name) => {
+    calls.length = 0;
+    await request(app)[method](path).set('X-Q2A-Request', '1').send({}).expect(200);
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0]).toBe(name);
+    expect(calls[0][1]).toMatchObject({ postid: 12 });
+  });
+  test('require the API request header', async () => {
+    await request(app).put('/api/v1/posts/12/flag').send({}).expect(403);
+  });
+});

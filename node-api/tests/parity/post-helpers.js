@@ -151,6 +151,9 @@ function apiDriver(pool) {
         reopen: () => client.delete(`/api/v1/questions/${questionid}/close`).send({}),
         delete: () => client.delete(`/api/v1/posts/${postid}`).send({}),
         claim: () => client.post(`/api/v1/posts/${postid}/claim`).send({}),
+        flag: () => client.put(`/api/v1/posts/${postid}/flag`).send({}),
+        unflag: () => client.delete(`/api/v1/posts/${postid}/flag`).send({}),
+        clearflags: () => client.delete(`/api/v1/posts/${postid}/flags`).send({}),
       }[action] ?? (() => client.post(`/api/v1/posts/${postid}/status`).send({ action }));
       const response = await call().set('X-Q2A-Request', '1');
       return response.status === 200
@@ -197,6 +200,12 @@ async function createFixtures(pool, handles, token) {
   ids.a = await insert('A', ids.qa, users.owner, '2026-02-01 12:00:00', null, 'Add a composite index on the filtered columns.');
   ids.c1 = await insert('C', ids.a, users.other, '2026-02-01 13:00:00', null, 'Would a covering index be better here?');
   ids.hidden = await insert('Q_HIDDEN', null, users.owner, '2026-02-01 10:00:00', `Hidden fixture ${token} question`, 'Hidden body text');
+  // Give the fixture questions the hotness Q2A would have computed; the site drivers' page views
+  // recompute it anyway, and the API driver never views a page.
+  await pool.query(
+    "UPDATE qa_posts p LEFT JOIN (SELECT parentid, COUNT(*) AS n, MAX(created) AS last FROM qa_posts WHERE type='A' GROUP BY parentid) a ON a.parentid=p.postid " +
+    'SET p.hotness = ((TO_DAYS(p.created)-734138)*86400.0+TIME_TO_SEC(p.created))*100 + ((TO_DAYS(COALESCE(a.last,p.created))-734138)*86400.0+TIME_TO_SEC(COALESCE(a.last,p.created)))*100 ' +
+    '+ COALESCE(a.n,0)*100*160000 + p.netvotes*100*160000 + p.views*100*4000 WHERE p.postid IN (?)', [[ids.q, ids.qa, ids.hidden]]);
   // Q2A keeps these totals consistent as posts are created; recount them for the new fixtures.
   for (const [key, where] of [
     ['cache_qcount', "type='Q'"], ['cache_acount', "type='A'"], ['cache_ccount', "type='C'"],
@@ -208,7 +217,7 @@ async function createFixtures(pool, handles, token) {
   return { ids, users };
 }
 
-const CACHES = ['cache_qcount', 'cache_acount', 'cache_ccount', 'cache_unaqcount', 'cache_unselqcount', 'cache_unupaqcount', 'cache_queuedcount', 'cache_userpointscount'];
+const CACHES = ['cache_qcount', 'cache_acount', 'cache_ccount', 'cache_unaqcount', 'cache_unselqcount', 'cache_unupaqcount', 'cache_queuedcount', 'cache_userpointscount', 'cache_flaggedcount'];
 
 // Everything the create functions write, with IDs replaced by labels and the per-backend token masked.
 async function snapshot(backend, newId, focusId = newId) {
@@ -282,12 +291,20 @@ async function snapshot(backend, newId, focusId = newId) {
     points[label] = row ?? null;
   }
   const limits = {};
-  for (const action of ['Q', 'A', 'C']) {
+  for (const action of ['Q', 'A', 'C', 'F']) {
     const [[user]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_userlimits WHERE userid=? AND action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [users.actor, action]);
     const [[ip]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_iplimits WHERE action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [action]);
     limits[action] = [Number(user.n), Number(ip.n)];
   }
   const [[actor]] = await pool.execute('SELECT written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_users WHERE userid=?', [users.actor]);
+  const writers = {};
+  for (const [label, userid] of Object.entries(users)) {
+    const [[row]] = await pool.execute('SELECT written IS NOT NULL AS written FROM qa_users WHERE userid=?', [userid]);
+    writers[label] = row.written;
+  }
+  // Votes and flags on the tracked posts.
+  const [voteRows] = await pool.query('SELECT postid, userid, vote, flag FROM qa_uservotes WHERE postid IN (?)', [postIds]);
+  const uservotes = sortRows(voteRows.map(row => ({ postid: pl(row.postid), userid: ul(row.userid), vote: row.vote, flag: row.flag })));
 
   // Update streams for every question involved.
   const questionIds = postRows.filter(row => row.type.startsWith('Q')).map(row => Number(row.postid));
@@ -309,7 +326,7 @@ async function snapshot(backend, newId, focusId = newId) {
     ? await pool.query('SELECT INET6_NTOA(createip) AS createip, written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_cookies WHERE cookieid IN (?)', [cookieids])
     : [[]];
 
-  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, events, cookies: sortRows(cookies) };
+  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, writers, uservotes, events, cookies: sortRows(cookies) };
 }
 
 // Values that depend on each database's earlier history are compared as changes.

@@ -225,6 +225,13 @@ function createPostHelpers({ identify }) {
       else r.retagcatbutton = false;
     }
     r.aselectable = post.type === 'Q' && !pe(r.isbyuser ? null : 'permit_select_a');
+    // post.userflag is the viewer's own flag, which the page loads with the post.
+    const flag = pe('permit_flag');
+    const userflag = Boolean(Number(post.userflag ?? 0));
+    r.flagbutton = o('flagging_of_posts') && !r.isbyuser && !hidden && !queued && !userflag && !buttonErrors.includes(flag);
+    r.flagtohide = r.flagbutton && !flag && Number(post.flagcount) + 1 >= Number(options.get('flagging_hide_after'));
+    r.unflaggable = userflag && !hidden;
+    r.clearflaggable = Number(post.flagcount) >= (userflag ? 2 : 1) && !hideShow;
     const notclosedbyother = !(r.closed && post.closedbyid !== null && !r.authorlast);
     const nothiddenbyother = !(hidden && !r.authorlast);
     r.closeable = o('allow_close_questions') && post.type === 'Q' && !r.closed && closeOpen === false;

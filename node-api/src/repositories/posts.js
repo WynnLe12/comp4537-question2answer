@@ -296,6 +296,26 @@ function createPostRepository(pool) {
         const [[row]] = await db.query('SELECT amaxvote FROM qa_posts WHERE postid=?', [questionid]);
         return Number(row.amaxvote);
       },
+      // --- flags (db/votes.php, db/post-update.php) ---
+      async userFlag(postid, userid) {
+        const [[row]] = await db.query('SELECT flag FROM qa_uservotes WHERE postid=? AND userid=? FOR UPDATE', [postid, userid]);
+        return row ? Number(row.flag) : 0;
+      },
+      // qa_db_userflag_set()
+      async userflagSet(postid, userid, flag) {
+        await db.query('INSERT INTO qa_uservotes (postid, userid, vote, flag) VALUES (?, ?, 0, ?) ON DUPLICATE KEY UPDATE flag=?', [postid, userid, flag ? 1 : 0, flag ? 1 : 0]);
+      },
+      // qa_db_post_recount_flags() with an increment
+      async recountFlags(postid, increment) {
+        await db.query('UPDATE qa_posts SET flagcount = flagcount + ? WHERE postid = ?', [increment, postid]);
+      },
+      // qa_db_userflags_clear_all(): returns the rows changed, as qa_db_affected_rows() does.
+      async userflagsClearAll(postid) {
+        const [result] = await db.query('UPDATE qa_uservotes SET flag=0 WHERE postid=?', [postid]);
+        return result.changedRows;
+      },
+      // qa_db_post_reset_flags()
+      async resetFlags(postid) { await db.query('UPDATE qa_posts SET flagcount = 0 WHERE postid = ?', [postid]); },
       flaggedcountUpdate: counted('cache_flaggedcount', "SELECT COUNT(*) FROM qa_posts WHERE flagcount > 0 AND type IN ('Q', 'A', 'C')"),
       // qa_db_posts_filter_q_postids()
       async filterQuestionIds(postids) {

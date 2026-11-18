@@ -156,8 +156,9 @@ function qa_comment_set_content($oldcomment, $content, $format, $text, $notify, 
     node_bridge_change_post('PATCH', '/api/v1/posts/' . (int)$oldcomment['postid'], node_bridge_edit_body($content, $format, $notify, $name, $silent));
 }
 
-// Selecting, closing, hiding/approving, deleting and claiming. A call with no user is a system
-// action (for example a post hidden by flags, which is not migrated yet) and stays in PHP.
+// Selecting, closing, hiding/approving, deleting and claiming. Posts hidden by flags are hidden by
+// Node itself when the flag is set (see qa_flag_set_tohide below); a call with no user can still come
+// from a plugin calling these functions directly, and stays in PHP.
 function node_bridge_is_system($userid, $cookieid)
 {
     return !isset($userid) && !isset($cookieid);
@@ -240,4 +241,23 @@ function qa_answer_set_userid($oldanswer, $userid, $handle, $cookieid)
 function qa_comment_set_userid($oldcomment, $userid, $handle, $cookieid)
 {
     node_bridge_change_post('POST', '/api/v1/posts/' . (int)$oldcomment['postid'] . '/claim', new stdClass());
+}
+
+// Flags. The page still runs qa_flag_error_html() so it can show its message; Node checks again,
+// sets the flag and, when the post has enough flags, hides it in the same transaction. Returning
+// false stops the page from hiding it a second time.
+function qa_flag_set_tohide($oldpost, $userid, $handle, $cookieid, $question)
+{
+    node_bridge_change_post('PUT', '/api/v1/posts/' . (int)$oldpost['postid'] . '/flag', new stdClass());
+    return false;
+}
+
+function qa_flag_clear($oldpost, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldpost['postid'] . '/flag', new stdClass());
+}
+
+function qa_flags_clear_all($oldpost, $userid, $handle, $cookieid)
+{
+    node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldpost['postid'] . '/flags', new stdClass());
 }

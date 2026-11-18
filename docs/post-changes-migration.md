@@ -54,9 +54,10 @@ closing); 429 `comment_limit`, `ask_limit`, `answer_limit` for conversions and c
 overrides them to call Node and sends `X-Q2A-Post-Backend: node-api-v1`. As with posting, the
 PHP page validates the forms for redisplay and Node checks everything again.
 
-A call with no user and no visitor cookie is a system action (today only a post hidden
-automatically by flags, which is not migrated yet), so the bridge runs PHP's own function for it.
-That fallback goes away with the flags slice.
+A call with no user and no visitor cookie is a system action, so the bridge runs PHP's own
+function for it. Q2A itself only makes one when flags hide a post, and since the
+[flags slice](flags-migration.md) Node does that hiding itself; the fallback remains only for
+plugins that call these functions directly.
 
 ## Parity tests
 
