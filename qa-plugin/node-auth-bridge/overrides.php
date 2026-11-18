@@ -80,3 +80,36 @@ function qa_vote_set($post, $userid, $handle, $cookieid, $vote)
     $error = node_bridge_vote($post['postid'], $vote, qa_request());
     if ($error !== false) qa_fatal_error('Node vote failed: ' . strip_tags($error));
 }
+
+// Posting. The page controllers (pages/ask.php, pages/question-submit.php) still validate the form
+// so they can redisplay it with errors; the create functions they call are sent to Node.
+function qa_cookie_get_create()
+{
+    // Node checks the visitor cookie and creates one if needed when the post is made.
+    return qa_cookie_get();
+}
+
+function qa_question_create($followanswer, $userid, $handle, $cookieid, $title, $content, $format, $text, $tagstring, $notify, $email,
+    $categoryid = null, $extravalue = null, $queued = false, $name = null)
+{
+    $body = node_bridge_post_body($content, $format, $notify, $email, $name);
+    $body['title'] = (string)$title;
+    $body['tags'] = qa_tagstring_to_tags($tagstring);
+    $body['categoryid'] = isset($categoryid) ? (int)$categoryid : null;
+    $body['followAnswerId'] = isset($followanswer['postid']) ? (int)$followanswer['postid'] : null;
+    if (isset($extravalue)) $body['extra'] = (string)$extravalue;
+    return node_bridge_create_post('/api/v1/questions', $body);
+}
+
+function qa_answer_create($userid, $handle, $cookieid, $content, $format, $text, $notify, $email, $question, $queued = false, $name = null)
+{
+    return node_bridge_create_post('/api/v1/questions/' . (int)$question['postid'] . '/answers',
+        node_bridge_post_body($content, $format, $notify, $email, $name));
+}
+
+function qa_comment_create($userid, $handle, $cookieid, $content, $format, $text, $notify, $email, $question, $parent, $commentsfollows, $queued = false, $name = null)
+{
+    $parentid = isset($parent) ? $parent['postid'] : $question['postid'];
+    return node_bridge_create_post('/api/v1/posts/' . (int)$parentid . '/comments',
+        node_bridge_post_body($content, $format, $notify, $email, $name));
+}

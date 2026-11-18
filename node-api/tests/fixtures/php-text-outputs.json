@@ -1,0 +1,252 @@
+{
+ "note": "Outputs of qa_string_to_words() (default and tag mode) and qa_viewer_text(html), generated in the PHP container.",
+ "words": [
+  [
+   "Where should a JWT be stored in the browser?",
+   [
+    "where",
+    "should",
+    "a",
+    "jwt",
+    "be",
+    "stored",
+    "in",
+    "the",
+    "browser"
+   ],
+   [
+    "where",
+    "should",
+    "a",
+    "jwt",
+    "be",
+    "stored",
+    "in",
+    "the",
+    "browser"
+   ]
+  ],
+  [
+   "node.js & PHP—don't mix 'quotes' it's",
+   [
+    "node",
+    "js",
+    "&",
+    "php",
+    "dont",
+    "mix",
+    "quotes",
+    "its"
+   ],
+   [
+    "node",
+    "js",
+    "&",
+    "php-dont",
+    "mix",
+    "quotes",
+    "its"
+   ]
+  ],
+  [
+   "Ünïcödé Straße ÉCOLE café",
+   [
+    "ünïcödé",
+    "straße",
+    "école",
+    "café"
+   ],
+   [
+    "ünïcödé",
+    "straße",
+    "école",
+    "café"
+   ]
+  ],
+  [
+   "中文测试 mixed日本語text",
+   [
+    "中",
+    "文",
+    "测",
+    "试",
+    "mixed",
+    "日",
+    "本",
+    "語",
+    "text"
+   ],
+   [
+    "中文测试",
+    "mixed日本語text"
+   ]
+  ],
+  [
+   "tabs\tand\nnewlines  here",
+   [
+    "tabs",
+    "and",
+    "newlines",
+    "here"
+   ],
+   [
+    "tabs",
+    "and",
+    "newlines",
+    "here"
+   ]
+  ],
+  [
+   "a'b'c x' 'y",
+   [
+    "ab",
+    "c",
+    "x",
+    "y"
+   ],
+   [
+    "ab",
+    "c",
+    "x",
+    "y"
+   ]
+  ],
+  [
+   "hyphen-ated words -- and_under_scores",
+   [
+    "hyphen",
+    "ated",
+    "words",
+    "and_under_scores"
+   ],
+   [
+    "hyphen-ated",
+    "words",
+    "--",
+    "and_under_scores"
+   ]
+  ],
+  [
+   "C++ / C# @home $5 100% #tag",
+   [
+    "c",
+    "c#",
+    "@home",
+    "$5",
+    "100%",
+    "#tag"
+   ],
+   [
+    "c",
+    "c#",
+    "@home",
+    "$5",
+    "100%",
+    "#tag"
+   ]
+  ],
+  [
+   "emoji  gone",
+   [
+    "emoji",
+    "gone"
+   ],
+   [
+    "emoji",
+    "gone"
+   ]
+  ],
+  [
+   "«guillemets» ¿qué? “smart” ‘quotes’",
+   [
+    "guillemets",
+    "qué",
+    "smart",
+    "quotes"
+   ],
+   [
+    "guillemets",
+    "qué",
+    "smart",
+    "quotes"
+   ]
+  ],
+  [
+   "ไทย ภาษา",
+   [
+    "ไ",
+    "ท",
+    "ย",
+    "ภ",
+    "า",
+    "ษ",
+    "า"
+   ],
+   [
+    "ไทย",
+    "ภาษา"
+   ]
+  ],
+  [
+   "İstanbul ΣΊΣΥΦΟΣ",
+   [
+    "i̇stanbul",
+    "σίσυφος"
+   ],
+   [
+    "i̇stanbul",
+    "σίσυφος"
+   ]
+  ],
+  [
+   "foo bar baz",
+   [
+    "foo bar",
+    "baz"
+   ],
+   [
+    "foo bar",
+    "baz"
+   ]
+  ],
+  [
+   "x'y 'z",
+   [
+    "xy z"
+   ],
+   [
+    "xy z"
+   ]
+  ]
+ ],
+ "html": [
+  [
+   "<p>Hello <strong>world</strong></p><p>Second&nbsp;para &amp; more</p>",
+   "Hello world\n\nSecond para & more"
+  ],
+  [
+   "<ul><li>one</li><li>two</li></ul>",
+   "one\n\ntwo"
+  ],
+  [
+   "line<br>break<br />x",
+   "line\nbreak\nx"
+  ],
+  [
+   "<h2>Title</h2>\n\n<pre>code  here</pre>",
+   "Title\n\ncode here"
+  ],
+  [
+   "&lt;script&gt; &quot;q&quot; &#39;s&#39; &eacute;",
+   "<script> \"q\" 's' &eacute;"
+  ],
+  [
+   "<!-- c --><div>  spaced   out  </div>",
+   "spaced out"
+  ],
+  [
+   "<table><tr><td>a</td><td>b</td></tr></table>",
+   "a\n\nb"
+  ]
+ ]
+}

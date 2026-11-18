@@ -127,4 +127,43 @@ function userLevelForPost(post, user) {
   return level;
 }
 
-module.exports = { PERMIT, LEVEL, FLAGS, LIMIT, permitError, permitValueError, limitsRemaining, isIpBlocked, blockIpMatch, userPermitError, userLevelForPost };
+// qa_user_level_for_categories(): the user's level, raised by levels for any of these categories.
+function userLevelForCategories(categoryids, user) {
+  let level = user?.level ?? null;
+  for (const id of categoryids) {
+    const categoryLevel = user?.categoryLevels?.get(Number(id));
+    if (categoryLevel !== undefined) level = Math.max(lvl(level), categoryLevel);
+  }
+  return level;
+}
+
+// qa_user_level_maximum(): the highest level the user has anywhere.
+function userLevelMaximum(user) {
+  let level = user?.level ?? null;
+  for (const categoryLevel of user?.categoryLevels?.values() ?? []) level = Math.max(lvl(level), categoryLevel);
+  return level;
+}
+
+// qa_user_moderation_reason(): why a new post would go to the moderation queue, or false.
+function moderationReason(userlevel, user, ip, options) {
+  if (lvl(userlevel) >= LEVEL.EXPERT || !userPermitError({ permitoption: 'permit_moderate', user, ip, options })) return false;
+  if (user) {
+    if (phpBool(options.get('moderate_users')) && phpBool(options.get('moderate_unapproved')) && lvl(userlevel) < LEVEL.APPROVED) return 'approve';
+    if (phpBool(options.get('confirm_user_emails')) && phpBool(options.get('moderate_unconfirmed')) && !(Number(user.flags) & FLAGS.EMAIL_CONFIRMED)) return 'confirm';
+    if (phpBool(options.get('moderate_by_points')) && Number(user.points) < phpNum(options.get('moderate_points_limit'))) return 'points';
+    return false;
+  }
+  return phpBool(options.get('moderate_anon_post')) ? 'login' : false;
+}
+
+// qa_post_is_by_user()
+function postIsByUser(post, userid, cookieid) {
+  if (post.userid || userid) return Number(post.userid) === Number(userid);
+  if (post.cookieid) return String(post.cookieid) === String(cookieid);
+  return false;
+}
+
+module.exports = {
+  PERMIT, LEVEL, FLAGS, LIMIT, permitError, permitValueError, limitsRemaining, isIpBlocked, blockIpMatch, userPermitError,
+  userLevelForPost, userLevelForCategories, userLevelMaximum, moderationReason, postIsByUser,
+};

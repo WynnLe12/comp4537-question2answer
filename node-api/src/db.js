@@ -11,6 +11,8 @@ function createPool(overrides = {}) {
     timezone: 'Z',
     // Report changed rather than matched rows, like PHP's mysqli affected_rows.
     flags: ['-FOUND_ROWS'],
+    // 64-bit IDs (visitor cookie IDs) come back as exact strings instead of rounded numbers.
+    supportBigNumbers: true,
     ...overrides,
   });
 }

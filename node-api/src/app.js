@@ -1,19 +1,22 @@
 const express = require('express');
 const helmet = require('helmet');
 const { authRoutes } = require('./routes/v1/auth');
-const { postRoutes } = require('./routes/v1/posts');
+const { postRoutes, questionRoutes } = require('./routes/v1/posts');
 
-function createApp({ service, voteService, health = async () => {}, trustProxy = false, ...options }) {
+function createApp({ service, voteService, postService, health = async () => {}, trustProxy = false, ...options }) {
   const app = express();
   app.disable('x-powered-by');
   // The PHP bridge forwards the browser's address in X-Forwarded-For so IP limits and
   // recorded IPs match PHP's REMOTE_ADDR. Only proxies matching TRUST_PROXY are believed.
   app.set('trust proxy', trustProxy);
   app.use(helmet());
+  // Posts may hold 12000 characters (up to 36 kB of UTF-8); everything else stays small.
+  app.use(['/api/v1/questions', '/api/v1/posts'], express.json({ limit: '64kb', strict: true }));
   app.use(express.json({ limit: '16kb', strict: true }));
   app.get('/health', async (req, res) => { await health(); res.json({ status: 'ok' }); });
   app.use('/api/v1/auth', authRoutes(service, options));
-  if (voteService) app.use('/api/v1/posts', postRoutes(voteService));
+  if (voteService || postService) app.use('/api/v1/posts', postRoutes({ voteService, postService, secureCookies: options.secureCookies }));
+  if (postService) app.use('/api/v1/questions', questionRoutes({ postService, secureCookies: options.secureCookies }));
   app.get(['/demo', '/demo/'], (req, res) => res.redirect('http://localhost:8081/?qa=login'));
   app.use((req, res) => res.status(404).json({ error: { code: 'not_found' } }));
   app.use((error, req, res, next) => {

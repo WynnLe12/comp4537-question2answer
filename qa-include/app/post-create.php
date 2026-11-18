@@ -69,6 +69,8 @@ function qa_combine_notify_email($userid, $notify, $email)
 function qa_question_create($followanswer, $userid, $handle, $cookieid, $title, $content, $format, $text, $tagstring, $notify, $email,
 	$categoryid = null, $extravalue = null, $queued = false, $name = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/selects.php';
 
 	$postid = qa_db_post_create($queued ? 'Q_QUEUED' : 'Q', @$followanswer['postid'], $userid, isset($userid) ? null : $cookieid,
@@ -212,6 +214,8 @@ function qa_post_index($postid, $type, $questionid, $parentid, $title, $content,
  */
 function qa_answer_create($userid, $handle, $cookieid, $content, $format, $text, $notify, $email, $question, $queued = false, $name = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$postid = qa_db_post_create($queued ? 'A_QUEUED' : 'A', $question['postid'], $userid, isset($userid) ? null : $cookieid,
 		qa_remote_ip_address(), null, $content, $format, null, qa_combine_notify_email($userid, $notify, $email),
 		$question['categoryid'], isset($userid) ? null : $name);
@@ -296,6 +300,8 @@ function qa_update_q_counts_for_a($questionid, $difference = null)
  */
 function qa_comment_create($userid, $handle, $cookieid, $content, $format, $text, $notify, $email, $question, $parent, $commentsfollows, $queued = false, $name = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/emails.php';
 	require_once QA_INCLUDE_DIR . 'app/options.php';
 	require_once QA_INCLUDE_DIR . 'app/format.php';

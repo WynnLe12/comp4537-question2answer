@@ -1,9 +1,11 @@
 # Q2A → Node.js migration
 
 This fork explores whether AI-assisted development can reproduce selected Q2A
-backend behavior using Node.js REST APIs. Migrated slices so far: authentication and
-voting (see [the voting notes](docs/votes-migration.md)).
-The original PHP application remains the reference; this is not a full Q2A rewrite.
+backend using Node.js REST APIs, one feature at a time, with the original PHP application as
+the reference. The goal is the whole backend; [the roadmap](docs/migration-roadmap.md) lists
+every slice and its status. Done so far: authentication, voting
+([notes](docs/votes-migration.md)) and posting questions, answers and comments
+([notes](docs/posts-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -17,6 +19,9 @@ For an annotated, file-by-file code walkthrough, see
 - Demonstrate authentication through Q2A's original pages, theme, CSS, and JavaScript.
 - Vote on questions, answers and comments through Node, with PHP's permission checks, rate
   limits, points, hotness and cached counts. The original vote buttons call it through the bridge.
+- Ask questions, answer and comment through Node, signed in or anonymously, including the
+  moderation queue, the search word index, cached counts, points and update streams. The
+  original ask page and question page forms call it through the bridge.
 
 ## Start the demo
 
@@ -44,16 +49,41 @@ point to an accessible MySQL instance.
 | http://localhost:8080/?qa=register | Original PHP registration |
 | http://localhost:3000/health | Node API health |
 
-Use `alice` or `alice@example.test`, password `Password123!`, in either application.
+Seeded users: `alice`, `bob`, `carol` and `legacy` (legacy has an old salted-SHA-1 hash),
+all with password `Password123!`, in either application. Log in with the username or
+`<name>@example.test`. The seed also creates demo questions, answers, comments and votes
+(once, on the first start), so there is content to browse and vote on straight away.
 Both have separately seeded MySQL databases. Registering a new user in one does
 **not** create that user in the other. Their sessions are independent too.
 
 Both sites use the same frontend files from `qa-theme/`, `qa-content/`, and Q2A's
 existing page controllers. There is no separate demo design or duplicated frontend.
 On port 8081, a small PHP bridge forwards authentication to the Node REST API;
-PHP still renders the existing UI. Only authentication and voting have been migrated. Other
-Q2A features visible in the UI still run PHP and are not evidence of Node migration.
-Vote responses on port 8081 carry `X-Q2A-Vote-Backend: node-api-v1`.
+PHP still renders the existing UI. Authentication, voting and posting have been migrated; the
+other Q2A features visible in the UI still run PHP until their slice is done (see the roadmap).
+Vote responses on port 8081 carry `X-Q2A-Vote-Backend: node-api-v1`, and new posts
+`X-Q2A-Post-Backend: node-api-v1`.
+
+### Try voting
+
+On port 8081, log in as any seeded user, open a question someone else wrote (Q2A does not
+let you vote on your own posts), and click the up or down arrow. With developer tools →
+Network open, the vote request (`qa=ajax`, `qa_operation=vote`) returns
+`X-Q2A-Vote-Backend: node-api-v1`. Asking a question, answering or commenting on port 8081
+also goes through Node; the form submission's response carries `X-Q2A-Post-Backend: node-api-v1`.
+
+Databases created before the demo content was added get it on the next
+`docker compose up --build -d --wait`. To start from a clean seed, run
+`docker compose down -v` first (this deletes both development databases).
+
+To call the API directly, log in first so the session cookie is set:
+
+```sh
+curl -c jar -H 'X-Q2A-Request: 1' -H 'Content-Type: application/json' \
+  -d '{"emailhandle":"legacy","password":"Password123!"}' http://localhost:3000/api/v1/auth/login
+curl -b jar -X PUT -H 'X-Q2A-Request: 1' -H 'Content-Type: application/json' \
+  -d '{"vote":1}' http://localhost:3000/api/v1/posts/1/vote
+```
 
 ## Five-minute presentation walkthrough
 
@@ -106,7 +136,14 @@ docker compose run --rm --no-deps tests npm test
 docker compose run --build --rm tests
 ```
 
+To run one parity suite only, pass its file:
+
+```sh
+docker compose run --build --rm tests npx jest --runInBand tests/parity/votes.test.js
+```
+
 Alternatively, with Node 24 installed: `cd node-api`, `npm ci`, then `npm test`.
+The parity suite needs the Docker stack, because it talks to both sites and both databases.
 
 The API suite replaces database access with an in-memory test implementation.
 Its authentication tests verify JWT claims and reject tampered, expired, and
@@ -130,6 +167,9 @@ until it is installed under `.github/workflows/`.
 | `GET /api/v1/auth/me` | Read the signed-in user |
 | `POST /api/v1/auth/logout` | Revoke the session |
 | `PUT /api/v1/posts/:postid/vote` | Set, change or remove a vote (`-1`, `0`, `1`) |
+| `POST /api/v1/questions` | Ask a question |
+| `POST /api/v1/questions/:id/answers` | Answer a question |
+| `POST /api/v1/posts/:id/comments` | Comment on a question or answer |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -144,8 +184,11 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/routes/v1/auth.js` | HTTP routes, cookies, request protection, rate limiting |
 | `node-api/src/services/auth.js` | Validation and password/authentication logic |
 | `node-api/src/repositories/users.js` | MySQL queries and transactions |
-| `node-api/src/routes/v1/posts.js`, `services/votes.js`, `repositories/votes.js` | Voting route, rules and SQL |
-| `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits and points formulas |
+| `node-api/src/routes/v1/posts.js` | Vote, question, answer and comment routes |
+| `node-api/src/services/votes.js`, `repositories/votes.js` | Voting rules and SQL |
+| `node-api/src/services/posts.js`, `repositories/posts.js` | Posting rules and SQL |
+| `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |
+| `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits, points formulas and text/word splitting |
 | `qa-plugin/node-auth-bridge/` | Thin adapter from original Q2A forms to Node authentication |
 | `qa-theme/`, `qa-content/` | Existing shared frontend assets; no redesign |
 | `node-api/tests/` | API and parity suites |
