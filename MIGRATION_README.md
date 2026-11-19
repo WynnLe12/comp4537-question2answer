@@ -6,8 +6,8 @@ the reference. The goal is the whole backend; [the roadmap](docs/migration-roadm
 every slice and its status. Done so far: authentication, voting
 ([notes](docs/votes-migration.md)), posting questions, answers and comments
 ([notes](docs/posts-migration.md)), and changing them: editing, selecting answers, closing,
-hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)), and
-flagging ([notes](docs/flags-migration.md)).
+hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)),
+flagging ([notes](docs/flags-migration.md)) and favorites ([notes](docs/favorites-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -29,6 +29,8 @@ For an annotated, file-by-file code walkthrough, see
   anonymous ones through Node, from the original question page buttons and forms.
 - Flag posts, take a flag back and clear flags through Node; a post that reaches the flag
   threshold is hidden in the same request.
+- Add and remove favorite questions, users, tags and categories through Node, from the
+  favorite buttons (with or without JavaScript).
 
 ## Start the demo
 
@@ -186,6 +188,8 @@ until it is installed under `.github/workflows/`.
 | `PUT /api/v1/posts/:id/flag` | Flag a post (hidden once it has enough flags) |
 | `DELETE /api/v1/posts/:id/flag` | Take back your flag |
 | `DELETE /api/v1/posts/:id/flags` | Clear every flag on a post |
+| `PUT /api/v1/favorites/:type/:id` | Add a question, user, tag or category to your favorites |
+| `DELETE /api/v1/favorites/:type/:id` | Remove it from your favorites |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -204,6 +208,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/services/votes.js`, `repositories/votes.js` | Voting rules and SQL |
 | `node-api/src/services/posts.js`, `repositories/posts.js` | Posting rules and SQL |
 | `node-api/src/services/post-changes.js` | Editing, selecting, closing, status, deleting, claiming and flags |
+| `node-api/src/services/favorites.js`, `repositories/favorites.js`, `routes/v1/favorites.js` | Favorites and their update streams |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |
 | `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits, points formulas and text/word splitting |

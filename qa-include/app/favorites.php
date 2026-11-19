@@ -37,6 +37,8 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
  */
 function qa_user_favorite_set($userid, $handle, $cookieid, $entitytype, $entityid, $favorite)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/favorites.php';
 	require_once QA_INCLUDE_DIR . 'app/limits.php';
 	require_once QA_INCLUDE_DIR . 'app/updates.php';

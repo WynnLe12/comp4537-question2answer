@@ -104,6 +104,31 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, id: postid, backend: response.headers['x-q2a-post-backend'] }
         : { accepted: false, message: pageMessages(response.text) };
     },
+    // Presses the favorite button on a page (a question, a user profile or a tag page).
+    async favorite(page, entitytype, entityid, favorite) {
+      const path = typeof page === 'number' ? (await questionPage(page)).path : page;
+      const $ = cheerio.load((await client.get(path).redirects(3)).text);
+      const name = `favorite_${entitytype}_${entityid}_${favorite ? 1 : 0}`;
+      const button = $(`[name=${name}]`);
+      if (!button.length) return { accepted: false, message: '' };
+      const response = await client.post(path).type('form').send({ ...formFields($, button.closest('form')), [name]: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-favorite-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // The same button with JavaScript on: qa_favorite_click() posts to ajax/favorite.php.
+    async favoriteAjax(page, entitytype, entityid, favorite) {
+      const $ = cheerio.load((await client.get(page).redirects(3)).text);
+      const button = $(`[name=favorite_${entitytype}_${entityid}_${favorite ? 1 : 0}]`);
+      if (!button.length) return { accepted: false, message: '' };
+      const response = await client.post('/index.php').type('form').send({
+        entitytype, entityid: String(entityid), favorite: favorite ? '1' : '0', code: button.closest('form').find('[name=code]').val(),
+        qa: 'ajax', qa_operation: 'favorite', qa_root: './', qa_request: new URL(page, baseUrl).searchParams.get('qa') ?? '',
+      });
+      return /QA_AJAX_RESPONSE\s+1/.test(response.text)
+        ? { accepted: true, backend: response.headers['x-q2a-favorite-backend'] }
+        : { accepted: false, message: response.text.split('\n').slice(2).join(' ').trim() };
+    },
     async close(questionid, details) {
       const { $, path } = await questionPage(questionid, 'close');
       const form = $('[name=doclose]').closest('form');
@@ -159,6 +184,13 @@ function apiDriver(pool) {
       return response.status === 200
         ? { accepted: true, id: postid }
         : { accepted: false, status: response.status, code: response.body.error?.code, fields: response.body.error?.fields };
+    },
+    async favorite(page, entitytype, entityid, favorite) {
+      const type = { Q: 'questions', U: 'users', T: 'tags', C: 'categories' }[entitytype];
+      const response = await client[favorite ? 'put' : 'delete'](`/api/v1/favorites/${type}/${entityid}`).set('X-Q2A-Request', '1').send({});
+      return response.status === 200
+        ? { accepted: true }
+        : { accepted: false, status: response.status, code: response.body.error?.code };
     },
     async close(questionid, details) {
       const response = await client.post(`/api/v1/questions/${questionid}/close`).set('X-Q2A-Request', '1').send({ details });
@@ -302,6 +334,26 @@ async function snapshot(backend, newId, focusId = newId) {
     const [[row]] = await pool.execute('SELECT written IS NOT NULL AS written FROM qa_users WHERE userid=?', [userid]);
     writers[label] = row.written;
   }
+  // Favorites of the test users, with how many update events each copied into their stream.
+  const userIds = Object.values(users);
+  const favoriteEntity = async (type, id) => {
+    if (type === 'Q') return pl(id);
+    if (type === 'U') return ul(id);
+    if (type === 'T') {
+      const [[word]] = await pool.execute('SELECT word FROM qa_words WHERE wordid=?', [id]);
+      return mask(word?.word);
+    }
+    return String(id);
+  };
+  const [favoriteRows] = await pool.query(
+    'SELECT f.userid, f.entitytype, f.entityid, f.nouserevents, (SELECT COUNT(*) FROM qa_userevents e WHERE e.userid=f.userid AND e.entitytype=f.entitytype AND e.entityid=f.entityid) AS events ' +
+    'FROM qa_userfavorites f WHERE f.userid IN (?)', [userIds]);
+  const favorites = sortRows(await Promise.all(favoriteRows.map(async row => ({
+    userid: ul(row.userid), entitytype: row.entitytype, entityid: await favoriteEntity(row.entitytype, row.entityid), nouserevents: row.nouserevents, events: Number(row.events),
+  }))));
+  const [entityEventRows] = await pool.query("SELECT userid, entitytype, COUNT(*) AS n FROM qa_userevents WHERE userid IN (?) AND entitytype<>'-' GROUP BY userid, entitytype", [userIds]);
+  const entityEvents = sortRows(entityEventRows.map(row => ({ userid: ul(row.userid), entitytype: row.entitytype, n: Number(row.n) })));
+  const [[copyOption]] = await pool.query("SELECT content FROM qa_options WHERE title='max_copy_user_updates'");
   // Votes and flags on the tracked posts.
   const [voteRows] = await pool.query('SELECT postid, userid, vote, flag FROM qa_uservotes WHERE postid IN (?)', [postIds]);
   const uservotes = sortRows(voteRows.map(row => ({ postid: pl(row.postid), userid: ul(row.userid), vote: row.vote, flag: row.flag })));
@@ -326,7 +378,7 @@ async function snapshot(backend, newId, focusId = newId) {
     ? await pool.query('SELECT INET6_NTOA(createip) AS createip, written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_cookies WHERE cookieid IN (?)', [cookieids])
     : [[]];
 
-  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, writers, uservotes, events, cookies: sortRows(cookies) };
+  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, writers, uservotes, favorites, entityEvents, maxCopyUserUpdates: copyOption?.content ?? null, events, cookies: sortRows(cookies) };
 }
 
 // Values that depend on each database's earlier history are compared as changes.

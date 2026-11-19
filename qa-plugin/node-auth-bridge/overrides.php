@@ -261,3 +261,11 @@ function qa_flags_clear_all($oldpost, $userid, $handle, $cookieid)
 {
     node_bridge_change_post('DELETE', '/api/v1/posts/' . (int)$oldpost['postid'] . '/flags', new stdClass());
 }
+
+// Favorites, from the favorite buttons (app/page.php) and their ajax version (ajax/favorite.php).
+function qa_user_favorite_set($userid, $handle, $cookieid, $entitytype, $entityid, $favorite)
+{
+    // Q2A silently ignores following yourself; Node refuses it, so keep PHP's no-op here.
+    if ($entitytype == 'U' && $userid == $entityid) return; // QA_ENTITY_USER
+    node_bridge_favorite($entitytype, $entityid, (bool)$favorite);
+}

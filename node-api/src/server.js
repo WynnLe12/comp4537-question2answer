@@ -6,6 +6,8 @@ const { createVoteService } = require('./services/votes');
 const { createPostRepository } = require('./repositories/posts');
 const { createPostService } = require('./services/posts');
 const { createPostChangeService } = require('./services/post-changes');
+const { createFavoriteRepository } = require('./repositories/favorites');
+const { createFavoriteService } = require('./services/favorites');
 const { createApp } = require('./app');
 
 async function start() {
@@ -20,8 +22,9 @@ async function start() {
   const postRepository = createPostRepository(pool);
   const postService = createPostService(postRepository, { identify });
   const postChangeService = createPostChangeService(postRepository, { identify });
+  const favoriteService = createFavoriteService(createFavoriteRepository(pool), { identify });
   const app = createApp({
-    service, voteService, postService, postChangeService, health: () => pool.query('SELECT 1'),
+    service, voteService, postService, postChangeService, favoriteService, health: () => pool.query('SELECT 1'),
     secureCookies: process.env.NODE_ENV === 'production',
     trustProxy: process.env.TRUST_PROXY || false,
   });

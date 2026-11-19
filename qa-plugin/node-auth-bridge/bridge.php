@@ -124,6 +124,18 @@ function node_bridge_change_post($method, $path, $body)
     qa_fatal_error('Node could not change the post: ' . $code . ' ' . json_encode($result['data']['error']['fields'] ?? array()));
 }
 
+// Favorites: the entity codes of app/updates.php as the API's URL names.
+function node_bridge_favorite($entitytype, $entityid, $favorite)
+{
+    $types = array('Q' => 'questions', 'U' => 'users', 'T' => 'tags', 'C' => 'categories');
+    if (!isset($types[$entitytype])) qa_fatal_error('Favorite type not recognized');
+    header('X-Q2A-Favorite-Backend: node-api-v1');
+    $result = node_bridge_api($favorite ? 'PUT' : 'DELETE', '/api/v1/favorites/' . $types[$entitytype] . '/' . (int)$entityid, new stdClass());
+    if ($result['status'] < 200 || $result['status'] >= 300) {
+        qa_fatal_error('Node could not change the favorite: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+    }
+}
+
 // The page passes the combined notify value (null, '@' or an address); Node takes the form's two fields.
 function node_bridge_notify_fields($notify)
 {

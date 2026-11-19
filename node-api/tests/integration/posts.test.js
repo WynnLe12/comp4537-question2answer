@@ -64,3 +64,42 @@ describe('flag routes (service replaced in these tests)', () => {
     await request(app).put('/api/v1/posts/12/flag').send({}).expect(403);
   });
 });
+
+describe('favorite routes (service replaced in these tests)', () => {
+  const calls = [];
+  const favoriteService = new Proxy({}, { get: (target, name) => async request => { calls.push([name, request]); return { favorite: name === 'favorite' }; } });
+  const app = createApp({ service: {}, favoriteService });
+  test('PUT adds and DELETE removes, passing the type and ID through', async () => {
+    calls.length = 0;
+    await request(app).put('/api/v1/favorites/tags/42').set('X-Q2A-Request', '1').send({}).expect(200);
+    await request(app).delete('/api/v1/favorites/users/7').set('X-Q2A-Request', '1').send({}).expect(200);
+    expect(calls.map(([name, req]) => [name, req.type, req.entityid])).toEqual([['favorite', 'tags', 42], ['unfavorite', 'users', 7]]);
+  });
+  test('require the API request header', async () => {
+    await request(app).put('/api/v1/favorites/questions/1').send({}).expect(403);
+  });
+});
+
+describe('favorite service checks (repository replaced)', () => {
+  const { createFavoriteService } = require('../../src/services/favorites');
+  const writes = [];
+  const repository = { transaction: work => work({
+    loadOptions: async () => ({ get: () => '10' }),
+    findActor: async id => ({ userid: id }),
+    favoriteCreate: async (...args) => writes.push(['create', ...args.slice(0, 3)]),
+    favoriteDelete: async (...args) => writes.push(['delete', ...args]),
+    userWritten: async () => {},
+  }) };
+  const service = createFavoriteService(repository, { identify: async token => (token ? { id: 5 } : null) });
+  test('rejects anonymous users, unknown types and following yourself', async () => {
+    await expect(service.favorite({ token: null, type: 'questions', entityid: 1 })).rejects.toMatchObject({ status: 401 });
+    await expect(service.favorite({ token: 't', type: 'pages', entityid: 1 })).rejects.toMatchObject({ status: 404 });
+    await expect(service.favorite({ token: 't', type: 'users', entityid: 5 })).rejects.toMatchObject({ status: 403, code: 'favorite_not_allowed' });
+    expect(writes).toEqual([]);
+  });
+  test('maps the URL type to the Q2A entity code', async () => {
+    await service.favorite({ token: 't', type: 'categories', entityid: 3 });
+    await service.unfavorite({ token: 't', type: 'questions', entityid: 9 });
+    expect(writes).toEqual([['create', 5, 'C', 3], ['delete', 5, 'Q', 9]]);
+  });
+});

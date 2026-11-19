@@ -25,6 +25,7 @@ async function loadOptions(db) {
     if (stored.has(name) && stored.get(name) !== null) return stored.get(name);
     return Object.hasOwn(fixedDefaults, name) ? fixedDefaults[name] : dynamicDefault(name, get);
   }
-  return { get, dbTime: Number(now) };
+  // isStored: whether the option has a row (qa_get_options() writes the default when it reads one that has none).
+  return { get, isStored: name => stored.has(name) && stored.get(name) !== null, dbTime: Number(now) };
 }
 module.exports = { loadOptions };
