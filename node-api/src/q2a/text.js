@@ -51,6 +51,11 @@ function blockWordsMatch(string, wordsOption) {
   return new RegExp(patterns.join('|'), 'u').test(` ${cleaned} `);
 }
 
+// qa_block_words_explode()
+const blockWordsExplode = value => String(value ?? '').split(new RegExp(`${BLOCK_SEPARATOR}+`)).filter(Boolean);
+// qa_block_ips_explode() (app/limits.php)
+const blockIpsExplode = value => String(value ?? '').replace(/\s*-\s*/g, '-').split(/[^0-9A-Fa-f.:\-*]/).filter(Boolean);
+
 // qa_block_words_replace(): each blocked word replaced by as many * as it has characters.
 function blockWordsReplace(string, wordsOption) {
   string = String(string ?? '');
@@ -139,4 +144,4 @@ const emailValidate = email => isEmail(String(email), { allow_utf8_local_part: f
 // qa_combine_notify_email()
 const combineNotifyEmail = (userid, notify, email) => (notify ? (email ? email : (userid !== null && userid !== undefined ? '@' : null)) : null);
 
-module.exports = { blockWordsMatch, blockWordsReplace, slugify, randomAlphanum, postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };
+module.exports = { blockWordsExplode, blockIpsExplode, blockWordsMatch, blockWordsReplace, slugify, randomAlphanum, postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };

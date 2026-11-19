@@ -168,7 +168,8 @@ class Q2A_Plugin_PluginManager
 
 	private function setEnabledPluginsOption($array)
 	{
-		qa_opt(self::OPT_ENABLED_PLUGINS, implode(self::PLUGIN_DELIMITER, $array));
+		require_once QA_INCLUDE_DIR . 'app/admin.php';
+		qa_admin_set_enabled_plugins(array_values($array));
 	}
 
 	public function cleanRemovedPlugins()

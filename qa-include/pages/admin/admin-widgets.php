@@ -138,7 +138,7 @@ elseif (qa_clicked('dosavewidget')) {
 
 	else {
 		if (qa_post_text('dodelete')) {
-			qa_db_widget_delete($editwidget['widgetid']);
+			qa_admin_delete_widget($editwidget['widgetid']);
 			qa_redirect('admin/layout');
 
 		} else {
@@ -159,14 +159,7 @@ elseif (qa_clicked('dosavewidget')) {
 
 				// Perform appropriate database action
 
-				if (isset($editwidget['widgetid'])) { // changing existing widget
-					$widgetid = $editwidget['widgetid'];
-					qa_db_widget_set_fields($widgetid, $intags);
-
-				} else
-					$widgetid = qa_db_widget_create($intitle, $intags);
-
-				qa_db_widget_move($widgetid, substr($inposition, 0, 2), substr($inposition, 2));
+				qa_admin_save_widget($editwidget, $intitle, $intags, $inposition);
 			}
 
 			qa_redirect('admin/layout');

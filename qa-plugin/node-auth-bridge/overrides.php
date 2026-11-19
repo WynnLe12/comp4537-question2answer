@@ -434,3 +434,164 @@ function qa_delete_user($userid, array $userAccount = null)
     node_bridge_user_admin('DELETE', node_bridge_handle($userid, $userAccount), '', new stdClass());
 }
 
+// Site administration: the admin option forms. The page lists the section's options; Node applies
+// their types, limits and tidying, and saves them.
+function node_bridge_site_admin($method, $path, $body)
+{
+    header('X-Q2A-Admin-Backend: node-api-v1');
+    $result = node_bridge_api($method, '/api/v1/admin' . $path, $body);
+    if ($result['status'] !== 200) qa_fatal_error('Node could not change the site settings: ' . ($result['data']['error']['code'] ?? 'service_unavailable') . ' ' . json_encode($result['data']['error']['fields'] ?? array()));
+    return $result['data'];
+}
+
+function qa_admin_set_options($names, $types, $maximums, $minimums)
+{
+    $values = array();
+    foreach ($names as $name) $values[$name] = qa_post_text('option_' . $name);
+    $result = node_bridge_site_admin('PUT', '/options', array('values' => count($values) ? $values : new stdClass()));
+    return !empty($result['recalcHotness']);
+}
+
+function qa_reset_options($names)
+{
+    // The defaults that depend on this site's address and installed plugins are worked out here.
+    require_once QA_INCLUDE_DIR . 'app/format.php';
+    $editor = '-';
+    qa_load_editor('', 'html', $editor);
+    $captchas = qa_list_modules('captcha');
+    node_bridge_site_admin('POST', '/options/reset', array('names' => array_values($names), 'site' => array(
+        'host' => (string)@$_SERVER['HTTP_HOST'],
+        'https' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'),
+        'directory' => strtr(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'), '\\', '/'),
+        'htmlEditor' => $editor,
+        'captchaModule' => count($captchas) ? reset($captchas) : '',
+    )));
+}
+
+function qa_admin_set_default_avatar($imagefile)
+{
+    $result = node_bridge_upload('/api/v1/admin/default-avatar', $imagefile);
+    if ($result['status'] === 200) return null;
+    require_once QA_INCLUDE_DIR . 'util/image.php';
+    return qa_lang_sub('main/image_not_read', implode(', ', qa_gd_image_formats()));
+}
+
+// Categories (admin/categories). The page checks the form and works out the slug; Node checks again.
+function qa_admin_save_category($editcategory, $setparent, $hassubcategory, $parentid, $name, $slug, $content, $position)
+{
+    $body = array('name' => (string)$name, 'slug' => (string)$slug, 'content' => $content, 'position' => isset($position) ? (string)$position : null,
+        'parentid' => strlen((string)$parentid) ? (int)$parentid : null, 'setParent' => (bool)$setparent);
+    $result = isset($editcategory['categoryid'])
+        ? node_bridge_site_admin('PUT', '/categories/' . (int)$editcategory['categoryid'], $body)
+        : node_bridge_site_admin('POST', '/categories', $body);
+    return array($result['categoryid'], !empty($result['recalc']));
+}
+
+function qa_admin_delete_category($categoryid, $reassignid)
+{
+    node_bridge_site_admin('DELETE', '/categories/' . (int)$categoryid, array('reassignTo' => strlen((string)$reassignid) ? (int)$reassignid : null));
+}
+
+function qa_admin_reassign_category($categoryid, $reassignid)
+{
+    node_bridge_site_admin('POST', '/categories/' . (int)$categoryid . '/reassign', array('reassignTo' => strlen((string)$reassignid) ? (int)$reassignid : null));
+}
+
+// Custom pages and links, widgets, user titles and user fields. The pages check their forms; Node
+// checks again and saves.
+function qa_admin_save_page($editpage, $isexternal, $name, $position, $permit, $url, $newwindow, $heading, $slug, $content, $errors)
+{
+    if (!isset($editpage['pageid']) && !empty($errors)) return null;
+    $body = array('external' => (bool)$isexternal, 'name' => (string)$name, 'position' => (string)$position, 'permit' => (int)$permit,
+        'url' => $url, 'newWindow' => (bool)$newwindow, 'heading' => $heading, 'slug' => $slug, 'content' => $content);
+    $result = isset($editpage['pageid'])
+        ? node_bridge_site_admin('PUT', '/pages/' . (int)$editpage['pageid'], $body)
+        : node_bridge_site_admin('POST', '/pages', $body);
+    return $result['pageid'];
+}
+
+function qa_admin_delete_page($pageid)
+{
+    node_bridge_site_admin('DELETE', '/pages/' . (int)$pageid, new stdClass());
+}
+
+function qa_admin_save_widget($editwidget, $title, $tags, $position)
+{
+    $body = array('title' => (string)$title, 'templates' => strlen((string)$tags) ? explode(',', $tags) : array(), 'position' => (string)$position);
+    $result = isset($editwidget['widgetid'])
+        ? node_bridge_site_admin('PUT', '/widgets/' . (int)$editwidget['widgetid'], $body)
+        : node_bridge_site_admin('POST', '/widgets', $body);
+    return $result['widgetid'];
+}
+
+function qa_admin_delete_widget($widgetid)
+{
+    node_bridge_site_admin('DELETE', '/widgets/' . (int)$widgetid, new stdClass());
+}
+
+function qa_admin_save_user_title($pointstitle, $oldpoints, $remove, $title, $points)
+{
+    $result = node_bridge_site_admin('POST', '/user-titles', array(
+        'oldPoints' => strlen((string)$oldpoints) ? (int)$oldpoints : null, 'remove' => (bool)$remove, 'title' => $title, 'points' => $points,
+    ));
+    $titles = array();
+    foreach ($result['titles'] ?? array() as $p => $t) $titles[(int)$p] = $t;
+    krsort($titles, SORT_NUMERIC);
+    $errors = array();
+    foreach ($result['errors'] ?? array() as $field => $code)
+        $errors[$field] = $code === 'exists' ? qa_lang('admin/title_already_used') : qa_lang('main/field_required');
+    return array($errors, $titles);
+}
+
+function qa_admin_save_userfield($editfield, $name, $flags, $position, $permit, $errors, $userfields)
+{
+    $body = array('name' => (string)$name, 'type' => (int)$flags & ~QA_FIELD_FLAGS_ON_REGISTER, 'onRegister' => (bool)((int)$flags & QA_FIELD_FLAGS_ON_REGISTER),
+        'position' => $position, 'permit' => (int)$permit);
+    $result = isset($editfield['fieldid'])
+        ? node_bridge_site_admin('PUT', '/user-fields/' . (int)$editfield['fieldid'], $body)
+        : node_bridge_site_admin('POST', '/user-fields', $body);
+    return $result['fieldid'];
+}
+
+function qa_admin_delete_userfield($fieldid)
+{
+    node_bridge_site_admin('DELETE', '/user-fields/' . (int)$fieldid, new stdClass());
+}
+
+// The recalculation tools (admin/stats, admin/recalc and its ajax version). The file cache belongs to
+// these PHP pages, so clearing or trimming it stays here; everything else runs in Node.
+function qa_recalc_perform_steps($state, $seconds)
+{
+    if (strpos((string)$state, 'docache') === 0) return qa_recalc_perform_steps_base($state, $seconds);
+    $result = node_bridge_site_admin('POST', '/recalc', array('state' => (string)$state, 'seconds' => (int)$seconds));
+    return (string)$result['state'];
+}
+
+// Mailings (admin/mailing and its ajax steps) and enabling plugins.
+function qa_mailing_start()
+{
+    node_bridge_site_admin('POST', '/mailing/start', new stdClass());
+}
+
+function qa_mailing_stop()
+{
+    node_bridge_site_admin('POST', '/mailing/stop', new stdClass());
+}
+
+function qa_mailing_perform_step()
+{
+    node_bridge_site_admin('POST', '/mailing/step', new stdClass());
+}
+
+function qa_mailing_send_one($userid, $handle, $email, $emailcode)
+{
+    // The page only sends one message itself: the test to the signed-in admin.
+    $result = node_bridge_site_admin('POST', '/mailing/test', new stdClass());
+    return !empty($result['sent']);
+}
+
+function qa_admin_set_enabled_plugins($directories)
+{
+    node_bridge_site_admin('PUT', '/plugins', array('directories' => array_values($directories)));
+}
+

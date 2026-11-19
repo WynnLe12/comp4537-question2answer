@@ -9,8 +9,8 @@ every slice and its status. Done so far: authentication, voting
 hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)),
 flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), private messages and wall posts
 ([notes](docs/messages-migration.md)), account and profile changes ([notes](docs/account-migration.md)),
-email notifications ([notes](docs/notifications-migration.md)), and moderation and user administration
-([notes](docs/admin-migration.md)).
+email notifications ([notes](docs/notifications-migration.md)), moderation and user administration
+([notes](docs/admin-migration.md)), and site administration ([notes](docs/site-admin-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -41,6 +41,8 @@ For an annotated, file-by-file code walkthrough, see
   wall posts, private messages, registration, feedback) is sent by Node.
 - Moderators and admins approve, block, edit, promote, hide and delete users, and approve, reject,
   hide, reshow, delete and clear flags on posts from the admin pages, through Node.
+- Admins change settings, categories, custom pages and links, widgets, user titles and fields,
+  points and plugins, run the recalculation tools and send mailings, through Node.
 
 ## Start the demo
 
@@ -220,6 +222,11 @@ until it is installed under `.github/workflows/`.
 | `PUT`/`DELETE /api/v1/users/:handle/block` | Block or unblock a user |
 | `POST /api/v1/users/:handle/hide-posts` | Hide all of a blocked user's posts |
 | `DELETE /api/v1/users/:handle` | Delete a blocked user |
+| `PUT /api/v1/admin/options`, `POST /api/v1/admin/options/reset` | Save or reset site settings |
+| `/api/v1/admin/categories`, `/pages`, `/widgets`, `/user-fields`, `POST /user-titles` | Manage categories, custom pages and links, widgets, user fields and titles |
+| `POST /api/v1/admin/recalc` | Run a recalculation tool step by step |
+| `POST /api/v1/admin/mailing/{test,start,stop,step}` | Send mailings |
+| `PUT /api/v1/admin/plugins`, `PUT /api/v1/admin/default-avatar` | Enable plugins; set the default avatar |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -243,6 +250,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/services/account.js`, `repositories/account.js`, `routes/v1/account.js` | Profile, password, avatar, confirmation, reset and unsubscribe |
 | `node-api/src/q2a/mail.js`, `q2a/paths.js` | Q2A's email sending (through its SMTP options) and its links |
 | `node-api/src/services/user-admin.js`, `repositories/user-admin.js`, `routes/v1/user-admin.js` | Moderating and administering users |
+| `node-api/src/services/site-admin.js`, `services/recalc.js` and their repositories, `routes/v1/site-admin.js` | Site administration and the recalculation tools |
 | `node-api/src/q2a/notify.js` | The emails of Q2A's notification module, sent after each change commits |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |

@@ -180,10 +180,11 @@ function createPostRepository(pool) {
       },
 
       // qa_db_event_create_for_entity()
-      async eventCreateForEntity(entitytype, entityid, questionid, lastpostid, updatetype, lastuserid) {
+      // timestamp (Unix seconds) is given when refilling the streams from old posts.
+      async eventCreateForEntity(entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, timestamp = null) {
         await db.query(
-          'INSERT INTO qa_sharedevents (entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-          [entitytype, entityid, questionid, lastpostid, updatetype, lastuserid]);
+          `INSERT INTO qa_sharedevents (entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) VALUES (?, ?, ?, ?, ?, ?, ${timestamp === null ? 'NOW()' : 'FROM_UNIXTIME(?)'})`,
+          [entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, ...(timestamp === null ? [] : [timestamp])]);
         let truncated = false;
         if (entitytype === 'Q') {
           const [[row]] = await db.query(
@@ -201,16 +202,16 @@ function createPostRepository(pool) {
         if (favorite) {
           await db.query(
             'INSERT INTO qa_userevents (userid, entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) ' +
-            'SELECT userid, ?, ?, ?, ?, ?, ?, NOW() FROM qa_userfavorites WHERE entitytype=? AND entityid=? AND nouserevents=0',
-            [entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, entitytype, entityid]);
+            `SELECT userid, ?, ?, ?, ?, ?, ?, ${timestamp === null ? 'NOW()' : 'FROM_UNIXTIME(?)'} FROM qa_userfavorites WHERE entitytype=? AND entityid=? AND nouserevents=0`,
+            [entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, ...(timestamp === null ? [] : [timestamp]), entitytype, entityid]);
           await userEventsTruncate(favorite.userid, questionid);
         }
       },
       // qa_db_event_create_not_entity()
-      async eventCreateNotEntity(userid, questionid, lastpostid, updatetype, lastuserid) {
+      async eventCreateNotEntity(userid, questionid, lastpostid, updatetype, lastuserid, timestamp = null) {
         await db.query(
-          "INSERT INTO qa_userevents (userid, entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) VALUES (?, '-', 0, ?, ?, ?, ?, NOW())",
-          [userid, questionid, lastpostid, updatetype, lastuserid]);
+          `INSERT INTO qa_userevents (userid, entitytype, entityid, questionid, lastpostid, updatetype, lastuserid, updated) VALUES (?, '-', 0, ?, ?, ?, ?, ${timestamp === null ? 'NOW()' : 'FROM_UNIXTIME(?)'})`,
+          [userid, questionid, lastpostid, updatetype, lastuserid, ...(timestamp === null ? [] : [timestamp])]);
         await userEventsTruncate(userid, questionid);
       },
 
@@ -329,6 +330,6 @@ function createPostRepository(pool) {
     };
   }
 
-  return { transaction: createTransactor(pool, queries) };
+  return { transaction: createTransactor(pool, queries), queries };
 }
 module.exports = { createPostRepository };

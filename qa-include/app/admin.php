@@ -669,3 +669,420 @@ function qa_admin_module_options_path($type, $name)
 
 	return qa_admin_plugin_options_path($dir);
 }
+
+
+/**
+ * Save the posted values of options $names from an admin options form, as numbers where $types says so and within
+ * $maximums and $minimums. Returns true if a hotness weight changed, so hotness needs recalculating.
+ * @param array $names
+ * @param array $types
+ * @param array $maximums
+ * @param array $minimums
+ * @return bool
+ */
+function qa_admin_set_options($names, $types, $maximums, $minimums)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	$recalchotness = false;
+
+	foreach ($names as $optionname) {
+		$optionvalue = qa_post_text('option_' . $optionname);
+
+		if (@$types[$optionname] == 'number' || @$types[$optionname] == 'checkbox' ||
+			(@$types[$optionname] == 'number-blank' && strlen((string)$optionvalue))
+		)
+			$optionvalue = (int)$optionvalue;
+
+		if (isset($maximums[$optionname]))
+			$optionvalue = min($maximums[$optionname], $optionvalue);
+
+		if (isset($minimums[$optionname]))
+			$optionvalue = max($minimums[$optionname], $optionvalue);
+
+		switch ($optionname) {
+			case 'site_url':
+				if (substr($optionvalue, -1) != '/') // seems to be a very common mistake and will mess up URLs
+					$optionvalue .= '/';
+				break;
+
+			case 'hot_weight_views':
+			case 'hot_weight_answers':
+			case 'hot_weight_votes':
+			case 'hot_weight_q_age':
+			case 'hot_weight_a_age':
+				if (qa_opt($optionname) != $optionvalue)
+					$recalchotness = true;
+				break;
+
+			case 'block_ips_write':
+				require_once QA_INCLUDE_DIR . 'app/limits.php';
+				$optionvalue = implode(' , ', qa_block_ips_explode($optionvalue));
+				break;
+
+			case 'block_bad_words':
+			case 'block_bad_usernames':
+				require_once QA_INCLUDE_DIR . 'util/string.php';
+				$optionvalue = implode(' , ', qa_block_words_explode($optionvalue));
+				break;
+		}
+
+		qa_set_option($optionname, $optionvalue);
+	}
+
+	return $recalchotness;
+}
+
+
+/**
+ * Make the image in file $imagefile the site's default avatar. Returns an error message, or null on success.
+ * @param string $imagefile
+ * @return string|null
+ */
+function qa_admin_set_default_avatar($imagefile)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'util/image.php';
+
+	$oldblobid = qa_opt('avatar_default_blobid');
+
+	$toobig = qa_image_file_too_big($imagefile, qa_opt('avatar_store_size'));
+
+	if ($toobig)
+		return qa_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
+
+	$imagedata = qa_image_constrain_data(file_get_contents($imagefile), $width, $height, qa_opt('avatar_store_size'));
+
+	if (!isset($imagedata))
+		return qa_lang_sub('main/image_not_read', implode(', ', qa_gd_image_formats()));
+
+	require_once QA_INCLUDE_DIR . 'app/blobs.php';
+
+	$newblobid = qa_create_blob($imagedata, 'jpeg');
+
+	if (isset($newblobid)) {
+		qa_set_option('avatar_default_blobid', $newblobid);
+		qa_set_option('avatar_default_width', $width);
+		qa_set_option('avatar_default_height', $height);
+		qa_set_option('avatar_default_show', 1);
+	}
+
+	if (strlen($oldblobid))
+		qa_delete_blob($oldblobid);
+
+	return null;
+}
+
+
+/**
+ * Save category $editcategory (an existing category, or an array with only 'parentid' for a new one) with title
+ * $name, slug $slug, description $content and position $position, under $parentid if $setparent (moving an existing
+ * category). $hassubcategory says whether it has subcategories. Returns the category ID and whether categories need
+ * recalculating.
+ * @return array
+ */
+function qa_admin_save_category($editcategory, $setparent, $hassubcategory, $parentid, $name, $slug, $content, $position)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	if (isset($editcategory['categoryid'])) { // changing existing category
+		qa_db_category_rename($editcategory['categoryid'], $name, $slug);
+
+		if ($setparent) {
+			qa_db_category_set_parent($editcategory['categoryid'], $parentid);
+			$recalc = true;
+		} else {
+			qa_db_category_set_content($editcategory['categoryid'], $content);
+			qa_db_category_set_position($editcategory['categoryid'], $position);
+			$recalc = $hassubcategory && $slug !== $editcategory['tags'];
+		}
+
+		return array($editcategory['categoryid'], $recalc);
+	}
+
+	$categoryid = qa_db_category_create($parentid, $name, $slug);
+
+	qa_db_category_set_content($categoryid, $content);
+
+	if (isset($position))
+		qa_db_category_set_position($categoryid, $position);
+
+	return array($categoryid, false);
+}
+
+
+/**
+ * Delete category $categoryid, moving its questions to category $reassignid (or none).
+ * @param $categoryid
+ * @param $reassignid
+ */
+function qa_admin_delete_category($categoryid, $reassignid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	qa_db_category_reassign($categoryid, $reassignid);
+	qa_db_category_delete($categoryid);
+}
+
+
+/**
+ * Move the questions in category $categoryid to category $reassignid (or none).
+ * @param $categoryid
+ * @param $reassignid
+ */
+function qa_admin_reassign_category($categoryid, $reassignid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	qa_db_category_reassign($categoryid, $reassignid);
+}
+
+
+/**
+ * Save custom page or link $editpage (or create one if it has no 'pageid') from the admin pages form. Fields with an
+ * entry in $errors keep their old values; a new page is only created if there are no errors. Returns the page ID.
+ */
+function qa_admin_save_page($editpage, $isexternal, $name, $position, $permit, $url, $newwindow, $heading, $slug, $content, $errors)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	if (isset($editpage['pageid'])) { // changing existing page
+		if ($isexternal) {
+			qa_db_page_set_fields($editpage['pageid'],
+				isset($errors['name']) ? $editpage['title'] : $name,
+				QA_PAGE_FLAGS_EXTERNAL | ($newwindow ? QA_PAGE_FLAGS_NEW_WINDOW : 0),
+				isset($errors['url']) ? $editpage['tags'] : $url,
+				null, null, $permit);
+
+		} else {
+			$setheading = isset($errors['heading']) ? $editpage['heading'] : $heading;
+			$setslug = isset($errors['slug']) ? $editpage['tags'] : $slug;
+			$setcontent = isset($errors['content']) ? $editpage['content'] : $content;
+
+			qa_db_page_set_fields($editpage['pageid'],
+				isset($errors['name']) ? $editpage['title'] : $name,
+				0,
+				$setslug, $setheading, $setcontent, $permit);
+
+			$searchmodules = qa_load_modules_with('search', 'unindex_page');
+			foreach ($searchmodules as $searchmodule)
+				$searchmodule->unindex_page($editpage['pageid']);
+
+			$indextext = qa_viewer_text($setcontent, 'html');
+
+			$searchmodules = qa_load_modules_with('search', 'index_page');
+			foreach ($searchmodules as $searchmodule)
+				$searchmodule->index_page($editpage['pageid'], $setslug, $setheading, $setcontent, 'html', $indextext);
+		}
+
+		qa_db_page_move($editpage['pageid'], substr($position, 0, 1), substr($position, 1));
+
+		return $editpage['pageid'];
+	}
+
+	if (!empty($errors))
+		return null;
+
+	if ($isexternal) {
+		$pageid = qa_db_page_create($name, QA_PAGE_FLAGS_EXTERNAL | ($newwindow ? QA_PAGE_FLAGS_NEW_WINDOW : 0), $url, null, null, $permit);
+	} else {
+		$pageid = qa_db_page_create($name, 0, $slug, $heading, $content, $permit);
+
+		$indextext = qa_viewer_text($content, 'html');
+
+		$searchmodules = qa_load_modules_with('search', 'index_page');
+		foreach ($searchmodules as $searchmodule)
+			$searchmodule->index_page($pageid, $slug, $heading, $content, 'html', $indextext);
+	}
+
+	qa_db_page_move($pageid, substr($position, 0, 1), substr($position, 1));
+
+	return $pageid;
+}
+
+
+/**
+ * Delete custom page or link $pageid.
+ * @param $pageid
+ */
+function qa_admin_delete_page($pageid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	qa_db_page_delete($pageid);
+
+	$searchmodules = qa_load_modules_with('search', 'unindex_page');
+	foreach ($searchmodules as $searchmodule)
+		$searchmodule->unindex_page($pageid);
+}
+
+
+/**
+ * Save widget $editwidget (or add widget module $title if it has no 'widgetid') showing on templates $tags, at
+ * $position (the place's two letters, then the position).
+ */
+function qa_admin_save_widget($editwidget, $title, $tags, $position)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	if (isset($editwidget['widgetid'])) { // changing existing widget
+		$widgetid = $editwidget['widgetid'];
+		qa_db_widget_set_fields($widgetid, $tags);
+
+	} else
+		$widgetid = qa_db_widget_create($title, $tags);
+
+	qa_db_widget_move($widgetid, substr($position, 0, 2), substr($position, 2));
+
+	return $widgetid;
+}
+
+
+/**
+ * Delete widget $widgetid.
+ * @param $widgetid
+ */
+function qa_admin_delete_widget($widgetid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	qa_db_widget_delete($widgetid);
+}
+
+
+/**
+ * Add, change or (if $remove) remove the user title for $oldpoints in $pointstitle (points => title), from the admin
+ * user titles form with $title and $points. Saves the points_to_titles option. Returns the errors and the titles.
+ * @return array
+ */
+function qa_admin_save_user_title($pointstitle, $oldpoints, $remove, $title, $points)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	$errors = array();
+
+	if ($remove) {
+		unset($pointstitle[$oldpoints]);
+
+	} else {
+		// Verify the title and points are legitimate
+
+		if (!strlen((string)$title))
+			$errors['title'] = qa_lang('main/field_required');
+
+		if (!is_numeric($points))
+			$errors['points'] = qa_lang('main/field_required');
+		else {
+			$points = (int)$points;
+
+			if (isset($pointstitle[$points]) && ((!strlen($oldpoints ?? '')) || ($points != $oldpoints)))
+				$errors['points'] = qa_lang('admin/title_already_used');
+		}
+
+		// Perform appropriate action
+
+		if (isset($pointstitle[$oldpoints])) { // changing existing user title
+			$newpoints = isset($errors['points']) ? $oldpoints : $points;
+			$newtitle = isset($errors['title']) ? $pointstitle[$oldpoints] : $title;
+
+			unset($pointstitle[$oldpoints]);
+			$pointstitle[$newpoints] = $newtitle;
+
+		} elseif (empty($errors)) // creating a new user title
+			$pointstitle[$points] = $title;
+	}
+
+	// Save the new option value
+
+	krsort($pointstitle, SORT_NUMERIC);
+
+	$option = '';
+	foreach ($pointstitle as $points => $title)
+		$option .= (strlen($option) ? ',' : '') . $points . ' ' . $title;
+
+	qa_set_option('points_to_titles', $option);
+
+	return array($errors, $pointstitle);
+}
+
+
+/**
+ * Save user field $editfield (or create one if it has no 'fieldid') with label $name, $flags, $position and $permit.
+ * The label keeps its old value if $errors has a 'name' entry; a new field gets a unique tag made from the label,
+ * unlike the existing $userfields. Returns the field ID.
+ */
+function qa_admin_save_userfield($editfield, $name, $flags, $position, $permit, $errors, $userfields)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+	require_once QA_INCLUDE_DIR . 'util/string.php';
+
+	if (isset($editfield['fieldid'])) { // changing existing user field
+		qa_db_userfield_set_fields($editfield['fieldid'], isset($errors['name']) ? $editfield['content'] : $name, $flags, $permit);
+		qa_db_userfield_move($editfield['fieldid'], $position);
+
+		return $editfield['fieldid'];
+	}
+
+	for ($attempt = 0; $attempt < 1000; $attempt++) {
+		$suffix = $attempt ? ('-' . (1 + $attempt)) : '';
+		$newtag = qa_substr(implode('-', qa_string_to_words($name)), 0, QA_DB_MAX_PROFILE_TITLE_LENGTH - strlen($suffix)) . $suffix;
+		$uniquetag = true;
+
+		foreach ($userfields as $userfield) {
+			if (qa_strtolower(trim($newtag)) == qa_strtolower(trim($userfield['title'])))
+				$uniquetag = false;
+		}
+
+		if ($uniquetag) {
+			$fieldid = qa_db_userfield_create($newtag, $name, $flags, $permit);
+			qa_db_userfield_move($fieldid, $position);
+			return $fieldid;
+		}
+	}
+
+	qa_fatal_error('Could not create a unique database tag');
+}
+
+
+/**
+ * Delete user field $fieldid.
+ * @param $fieldid
+ */
+function qa_admin_delete_userfield($fieldid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/admin.php';
+
+	qa_db_userfield_delete($fieldid);
+}
+
+
+/**
+ * Save the directories in $directories as the enabled plugins.
+ * @param array $directories
+ */
+function qa_admin_set_enabled_plugins($directories)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	qa_opt('enabled_plugins', implode(';', $directories));
+}
+

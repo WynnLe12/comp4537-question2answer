@@ -67,7 +67,7 @@ elseif (qa_clicked('dosavefield')) {
 
 	else {
 		if (qa_post_text('dodelete')) {
-			qa_db_userfield_delete($editfield['fieldid']);
+			qa_admin_delete_userfield($editfield['fieldid']);
 			qa_redirect('admin/users');
 
 		} else {
@@ -86,8 +86,7 @@ elseif (qa_clicked('dosavefield')) {
 			// Perform appropriate database action
 
 			if (isset($editfield['fieldid'])) { // changing existing user field
-				qa_db_userfield_set_fields($editfield['fieldid'], isset($errors['name']) ? $editfield['content'] : $inname, $inflags, $inpermit);
-				qa_db_userfield_move($editfield['fieldid'], $inposition);
+				qa_admin_save_userfield($editfield, $inname, $inflags, $inposition, $inpermit, $errors, $userfields);
 
 				if (empty($errors))
 					qa_redirect('admin/users');
@@ -100,24 +99,8 @@ elseif (qa_clicked('dosavefield')) {
 				}
 
 			} elseif (empty($errors)) { // creating a new user field
-				for ($attempt = 0; $attempt < 1000; $attempt++) {
-					$suffix = $attempt ? ('-' . (1 + $attempt)) : '';
-					$newtag = qa_substr(implode('-', qa_string_to_words($inname)), 0, QA_DB_MAX_PROFILE_TITLE_LENGTH - strlen($suffix)) . $suffix;
-					$uniquetag = true;
-
-					foreach ($userfields as $userfield) {
-						if (qa_strtolower(trim($newtag)) == qa_strtolower(trim($userfield['title'])))
-							$uniquetag = false;
-					}
-
-					if ($uniquetag) {
-						$fieldid = qa_db_userfield_create($newtag, $inname, $inflags, $inpermit);
-						qa_db_userfield_move($fieldid, $inposition);
-						qa_redirect('admin/users');
-					}
-				}
-
-				qa_fatal_error('Could not create a unique database tag');
+				qa_admin_save_userfield($editfield, $inname, $inflags, $inposition, $inpermit, $errors, $userfields);
+				qa_redirect('admin/users');
 			}
 		}
 	}

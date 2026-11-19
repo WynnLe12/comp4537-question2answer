@@ -74,10 +74,7 @@ if ($recalcnow) {
 	while ($state) {
 		set_time_limit(60);
 
-		$stoptime = time() + 2; // run in lumps of two seconds...
-
-		while (qa_recalc_perform_step($state) && time() < $stoptime)
-			;
+		$state = qa_recalc_perform_steps($state, 2); // run in lumps of two seconds...
 
 		echo qa_html(qa_recalc_get_message($state)) . str_repeat('    ', 1024) . "<br>\n";
 

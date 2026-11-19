@@ -30,6 +30,8 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
  */
 function qa_mailing_start()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/admin.php';
 
 	if (strlen(qa_opt('mailing_last_userid')) == 0) {
@@ -46,6 +48,8 @@ function qa_mailing_start()
  */
 function qa_mailing_stop()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	qa_opt('mailing_last_timestamp', '');
 	qa_opt('mailing_last_userid', '');
 	qa_opt('mailing_done_users', '');
@@ -58,6 +62,8 @@ function qa_mailing_stop()
  */
 function qa_mailing_perform_step()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/users.php';
 	require_once QA_INCLUDE_DIR . 'app/users.php';
 
@@ -128,6 +134,8 @@ function qa_mailing_perform_step()
  */
 function qa_mailing_send_one($userid, $handle, $email, $emailcode)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/emails.php';
 	require_once QA_INCLUDE_DIR . 'db/users.php';
 

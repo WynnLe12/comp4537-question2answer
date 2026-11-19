@@ -107,8 +107,8 @@ if (qa_clicked('docancel'))
 elseif (qa_clicked('dosaveoptions') || qa_clicked('doaddpage') || qa_clicked('doaddlink')) {
 	if (!qa_check_form_security_code('admin/pages', qa_post_text('code')))
 		$securityexpired = true;
-	else foreach ($navoptions as $optionname => $langkey)
-		qa_set_option($optionname, (int)qa_post_text('option_' . $optionname));
+	else
+		qa_admin_set_options(array_keys($navoptions), array_fill_keys(array_keys($navoptions), 'checkbox'), array(), array());
 
 } elseif (qa_clicked('dosavepage')) {
 	require_once QA_INCLUDE_DIR . 'db/admin.php';
@@ -120,11 +120,7 @@ elseif (qa_clicked('dosaveoptions') || qa_clicked('doaddpage') || qa_clicked('do
 		$reloadpages = false;
 
 		if (qa_post_text('dodelete')) {
-			qa_db_page_delete($editpage['pageid']);
-
-			$searchmodules = qa_load_modules_with('search', 'unindex_page');
-			foreach ($searchmodules as $searchmodule)
-				$searchmodule->unindex_page($editpage['pageid']);
+			qa_admin_delete_page($editpage['pageid']);
 
 			$editpage = null;
 			$reloadpages = true;
@@ -205,37 +201,9 @@ elseif (qa_clicked('dosaveoptions') || qa_clicked('doaddpage') || qa_clicked('do
 
 			// Perform appropriate database action
 
+			qa_admin_save_page($editpage, $isexternal, $inname, $inposition, $inpermit, $inurl, $innewwindow, $inheading, @$inslug, $incontent, $errors);
+
 			if (isset($editpage['pageid'])) { // changing existing page
-				if ($isexternal) {
-					qa_db_page_set_fields($editpage['pageid'],
-						isset($errors['name']) ? $editpage['title'] : $inname,
-						QA_PAGE_FLAGS_EXTERNAL | ($innewwindow ? QA_PAGE_FLAGS_NEW_WINDOW : 0),
-						isset($errors['url']) ? $editpage['tags'] : $inurl,
-						null, null, $inpermit);
-
-				} else {
-					$setheading = isset($errors['heading']) ? $editpage['heading'] : $inheading;
-					$setslug = isset($errors['slug']) ? $editpage['tags'] : $inslug;
-					$setcontent = isset($errors['content']) ? $editpage['content'] : $incontent;
-
-					qa_db_page_set_fields($editpage['pageid'],
-						isset($errors['name']) ? $editpage['title'] : $inname,
-						0,
-						$setslug, $setheading, $setcontent, $inpermit);
-
-					$searchmodules = qa_load_modules_with('search', 'unindex_page');
-					foreach ($searchmodules as $searchmodule)
-						$searchmodule->unindex_page($editpage['pageid']);
-
-					$indextext = qa_viewer_text($setcontent, 'html');
-
-					$searchmodules = qa_load_modules_with('search', 'index_page');
-					foreach ($searchmodules as $searchmodule)
-						$searchmodule->index_page($editpage['pageid'], $setslug, $setheading, $setcontent, 'html', $indextext);
-				}
-
-				qa_db_page_move($editpage['pageid'], substr($inposition, 0, 1), substr($inposition, 1));
-
 				$reloadpages = true;
 
 				if (empty($errors))
@@ -243,25 +211,9 @@ elseif (qa_clicked('dosaveoptions') || qa_clicked('doaddpage') || qa_clicked('do
 				else
 					$editpage = @$pages[$editpage['pageid']];
 
-			} else { // creating a new one
-				if (empty($errors)) {
-					if ($isexternal) {
-						$pageid = qa_db_page_create($inname, QA_PAGE_FLAGS_EXTERNAL | ($innewwindow ? QA_PAGE_FLAGS_NEW_WINDOW : 0), $inurl, null, null, $inpermit);
-					} else {
-						$pageid = qa_db_page_create($inname, 0, $inslug, $inheading, $incontent, $inpermit);
-
-						$indextext = qa_viewer_text($incontent, 'html');
-
-						$searchmodules = qa_load_modules_with('search', 'index_page');
-						foreach ($searchmodules as $searchmodule)
-							$searchmodule->index_page($pageid, $inslug, $inheading, $incontent, 'html', $indextext);
-					}
-
-					qa_db_page_move($pageid, substr($inposition, 0, 1), substr($inposition, 1));
-
-					$editpage = null;
-					$reloadpages = true;
-				}
+			} elseif (empty($errors)) { // creating a new one
+				$editpage = null;
+				$reloadpages = true;
 			}
 
 			if (qa_clicked('dosaveview') && empty($errors) && !$isexternal)

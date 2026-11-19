@@ -59,49 +59,7 @@ elseif (qa_clicked('dosavetitle')) {
 		$securityexpired = true;
 
 	else {
-		if (qa_post_text('dodelete')) {
-			unset($pointstitle[$oldpoints]);
-
-		} else {
-			$intitle = qa_post_text('title');
-			$inpoints = qa_post_text('points');
-
-			// Verify the title and points are legitimate
-
-			if (!strlen((string)$intitle))
-				$errors['title'] = qa_lang('main/field_required');
-
-			if (!is_numeric($inpoints))
-				$errors['points'] = qa_lang('main/field_required');
-			else {
-				$inpoints = (int)$inpoints;
-
-				if (isset($pointstitle[$inpoints]) && ((!strlen($oldpoints ?? '')) || ($inpoints != $oldpoints)))
-					$errors['points'] = qa_lang('admin/title_already_used');
-			}
-
-			// Perform appropriate action
-
-			if (isset($pointstitle[$oldpoints])) { // changing existing user title
-				$newpoints = isset($errors['points']) ? $oldpoints : $inpoints;
-				$newtitle = isset($errors['title']) ? $pointstitle[$oldpoints] : $intitle;
-
-				unset($pointstitle[$oldpoints]);
-				$pointstitle[$newpoints] = $newtitle;
-
-			} elseif (empty($errors)) // creating a new user title
-				$pointstitle[$inpoints] = $intitle;
-		}
-
-		// Save the new option value
-
-		krsort($pointstitle, SORT_NUMERIC);
-
-		$option = '';
-		foreach ($pointstitle as $points => $title)
-			$option .= (strlen($option) ? ',' : '') . $points . ' ' . $title;
-
-		qa_set_option('points_to_titles', $option);
+		list($errors, $pointstitle) = qa_admin_save_user_title($pointstitle, $oldpoints, (bool)qa_post_text('dodelete'), qa_post_text('title'), qa_post_text('points'));
 
 		if (empty($errors))
 			qa_redirect('admin/users');

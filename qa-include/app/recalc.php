@@ -805,3 +805,24 @@ function qa_recalc_get_message($state)
 
 	return $message;
 }
+
+
+/**
+ * Advance the recalculation $state step by step for up to $seconds seconds, and return the new state.
+ * @param string $state
+ * @param int $seconds
+ * @return string
+ */
+function qa_recalc_perform_steps($state, $seconds)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	$stoptime = time() + $seconds;
+
+	while (qa_recalc_perform_step($state) && time() < $stoptime) {
+		// wait
+	}
+
+	return $state;
+}
+

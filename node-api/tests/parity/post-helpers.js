@@ -317,6 +317,121 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] ?? response.headers['x-q2a-post-backend'] }
         : { accepted: false, message: pageMessages(response.text) };
     },
+    // --- site administration ---
+    // An admin options page (admin/<section>): changes { name: value } (true/false for checkboxes), saved
+    // or reset with the page's own button.
+    async adminView(section) { await client.get(`/index.php?qa=admin/${section}`); },
+    // admin/points: change point values and press "Save and recalculate" (without JavaScript it
+    // then sends you on to the recalculation page).
+    async adminPoints(changes) {
+      const $ = cheerio.load((await client.get('/index.php?qa=admin/points')).text);
+      const form = $('form[name=points_form]');
+      const fields = { ...formFields($, form), dosaverecalc: '1', has_js: '0' };
+      for (const [name, value] of Object.entries(changes)) fields[`option_${name}`] = String(value);
+      const response = await client.post('/index.php?qa=admin/points').type('form').send(fields);
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // admin/plugins: enable exactly these plugin directories (the page's script sends their hashes).
+    async adminPlugins(directories) {
+      const { createHash } = require('node:crypto');
+      const $ = cheerio.load((await client.get('/index.php?qa=admin/plugins')).text);
+      const form = $('form[name=plugins_form]');
+      const fields = { ...formFields($, form), dosave: '1', enabled_plugins_hashes: directories.map(d => createHash('md5').update(d).digest('hex')).join(';') };
+      const response = await client.post('/index.php?qa=admin/plugins').type('form').send(fields);
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // A recalculation tool, run the way the stats page's buttons run it (ajax/recalc.php, a few
+    // seconds at a time) until it finishes.
+    async recalc(operation) {
+      const $ = cheerio.load((await client.get('/index.php?qa=admin/stats')).text);
+      const code = $(`[name=${operation}]`).closest('form').find('[name=code]').val();
+      if (!code) return { accepted: false, message: pageMessages($.html()) };
+      let state = operation;
+      let backend;
+      for (let calls = 0; state && calls < 5000; calls++) {
+        const response = await client.post('/index.php').type('form').send({ state, code, qa: 'ajax', qa_operation: 'recalc', qa_root: './', qa_request: 'admin/stats' });
+        backend ??= response.headers['x-q2a-admin-backend'];
+        const lines = response.text.slice(response.text.indexOf('QA_AJAX_RESPONSE')).split('\n');
+        if (lines[1] !== '1') return { accepted: false, message: lines.slice(2).join(' ') };
+        state = lines[2] ?? '';
+      }
+      return { accepted: true, backend };
+    },
+    // A form on an admin page: GET path (or press reveal on it first), set changes (false unchecks a
+    // box; position 'last' picks the last position option, starting with positionPrefix), and press submit.
+    async adminForm({ path, reveal = null, submit, changes = {}, positionPrefix = '' }) {
+      const fullPath = `/index.php?qa=${path}`;
+      let $ = cheerio.load((await client.get(fullPath)).text);
+      if (reveal) {
+        const button = $(`[name=${reveal}]`);
+        if (!button.length) return { accepted: false, message: pageMessages($.html()) };
+        $ = cheerio.load((await client.post(fullPath).type('form').send({ ...formFields($, button.closest('form')), [reveal]: '1' })).text);
+      }
+      const control = $(`[name=${submit}]`);
+      if (!control.length) return { accepted: false, message: pageMessages($.html()) };
+      const form = control.closest('form');
+      const fields = { ...formFields($, form), [submit]: '1' };
+      for (const [name, value] of Object.entries(changes)) {
+        if (value === false) delete fields[name];
+        else if (name === 'position' && value === 'last') {
+          const values = form.find('[name=position] option').map((i, o) => $(o).attr('value')).get().filter(v => String(v).startsWith(positionPrefix));
+          fields.position = values.at(-1);
+        } else fields[name] = value === true ? '1' : String(value);
+      }
+      const response = await client.post(fullPath).type('form').send(fields);
+      // Some admin pages redirect after saving; others show their list again, without the form.
+      const saved = response.status === 302 || (!pageMessages(response.text) && !cheerio.load(response.text)(`[name=${submit}]`).length);
+      return saved
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // admin/categories: add a category (top level, or under parentid), edit one, or delete one.
+    async adminCategorySave({ categoryid = null, parentid = null, name, slug, content, deleteIt = false }) {
+      let path = '/index.php?qa=admin/categories';
+      let $;
+      if (categoryid !== null) {
+        path += `&edit=${categoryid}`;
+        $ = cheerio.load((await client.get(path)).text);
+      } else if (parentid !== null) {
+        path += `&edit=${parentid}&addsub=${parentid}`;
+        $ = cheerio.load((await client.get(path)).text);
+      } else {
+        const list = cheerio.load((await client.get(path)).text);
+        const addForm = list('[name=doaddcategory]').closest('form');
+        $ = cheerio.load((await client.post(path).type('form').send({ ...formFields(list, addForm), doaddcategory: '1' })).text);
+      }
+      const form = $('[name=dosavecategory]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const fields = { ...formFields($, form), dosavecategory: '1' };
+      if (name !== undefined) fields.name = name;
+      if (slug !== undefined) fields.slug = slug;
+      if (content !== undefined) fields.content = content;
+      if (deleteIt) fields.dodelete = '1';
+      const response = await client.post(path).type('form').send(fields);
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    async adminOptions(section, changes, button = 'dosaveoptions') {
+      const path = `/index.php?qa=admin/${section}`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const form = $('form[name=admin_form]');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const fields = { ...formFields($, form), [button]: '1' };
+      for (const [name, value] of Object.entries(changes)) {
+        if (value === false) delete fields[`option_${name}`];
+        else fields[`option_${name}`] = value === true ? '1' : String(value);
+      }
+      const response = await client.post(path).type('form').send(fields);
+      const $result = cheerio.load(response.text);
+      return $result('.qa-form-tall-ok, .qa-form-wide-ok').length
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
     // Whether this browser is signed in (the page shows a logout link).
     async signedIn() {
       return cheerio.load((await client.get('/index.php?qa=account').redirects(0).ok(() => true)).text)('[name=dosaveprofile]').length > 0;
@@ -446,6 +561,41 @@ function apiDriver(pool) {
         userblock: () => client.put(`/api/v1/users/${encodeURIComponent(handle)}/block`).send({}),
       }[action];
       return accepted(await call().set('X-Q2A-Request', '1'));
+    },
+    async adminView() {},
+    async adminPoints(changes) {
+      return accepted(await client.put('/api/v1/admin/options').set('X-Q2A-Request', '1').send({ values: Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, String(v)])) }));
+    },
+    async adminPlugins(directories) {
+      return accepted(await client.put('/api/v1/admin/plugins').set('X-Q2A-Request', '1').send({ directories }));
+    },
+    async recalc(operation) {
+      let state = operation;
+      for (let calls = 0; state && calls < 5000; calls++) {
+        const response = await client.post('/api/v1/admin/recalc').set('X-Q2A-Request', '1').send({ state, seconds: 3 });
+        if (response.status !== 200) return { accepted: false, status: response.status, code: response.body.error?.code };
+        state = response.body.state;
+      }
+      return { accepted: true };
+    },
+    // The same operations through the API: method and path under /api/v1/admin, and the body.
+    async adminApi(method, path, body = {}) {
+      const response = await client[method](`/api/v1/admin/${path}`).set('X-Q2A-Request', '1').send(body);
+      // Saves that keep going past a failed field report it in `errors`, like the admin pages.
+      if (response.status === 200 && response.body.errors && Object.keys(response.body.errors).length) return { accepted: false, errors: response.body.errors };
+      return accepted(response);
+    },
+    async adminCategorySave({ categoryid = null, parentid = null, name, slug, content, deleteIt = false }) {
+      if (deleteIt) return accepted(await client.delete(`/api/v1/admin/categories/${categoryid}`).set('X-Q2A-Request', '1').send({}));
+      const body = { name, slug, content: content ?? '', parentid };
+      return accepted(categoryid !== null
+        ? await client.put(`/api/v1/admin/categories/${categoryid}`).set('X-Q2A-Request', '1').send(body)
+        : await client.post('/api/v1/admin/categories').set('X-Q2A-Request', '1').send(body));
+    },
+    async adminOptions(section, changes, button = 'dosaveoptions', names = null) {
+      if (button === 'doresetoptions') return accepted(await client.post('/api/v1/admin/options/reset').set('X-Q2A-Request', '1').send({ names, site: { host: 'localhost:8080' } }));
+      const values = Object.fromEntries(Object.entries(changes).map(([name, value]) => [name, value === true ? '1' : value === false ? null : String(value)]));
+      return accepted(await client.put('/api/v1/admin/options').set('X-Q2A-Request', '1').send({ values }));
     },
     async feedback({ message, name = '', email = '' }) {
       return accepted(await client.post('/api/v1/feedback').set('X-Q2A-Request', '1').send({ message, name, email, referer: '' }));

@@ -55,9 +55,7 @@ if (qa_clicked('doshowdefaults')) {
 		if (!qa_check_form_security_code('admin/points', qa_post_text('code'))) {
 			$securityexpired = true;
 		} else {
-			foreach ($optionnames as $optionname) {
-				qa_set_option($optionname, (int)qa_post_text('option_' . $optionname));
-			}
+			qa_admin_set_options($optionnames, array_fill_keys($optionnames, 'number'), array(), array());
 
 			if (!qa_post_text('has_js')) {
 				qa_redirect('admin/recalc', array('dorecalcpoints' => 1));

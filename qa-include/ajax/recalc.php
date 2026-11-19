@@ -29,12 +29,7 @@ if (qa_get_logged_in_level() >= QA_USER_LEVEL_ADMIN) {
 		$message = qa_lang('misc/form_security_reload');
 
 	} else {
-		$state = qa_post_text('state');
-		$stoptime = time() + 3;
-
-		while (qa_recalc_perform_step($state) && time() < $stoptime) {
-			// wait
-		}
+		$state = qa_recalc_perform_steps(qa_post_text('state'), 3);
 
 		$message = qa_recalc_get_message($state);
 	}

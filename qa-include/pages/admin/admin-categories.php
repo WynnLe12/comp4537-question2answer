@@ -87,8 +87,7 @@ if (qa_clicked('dosaveoptions')) {
 		$securityexpired = true;
 
 	else {
-		qa_set_option('allow_no_category', (int)qa_post_text('option_allow_no_category'));
-		qa_set_option('allow_no_sub_category', (int)qa_post_text('option_allow_no_sub_category'));
+		qa_admin_set_options(array('allow_no_category', 'allow_no_sub_category'), array('allow_no_category' => 'checkbox', 'allow_no_sub_category' => 'checkbox'), array(), array());
 		$savedoptions = true;
 	}
 }
@@ -111,7 +110,7 @@ if (qa_clicked('docancel')) {
 
 	else {
 		$inreassign = qa_get_category_field_value('reassign');
-		qa_db_category_reassign($editcategory['categoryid'], $inreassign);
+		qa_admin_reassign_category($editcategory['categoryid'], $inreassign);
 		qa_redirect(qa_request(), array('recalc' => 1, 'edit' => $editcategory['categoryid']));
 	}
 
@@ -122,8 +121,7 @@ if (qa_clicked('docancel')) {
 	elseif (qa_post_text('dodelete')) {
 		if (!$hassubcategory) {
 			$inreassign = qa_get_category_field_value('reassign');
-			qa_db_category_reassign($editcategory['categoryid'], $inreassign);
-			qa_db_category_delete($editcategory['categoryid']);
+			qa_admin_delete_category($editcategory['categoryid'], $inreassign);
 			qa_redirect(qa_request(), array('recalc' => 1, 'edit' => $editcategory['parentid']));
 		}
 
@@ -204,32 +202,12 @@ if (qa_clicked('docancel')) {
 		// Perform appropriate database action
 
 		if (empty($errors)) {
-			if (isset($editcategory['categoryid'])) { // changing existing category
-				qa_db_category_rename($editcategory['categoryid'], $inname, $inslug);
+			list($categoryid, $recalc) = qa_admin_save_category($editcategory, $setparent, $hassubcategory, $inparentid, $inname, $inslug, $incontent, $inposition);
 
-				$recalc = false;
-
-				if ($setparent) {
-					qa_db_category_set_parent($editcategory['categoryid'], $inparentid);
-					$recalc = true;
-				} else {
-					qa_db_category_set_content($editcategory['categoryid'], $incontent);
-					qa_db_category_set_position($editcategory['categoryid'], $inposition);
-					$recalc = $hassubcategory && $inslug !== $editcategory['tags'];
-				}
-
+			if (isset($editcategory['categoryid'])) // changing existing category
 				qa_redirect(qa_request(), array('edit' => $editcategory['categoryid'], 'saved' => true, 'recalc' => (int)$recalc));
-
-			} else { // creating a new one
-				$categoryid = qa_db_category_create($inparentid, $inname, $inslug);
-
-				qa_db_category_set_content($categoryid, $incontent);
-
-				if (isset($inposition))
-					qa_db_category_set_position($categoryid, $inposition);
-
+			else // creating a new one
 				qa_redirect(qa_request(), array('edit' => $inparentid, 'added' => true));
-			}
 		}
 	}
 }

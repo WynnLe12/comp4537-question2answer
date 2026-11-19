@@ -125,7 +125,8 @@ function createPostHelpers({ identify }) {
   }
 
   // qa_search_basic::index_post()
-  async function indexPost(q, postid, type, questionid, title, postText, tagstring) {
+  // Reindexing everything (the recalc tools) leaves the word counts to be recounted afterwards.
+  async function indexPost(q, postid, type, questionid, title, postText, tagstring, { updateCounts = true } = {}) {
     const unique = values => [...new Set(values)];
     const titlewords = unique(text.stringToWords(title ?? ''));
     const contentcount = new Map();
@@ -142,6 +143,7 @@ function createPostHelpers({ identify }) {
     await q.addContentWords(postid, type, questionid, contentwordidcounts);
     await q.addTagWords(postid, tagwordids);
     await q.addPostTags(postid, wholetagids);
+    if (!updateCounts) return;
     await q.updateWordCounts('titlecount', 'qa_titlewords', titlewordids);
     await q.updateWordCounts('contentcount', 'qa_contentwords', contentwordidcounts.map(([id]) => id));
     await q.updateWordCounts('tagwordcount', 'qa_tagwords', tagwordids);
