@@ -6,8 +6,9 @@ const { favoriteRoutes } = require('./routes/v1/favorites');
 const { userMessageRoutes, wallPostRoutes, privateMessageRoutes } = require('./routes/v1/messages');
 const { accountRoutes } = require('./routes/v1/account');
 const { feedbackRoutes } = require('./routes/v1/feedback');
+const { userAdminRoutes } = require('./routes/v1/user-admin');
 
-function createApp({ service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, health = async () => {}, trustProxy = false, ...options }) {
+function createApp({ service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, health = async () => {}, trustProxy = false, ...options }) {
   const app = express();
   app.disable('x-powered-by');
   // The PHP bridge forwards the browser's address in X-Forwarded-For so IP limits and
@@ -29,6 +30,7 @@ function createApp({ service, voteService, postService, postChangeService, favor
   }
   if (accountService) app.use('/api/v1/account', accountRoutes({ accountService, secureCookies: options.secureCookies }));
   if (feedbackService) app.use('/api/v1/feedback', feedbackRoutes({ feedbackService }));
+  if (userAdminService) app.use('/api/v1/users', userAdminRoutes({ userAdminService }));
   app.get(['/demo', '/demo/'], (req, res) => res.redirect('http://localhost:8081/?qa=login'));
   app.use((req, res) => res.status(404).json({ error: { code: 'not_found' } }));
   app.use((error, req, res, next) => {

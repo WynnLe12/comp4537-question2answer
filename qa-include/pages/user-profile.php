@@ -161,34 +161,10 @@ if (!QA_FINAL_EXTERNAL_USERS) {
 				$errors['page'] = qa_lang_html('misc/form_security_again');
 				$userediting = true;
 			} else {
-				if (qa_post_text('removeavatar')) {
-					qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_AVATAR, false);
-					qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_GRAVATAR, false);
-
-					if (isset($useraccount['avatarblobid'])) {
-						require_once QA_INCLUDE_DIR . 'app/blobs.php';
-
-						qa_db_user_set($userid, array(
-							'avatarblobid' => null,
-							'avatarwidth' => null,
-							'avatarheight' => null,
-						));
-
-						qa_delete_blob($useraccount['avatarblobid']);
-					}
-				}
-
 				if ($fieldseditable) {
 					$filterhandle = $handle; // we're not filtering the handle...
 					$errors = qa_handle_email_filter($filterhandle, $inemail, $useraccount);
 					unset($errors['handle']); // ...and we don't care about any errors in it
-
-					if (!isset($errors['email'])) {
-						if ($inemail != $useraccount['email']) {
-							qa_db_user_set($userid, 'email', $inemail);
-							qa_db_user_set_flag($userid, QA_USER_FLAGS_EMAIL_CONFIRMED, false);
-						}
-					}
 
 					if (count($inprofile)) {
 						$filtermodules = qa_load_modules_with('filter', 'filter_profile');
@@ -196,19 +172,11 @@ if (!QA_FINAL_EXTERNAL_USERS) {
 							$filtermodule->filter_profile($inprofile, $errors, $useraccount, $userprofile);
 					}
 
-					foreach ($userfields as $userfield) {
-						if (!isset($errors[$userfield['fieldid']]))
-							qa_db_user_profile_set($userid, $userfield['title'], $inprofile[$userfield['fieldid']]);
-					}
-
 					if (count($errors))
 						$userediting = true;
-
-					qa_report_event('u_edit', $loginuserid, qa_get_logged_in_handle(), qa_cookie_get(), array(
-						'userid' => $userid,
-						'handle' => $useraccount['handle'],
-					));
 				}
+
+				qa_user_admin_save($userid, $useraccount, (bool)qa_post_text('removeavatar'), $fieldseditable, $inemail, $userfields, $inprofile, $errors);
 
 				if (isset($maxlevelassign)) {
 					$inlevel = min($maxlevelassign, (int)qa_post_text('level')); // constrain based on maximum permitted to prevent simple browser-based attack
@@ -234,7 +202,7 @@ if (!QA_FINAL_EXTERNAL_USERS) {
 							}
 						}
 
-						qa_db_user_levels_set($userid, $inuserlevels);
+						qa_set_user_category_levels($userid, $inuserlevels);
 					}
 				}
 

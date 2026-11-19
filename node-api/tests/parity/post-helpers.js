@@ -274,6 +274,49 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, backend: response.headers['x-q2a-feedback-backend'] }
         : { accepted: false, message: pageMessages(response.text) };
     },
+    // --- user administration ---
+    // A button on a user's profile page (doapprove, doblock, dounblock, dohideall, dodelete).
+    async userButton(handle, name) {
+      const path = `/index.php?qa=user/${encodeURIComponent(handle)}`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const button = $(`[name=${name}]`);
+      if (!button.length) return { accepted: false, message: '' };
+      const response = await client.post(path).type('form').send({ ...formFields($, button.closest('form')), [name]: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] ?? response.headers['x-q2a-post-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // The profile page's admin edit form: email, profile { title: value }, level, removeAvatar.
+    async adminEditUser(handle, changes) {
+      const path = `/index.php?qa=user/${encodeURIComponent(handle)}`;
+      const $ = cheerio.load((await client.get(`${path}&state=edit`)).text);
+      const form = $('[name=dosave]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const fields = { ...formFields($, form), dosave: '1' };
+      if (changes.email !== undefined) fields.email = changes.email;
+      if (changes.level !== undefined) fields.level = String(changes.level);
+      if (changes.removeAvatar) fields.removeavatar = '1';
+      if (changes.profile) {
+        const [rows] = await pool.query('SELECT fieldid, title FROM qa_userfields');
+        for (const row of rows) if (changes.profile[row.title] !== undefined) fields[`field_${row.fieldid}`] = changes.profile[row.title];
+      }
+      const response = await client.post(path).type('form').send(fields);
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // A button on an admin page (admin/moderate, admin/flagged, admin/hidden, admin/approve).
+    async adminClick(page, entityid, action) {
+      const path = `/index.php?qa=admin/${page}`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const name = `admin_${entityid}_${action}`;
+      const button = $(`[name=${name}]`);
+      if (!button.length) return { accepted: false, message: '' };
+      const response = await client.post(path).type('form').send({ ...formFields($, button.closest('form')), [name]: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-admin-backend'] ?? response.headers['x-q2a-post-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
     // Whether this browser is signed in (the page shows a logout link).
     async signedIn() {
       return cheerio.load((await client.get('/index.php?qa=account').redirects(0).ok(() => true)).text)('[name=dosaveprofile]').length > 0;
@@ -372,6 +415,38 @@ function apiDriver(pool) {
       return accepted(await client.post('/api/v1/account/unsubscribe').set('X-Q2A-Request', '1').send(handle ? { handle, code } : {}));
     },
     async signedIn() { return (await client.get('/api/v1/auth/me')).status === 200; },
+    async userButton(handle, name) {
+      const base = `/api/v1/users/${encodeURIComponent(handle)}`;
+      const call = {
+        doapprove: () => client.post(`${base}/approve`), doblock: () => client.put(`${base}/block`), dounblock: () => client.delete(`${base}/block`),
+        dohideall: () => client.post(`${base}/hide-posts`), dodelete: () => client.delete(base),
+      }[name];
+      return accepted(await call().set('X-Q2A-Request', '1').send({}));
+    },
+    async adminEditUser(handle, changes) {
+      const base = `/api/v1/users/${encodeURIComponent(handle)}`;
+      const { level, ...rest } = changes;
+      const edit = await client.patch(base).set('X-Q2A-Request', '1').send(rest);
+      if (edit.status !== 200) return { accepted: false, status: edit.status, code: edit.body.error?.code };
+      if (level !== undefined) {
+        const changed = await client.put(`${base}/level`).set('X-Q2A-Request', '1').send({ level });
+        if (changed.status !== 200) return { accepted: false, status: changed.status, code: changed.body.error?.code };
+      }
+      return Object.keys(edit.body.errors).length ? { accepted: false, errors: edit.body.errors } : { accepted: true };
+    },
+    async adminClick(page, entityid, action, handle = null) {
+      const call = {
+        approve: () => client.post(`/api/v1/posts/${entityid}/status`).send({ action: 'approve' }),
+        reject: () => client.post(`/api/v1/posts/${entityid}/status`).send({ action: 'reject' }),
+        hide: () => client.post(`/api/v1/posts/${entityid}/status`).send({ action: 'hide' }),
+        reshow: () => client.post(`/api/v1/posts/${entityid}/status`).send({ action: 'reshow' }),
+        delete: () => client.delete(`/api/v1/posts/${entityid}`).send({}),
+        clearflags: () => client.delete(`/api/v1/posts/${entityid}/flags`).send({}),
+        userapprove: () => client.post(`/api/v1/users/${encodeURIComponent(handle)}/approve`).send({}),
+        userblock: () => client.put(`/api/v1/users/${encodeURIComponent(handle)}/block`).send({}),
+      }[action];
+      return accepted(await call().set('X-Q2A-Request', '1'));
+    },
     async feedback({ message, name = '', email = '' }) {
       return accepted(await client.post('/api/v1/feedback').set('X-Q2A-Request', '1').send({ message, name, email, referer: '' }));
     },
@@ -546,11 +621,11 @@ async function snapshot(backend, newId, focusId = newId) {
       await limitRows(pool, 'SELECT HEX(ip) AS k, period, count FROM qa_iplimits WHERE action=?', [action]),
     ];
   }
-  const [[actor]] = await pool.execute('SELECT written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_users WHERE userid=?', [users.actor]);
+  const [[actor = null]] = await pool.execute('SELECT written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_users WHERE userid=?', [users.actor]);
   const writers = {};
   for (const [label, userid] of Object.entries(users)) {
     const [[row]] = await pool.execute('SELECT written IS NOT NULL AS written FROM qa_users WHERE userid=?', [userid]);
-    writers[label] = row.written;
+    writers[label] = row?.written ?? null; // null once the user is deleted
   }
   // Favorites of the test users, with how many update events each copied into their stream.
   const userIds = Object.values(users);
@@ -579,7 +654,7 @@ async function snapshot(backend, newId, focusId = newId) {
   const wallposts = {};
   for (const [label, userid] of Object.entries(users)) {
     const [[row]] = await pool.execute('SELECT wallposts FROM qa_users WHERE userid=?', [userid]);
-    wallposts[label] = row.wallposts;
+    wallposts[label] = row?.wallposts ?? null;
   }
   // Votes and flags on the tracked posts.
   const [voteRows] = await pool.query('SELECT postid, userid, vote, flag FROM qa_uservotes WHERE postid IN (?)', [postIds]);

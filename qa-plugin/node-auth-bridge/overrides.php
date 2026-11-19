@@ -382,3 +382,55 @@ function qa_send_feedback($userid, $handle, $cookieid, $message, $name, $email, 
     return $result['status'] === 200;
 }
 
+// Moderating and administering users (the profile page's admin form and buttons, and the approve
+// users page). The pages decide which buttons to show; Node checks the same rules again.
+function node_bridge_user_admin($method, $handle, $path, $body)
+{
+    header('X-Q2A-Admin-Backend: node-api-v1');
+    $result = node_bridge_api($method, '/api/v1/users/' . rawurlencode((string)$handle) . $path, $body);
+    if ($result['status'] !== 200) qa_fatal_error('Node could not change the user: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+    return $result['data'];
+}
+
+function node_bridge_handle($userid, $userAccount = null)
+{
+    if (is_array($userAccount) && isset($userAccount['handle'])) return $userAccount['handle'];
+    if (is_string($userAccount)) return $userAccount;
+    $handles = qa_userids_to_handles(array($userid));
+    return $handles[$userid] ?? '';
+}
+
+function qa_set_user_level($userid, $handle, $level, $userAccount)
+{
+    node_bridge_user_admin('PUT', $handle, '/level', array('level' => (int)$level));
+}
+
+function qa_set_user_blocked($userid, $userAccount, $blocked)
+{
+    node_bridge_user_admin($blocked ? 'PUT' : 'DELETE', node_bridge_handle($userid, $userAccount), '/block', new stdClass());
+}
+
+function qa_set_user_category_levels($userid, $userlevels)
+{
+    $levels = array();
+    foreach ($userlevels as $userlevel) $levels[] = array('categoryid' => (int)$userlevel['entityid'], 'level' => (int)$userlevel['level']);
+    node_bridge_user_admin('PUT', node_bridge_handle($userid), '/level', array('categoryLevels' => $levels));
+}
+
+function qa_user_admin_save($userid, $useraccount, $removeavatar, $fieldseditable, $email, $userfields, $profile, $errors)
+{
+    $body = array('removeAvatar' => (bool)$removeavatar);
+    if ($fieldseditable) {
+        $body['email'] = (string)$email;
+        $body['profile'] = array();
+        foreach ($userfields as $userfield) $body['profile'][$userfield['title']] = (string)@$profile[$userfield['fieldid']];
+        if (!count($body['profile'])) $body['profile'] = new stdClass();
+    }
+    node_bridge_user_admin('PATCH', $useraccount['handle'], '', $body);
+}
+
+function qa_delete_user($userid, array $userAccount = null)
+{
+    node_bridge_user_admin('DELETE', node_bridge_handle($userid, $userAccount), '', new stdClass());
+}
+

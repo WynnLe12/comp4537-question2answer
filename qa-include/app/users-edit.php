@@ -361,6 +361,8 @@ function qa_complete_confirm($userid, $email, $handle)
  */
 function qa_set_user_level($userid, $handle, $level, $userAccount)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/users.php';
 
 	qa_db_user_set($userid, 'level', $level);
@@ -409,6 +411,8 @@ function qa_set_user_level($userid, $handle, $level, $userAccount)
  */
 function qa_set_user_blocked($userid, $userAccount, $blocked)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/users.php';
 
 	qa_db_user_set_flag($userid, QA_USER_FLAGS_USER_BLOCKED, $blocked);
@@ -732,5 +736,77 @@ function qa_user_unsubscribe($userid)
 	require_once QA_INCLUDE_DIR . 'db/users.php';
 
 	qa_db_user_set_flag($userid, QA_USER_FLAGS_NO_MAILINGS, true);
+}
+
+
+/**
+ * Save the profile page's admin edit form for user $userid (whose account is $useraccount): remove the avatar if
+ * $removeavatar, and if $fieldseditable save $email (already through qa_handle_email_filter()) and the user fields
+ * $profile (already through the filter modules), skipping fields with an entry in $errors. Reports the edit.
+ * @param $userid
+ * @param array $useraccount
+ * @param bool $removeavatar
+ * @param bool $fieldseditable
+ * @param string $email
+ * @param array $userfields
+ * @param array $profile
+ * @param array $errors
+ */
+function qa_user_admin_save($userid, $useraccount, $removeavatar, $fieldseditable, $email, $userfields, $profile, $errors)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/users.php';
+
+	if ($removeavatar) {
+		qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_AVATAR, false);
+		qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_GRAVATAR, false);
+
+		if (isset($useraccount['avatarblobid'])) {
+			require_once QA_INCLUDE_DIR . 'app/blobs.php';
+
+			qa_db_user_set($userid, array(
+				'avatarblobid' => null,
+				'avatarwidth' => null,
+				'avatarheight' => null,
+			));
+
+			qa_delete_blob($useraccount['avatarblobid']);
+		}
+	}
+
+	if ($fieldseditable) {
+		if (!isset($errors['email'])) {
+			if ($email != $useraccount['email']) {
+				qa_db_user_set($userid, 'email', $email);
+				qa_db_user_set_flag($userid, QA_USER_FLAGS_EMAIL_CONFIRMED, false);
+			}
+		}
+
+		foreach ($userfields as $userfield) {
+			if (!isset($errors[$userfield['fieldid']]))
+				qa_db_user_profile_set($userid, $userfield['title'], $profile[$userfield['fieldid']]);
+		}
+
+		qa_report_event('u_edit', qa_get_logged_in_userid(), qa_get_logged_in_handle(), qa_cookie_get(), array(
+			'userid' => $userid,
+			'handle' => $useraccount['handle'],
+		));
+	}
+}
+
+
+/**
+ * Set the category-specific levels of user $userid to $userlevels (each with 'entitytype', 'entityid' and 'level').
+ * @param $userid
+ * @param array $userlevels
+ */
+function qa_set_user_category_levels($userid, $userlevels)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/users.php';
+
+	qa_db_user_levels_set($userid, $userlevels);
 }
 

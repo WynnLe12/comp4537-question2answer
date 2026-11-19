@@ -8,8 +8,9 @@ every slice and its status. Done so far: authentication, voting
 ([notes](docs/posts-migration.md)), and changing them: editing, selecting answers, closing,
 hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)),
 flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), private messages and wall posts
-([notes](docs/messages-migration.md)), account and profile changes ([notes](docs/account-migration.md)), and
-email notifications ([notes](docs/notifications-migration.md)).
+([notes](docs/messages-migration.md)), account and profile changes ([notes](docs/account-migration.md)),
+email notifications ([notes](docs/notifications-migration.md)), and moderation and user administration
+([notes](docs/admin-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -38,6 +39,8 @@ For an annotated, file-by-file code walkthrough, see
   forgotten password and unsubscribe from mailings through Node, with Node sending the emails.
 - Every email Q2A sends when something happens (answers, comments, selections, moderation, flags,
   wall posts, private messages, registration, feedback) is sent by Node.
+- Moderators and admins approve, block, edit, promote, hide and delete users, and approve, reject,
+  hide, reshow, delete and clear flags on posts from the admin pages, through Node.
 
 ## Start the demo
 
@@ -211,6 +214,12 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/account/password-reset/complete` | Set a new password with that code and sign in |
 | `POST /api/v1/account/unsubscribe` | Unsubscribe from mailings |
 | `POST /api/v1/feedback` | Send the feedback form to the site's feedback address |
+| `PATCH /api/v1/users/:handle` | Admin edit: email, profile fields, remove avatar |
+| `PUT /api/v1/users/:handle/level` | Set a user's level and category levels |
+| `POST /api/v1/users/:handle/approve` | Approve a user |
+| `PUT`/`DELETE /api/v1/users/:handle/block` | Block or unblock a user |
+| `POST /api/v1/users/:handle/hide-posts` | Hide all of a blocked user's posts |
+| `DELETE /api/v1/users/:handle` | Delete a blocked user |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -233,6 +242,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/services/messages.js`, `repositories/messages.js`, `routes/v1/messages.js` | Private messages and wall posts |
 | `node-api/src/services/account.js`, `repositories/account.js`, `routes/v1/account.js` | Profile, password, avatar, confirmation, reset and unsubscribe |
 | `node-api/src/q2a/mail.js`, `q2a/paths.js` | Q2A's email sending (through its SMTP options) and its links |
+| `node-api/src/services/user-admin.js`, `repositories/user-admin.js`, `routes/v1/user-admin.js` | Moderating and administering users |
 | `node-api/src/q2a/notify.js` | The emails of Q2A's notification module, sent after each change commits |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |

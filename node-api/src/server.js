@@ -13,6 +13,8 @@ const { createMessageService } = require('./services/messages');
 const { createAccountRepository } = require('./repositories/account');
 const { createAccountService } = require('./services/account');
 const { createFeedbackService } = require('./services/feedback');
+const { createUserAdminRepository } = require('./repositories/user-admin');
+const { createUserAdminService } = require('./services/user-admin');
 const { createApp } = require('./app');
 
 async function start() {
@@ -29,12 +31,13 @@ async function start() {
   const postChangeService = createPostChangeService(postRepository, { identify });
   const favoriteService = createFavoriteService(createFavoriteRepository(pool), { identify });
   const messageService = createMessageService(createMessageRepository(pool), { identify });
+  const userAdminService = createUserAdminService(createUserAdminRepository(pool), { identify, postChangeService });
   const feedbackService = createFeedbackService(createMessageRepository(pool), { identify });
   const accountService = createAccountService(createAccountRepository(pool), {
     identify, startSession: (userid, ip) => service.startSession(userid, ip), saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
   });
   const app = createApp({
-    service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, health: () => pool.query('SELECT 1'),
+    service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, health: () => pool.query('SELECT 1'),
     secureCookies: process.env.NODE_ENV === 'production',
     trustProxy: process.env.TRUST_PROXY || false,
   });
