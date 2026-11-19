@@ -26,7 +26,8 @@ function applySub(query, args) {
   out += sql.slice(offset);
   return { sql: out };
 }
-const isNumeric = value => (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && /^\s*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?\s*$/.test(value));
+// PHP 8's is_numeric(): optional surrounding whitespace (PHP's own set), a sign, decimals and an exponent.
+const isNumeric = value => (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && /^[ \t\n\r\v\f]*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[ \t\n\r\v\f]*$/.test(value));
 // qa_db_argument_to_mysql(): arrays become comma lists (inner arrays in brackets), null NULL, booleans
 // the strings '1' and '' (PHP's string forms), numbers unquoted unless $.
 function toSql(arg, alwaysquote, brackets = false) {
@@ -102,4 +103,4 @@ function postSelect(entries, spec) {
   return { single: false, entries };
 }
 
-module.exports = { runSelect, applySub, postSelect, sortBy };
+module.exports = { runSelect, applySub, postSelect, sortBy, isNumeric };

@@ -65,6 +65,11 @@ who may delete a wall post.
 
 ## Known differences
 
+- Characters outside the Basic Multilingual Plane (emoji, for example): `pages/message.php` and
+  `pages/user-wall.php` pass the text straight to MySQL, which refuses them in the utf8mb3 columns, so
+  the PHP site stops with a database error and stores nothing. Node drops those characters, as Q2A's
+  `qa_remove_utf8mb4()` does for posts, and stores the rest. Pinned by
+  `node-api/tests/reliability/known-differences.test.js`.
 - Email: since the [notifications slice](notifications-migration.md) Node sends both the private
   message email (`emailed` in the response says whether it went out) and the wall post email.
 - Characters outside the Basic Multilingual Plane are removed, since the table is utf8mb3; PHP

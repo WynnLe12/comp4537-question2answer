@@ -15,7 +15,7 @@ const ANSWER_TYPES = ['A', 'A_HIDDEN', 'A_QUEUED'];
 
 function createPostChangeService(repository, { identify }) {
   const helpers = createPostHelpers({ identify });
-  const { context, permit, checkQuestionPage, indexPost, unindexPost, eventForQUser, postRules, permitEdit, setSelchildid, reportAction } = helpers;
+  const { withIdentity, context, permit, checkQuestionPage, indexPost, unindexPost, eventForQUser, postRules, permitEdit, setSelchildid, reportAction } = helpers;
 
   // Everything the question page loads for the question that contains $post.
   async function questionPage(ctx, post) {
@@ -349,6 +349,7 @@ function createPostChangeService(repository, { identify }) {
   }
 
   async function editPost(request) {
+    request = await withIdentity(request);
     return repository.transaction(async q => {
       const ctx = await context(q, request);
       const post = request.postid ? await q.findPost(request.postid, { lock: true }) : undefined;
@@ -643,7 +644,10 @@ function createPostChangeService(repository, { identify }) {
     else rules = postRules(ctx, post, page.parent, page.commentsfollows, null);
     return { post, page, rules };
   }
-  const transaction = (request, work) => repository.transaction(async q => work(await context(q, request)));
+  const transaction = async (request, work) => {
+    const resolved = await withIdentity(request);
+    return repository.transaction(async q => work(await context(q, resolved)));
+  };
 
   async function selectAnswer(request) {
     return transaction(request, async ctx => {

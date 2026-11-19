@@ -39,3 +39,9 @@ Slices 1–11 move every write and every rule that decides one. Slice 12 moves t
 `db/selects.php` builder runs in Node and PHP only renders the results, without changing the page
 controllers. Slice 12b moves the reads still made through the smaller `db/*.php` helpers, so the shared UI
 sends no queries of its own.
+
+## Reliability
+
+Beyond each slice's parity suite, `scripts/reliability.sh` runs random differential histories on both
+sites, whole-database and page comparisons, invariant checks, concurrency, read argument fuzzing and a
+Node-down check. See [reliability testing](reliability-testing.md), including the Node fixes they led to.

@@ -42,6 +42,8 @@ function oneAssoc(rows, allowempty = false) {
 }
 const scalar = value => ({ single: true, value });
 const isset = value => value !== null && value !== undefined;
+// PHP truthiness: '0', '', 0, false, null and empty arrays are false (JavaScript counts '0' as true).
+const truthy = value => (Array.isArray(value) ? value.length > 0 : Boolean(value) && value !== '0');
 const list = value => (Array.isArray(value) ? value : Object.values(value ?? {}));
 
 // The meta tables qa_db_meta_get() is called for (db/metas.php), with their ID columns.
@@ -96,7 +98,7 @@ const helpers = {
   // qa-db.php
   async qa_db_list_tables(db, onlyTablesWithPrefix = false) {
     let query = 'SHOW TABLES';
-    if (onlyTablesWithPrefix) query += ` WHERE \`Tables_in_${process.env.DB_NAME || 'q2a'}\` LIKE "qa\\_%"`;
+    if (truthy(onlyTablesWithPrefix)) query += ` WHERE \`Tables_in_${process.env.DB_NAME || 'q2a'}\` LIKE "qa\\_%"`;
     return allValues(await rowsOf(db, query));
   },
   // db/post-update.php
@@ -127,7 +129,7 @@ const helpers = {
     let where = '';
     const args = [];
     if (isset(type)) { where += ' WHERE type=$'; args.push(type); }
-    if (isset(fromuser)) where += `${where.length ? ' AND' : ' WHERE'} userid ${fromuser ? 'IS NOT' : 'IS'} NULL`;
+    if (isset(fromuser)) where += `${where.length ? ' AND' : ' WHERE'} userid ${truthy(fromuser) ? 'IS NOT' : 'IS'} NULL`;
     return oneValue(await rowsOf(db, `SELECT COUNT(*) FROM ^posts${where}`, args));
   },
   async qa_db_count_users(db) { return oneValue(await rowsOf(db, 'SELECT COUNT(*) FROM ^users')); },

@@ -3,6 +3,7 @@
 //   sortasc, sortdesc, sortdesc_2 }, using Q2A's ^ table prefix and $ (string) / # (number) placeholders.
 // The SQL is kept exactly as PHP writes it, so the results are the same rows; execute.js runs them.
 const net = require('node:net');
+const { isNumeric } = require('./execute');
 
 const QA_DB_RETRIEVE_QS_AS = 50;
 const QA_DB_RETRIEVE_TAGS = 200;
@@ -15,11 +16,23 @@ const QA_UPDATE_SELECTED = 'S';
 
 const isset = value => value !== undefined && value !== null;
 const truthy = value => Boolean(value) && value !== '0'; // PHP truthiness for the flags builders take
-const capped = (count, maximum) => (isset(count) ? Math.min(Number(count), maximum) : maximum);
+// PHP 8's min($value, $maximum) for an integer maximum: it returns the argument itself (a numeric string keeps
+// its digits); numbers and numeric strings compare as numbers, other strings byte by byte with the maximum's
+// digits, and booleans as booleans. Equal values give the first argument.
+function phpMin(value, maximum) {
+  if (typeof value === 'boolean') return value; // true == (bool)maximum and false < true: the value either way
+  if (typeof value === 'number') return value <= maximum ? value : maximum;
+  const text = String(value);
+  if (isNumeric(text)) return Number(text) <= maximum ? value : maximum;
+  return Buffer.compare(Buffer.from(text, 'utf8'), Buffer.from(String(maximum), 'utf8')) <= 0 ? value : maximum;
+}
+const capped = (count, maximum) => (isset(count) ? phpMin(count, maximum) : maximum);
 const col = (spec, alias, expression) => spec.columns.push([alias, expression]);
 // bin2hex(@inet_pton($ip)): the address's bytes in hex, or '' when it is not an address.
 function ipHex(ip) {
   const text = String(ip ?? '');
+  // PHP 8's inet_pton() throws on a NUL byte (the @ hides warnings, not errors), so the read fails there too.
+  if (text.includes('\u0000')) throw new Error('inet_pton(): Argument #1 ($ip) must not contain any null bytes');
   const kind = net.isIP(text);
   if (kind === 4) return Buffer.from(text.split('.').map(Number)).toString('hex');
   if (kind !== 6) return '';
@@ -503,7 +516,7 @@ const builders = {
   qa_db_users_with_flag_selectspec(flag, start = 0, limit = null) {
     let source = '^users WHERE (flags & #)';
     const args = [flag];
-    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, Math.min(Number(limit), QA_DB_RETRIEVE_USERS)); }
+    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, phpMin(limit, QA_DB_RETRIEVE_USERS)); }
     return { columns: [[null, '^users.userid'], [null, 'handle'], [null, 'flags'], [null, 'level']], source, arguments: args };
   },
   qa_db_recent_messages_selectspec(fromidentifier, fromisuserid, toidentifier, toisuserid, count = null, start = 0) {
@@ -538,20 +551,20 @@ const builders = {
     const spec = postsBasic(userid);
     spec.source += ' JOIN ^userfavorites AS selectfave ON ^posts.postid=selectfave.entityid WHERE selectfave.userid=$ AND selectfave.entitytype=$ AND ^posts.type="Q" ORDER BY ^posts.created DESC';
     spec.arguments.push(userid, ENTITY.QUESTION);
-    if (isset(limit)) { spec.source += ' LIMIT #,#'; spec.arguments.push(start, Math.min(Number(limit), QA_DB_RETRIEVE_QS_AS)); }
+    if (isset(limit)) { spec.source += ' LIMIT #,#'; spec.arguments.push(start, phpMin(limit, QA_DB_RETRIEVE_QS_AS)); }
     spec.sortdesc = 'created';
     return spec;
   },
   qa_db_user_favorite_users_selectspec(userid, limit = null, start = 0) {
     let source = '^users JOIN ^userpoints ON ^users.userid=^userpoints.userid JOIN ^userfavorites ON ^users.userid=^userfavorites.entityid WHERE ^userfavorites.userid=$ AND ^userfavorites.entitytype=$ ORDER BY ^users.handle';
     const args = [userid, ENTITY.USER];
-    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, Math.min(Number(limit), QA_DB_RETRIEVE_USERS)); }
+    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, phpMin(limit, QA_DB_RETRIEVE_USERS)); }
     return { columns: [[null, '^users.userid'], [null, 'handle'], [null, 'points'], [null, 'flags'], [null, '^users.email'], ['avatarblobid', 'BINARY avatarblobid'], [null, 'avatarwidth'], [null, 'avatarheight']], source, arguments: args, sortasc: 'handle' };
   },
   qa_db_user_favorite_tags_selectspec(userid, limit = null, start = 0) {
     let source = '^words JOIN ^userfavorites ON ^words.wordid=^userfavorites.entityid WHERE ^userfavorites.userid=$ AND ^userfavorites.entitytype=$ ORDER BY ^words.tagcount DESC';
     const args = [userid, ENTITY.TAG];
-    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, Math.min(Number(limit), QA_DB_RETRIEVE_TAGS)); }
+    if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, phpMin(limit, QA_DB_RETRIEVE_TAGS)); }
     return { columns: [[null, 'word'], [null, 'tagcount']], source, arguments: args, sortdesc: 'tagcount' };
   },
   qa_db_user_favorite_categories_selectspec(userid) {
@@ -628,7 +641,7 @@ function messageColumns() {
 function messageBox(usercolumn, hiddencolumn, type, identifier, isuserid, start, limit) {
   let source = `^messages LEFT JOIN ^users ufrom ON fromuserid=ufrom.userid LEFT JOIN ^users uto ON touserid=uto.userid WHERE ${usercolumn}=${truthy(isuserid) ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)'} AND type=$ AND ${hiddencolumn}=0 ORDER BY ^messages.created DESC`;
   const args = [identifier, String(type).toUpperCase()];
-  if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, Math.min(Number(limit), QA_DB_RETRIEVE_MESSAGES)); }
+  if (isset(limit)) { source += ' LIMIT #,#'; args.push(start, phpMin(limit, QA_DB_RETRIEVE_MESSAGES)); }
   return { columns: messageColumns(), source, arguments: args, arraykey: 'messageid', sortdesc: 'created' };
 }
 // qa_db_selectspec_count()

@@ -91,11 +91,17 @@ function filterChild(input, minOption, options) {
 const sameWords = (a, b) => text.stringToWords(a).join(' ') === text.stringToWords(b).join(' ');
 
 function createPostHelpers({ identify }) {
+  // The signed-in user, looked up before a transaction starts: the lookup takes a connection of its own,
+  // and doing it inside a transaction (which already holds one) lets enough simultaneous requests take
+  // every pooled connection and then wait on each other for ever.
+  async function withIdentity(request) {
+    return request.identity !== undefined ? request : { ...request, identity: await identify(request.token) };
+  }
   // Loads what every operation needs; Q2A reads all of this per request too.
-  async function context(q, { token, cookieid, ip }) {
+  async function context(q, { cookieid, ip, identity }) {
+    if (identity === undefined) throw new Error('context() needs the identity looked up before the transaction (withIdentity)');
     const options = await q.loadOptions();
     q.setMaxStoreUserUpdates(options.get('max_store_user_updates'));
-    const identity = await identify(token);
     const user = identity ? await q.findActor(identity.id) : null;
     return { q, options, user, userid: user ? Number(user.userid) : null, cookieid: cookieid ?? null, ip, period: Math.trunc(options.dbTime / 3600) };
   }
@@ -320,7 +326,7 @@ function createPostHelpers({ identify }) {
     else if (ctx.cookieid) await ctx.q.cookieWritten(ctx.cookieid, ctx.ip);
   }
 
-  return { context, permit, postCookie, viewable, checkQuestionPage, indexPost, unindexPost, eventForQUser, reportWrite, checkCaptcha, postRules, permitEdit, setSelchildid, reportAction };
+  return { withIdentity, context, permit, postCookie, viewable, checkQuestionPage, indexPost, unindexPost, eventForQUser, reportWrite, checkCaptcha, postRules, permitEdit, setSelchildid, reportAction };
 }
 
 module.exports = {

@@ -15,6 +15,7 @@ require __DIR__ . '/../../qa-include/qa-base.php';
 qa_db_connect('qa_page_db_fail_handler');
 require_once QA_INCLUDE_DIR . 'db/selects.php';
 require_once QA_INCLUDE_DIR . 'app/users.php'; // the user level and flag constants pages always have
+require_once QA_INCLUDE_DIR . 'util/string.php'; // qa_strtolower() and friends, loaded by every page
 foreach (array('users', 'metas', 'cookies', 'notices', 'limits', 'votes', 'post-update', 'admin', 'blobs', 'cache') as $file) {
     require_once QA_INCLUDE_DIR . 'db/' . $file . '.php';
 }

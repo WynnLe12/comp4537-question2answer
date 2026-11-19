@@ -125,6 +125,8 @@ function siteDriver(name, baseUrl, pool) {
       if (!form.length) return { accepted: false, message: pageMessages($.html()) };
       const response = await client.post(path).type('form').send({ ...formFields($, form), message, domessage: '1' });
       if (response.status === 302) return { accepted: true, backend: response.headers['x-q2a-message-backend'] };
+      // Q2A's error pages answer 200: qa_fatal_error() and, for a failed query, the install page.
+      if (response.status >= 500 || /Question2Answer fatal error|A Question2Answer database query failed/.test(response.text)) return { accepted: false, message: 'server error' };
       // Without message history there is no redirect: the page shows the form again, with no error.
       const sent = cheerio.load(response.text)('.qa-form-tall-ok').length > 0 || !pageMessages(response.text);
       return sent ? { accepted: true, backend: response.headers['x-q2a-message-backend'] } : { accepted: false, message: pageMessages(response.text) };

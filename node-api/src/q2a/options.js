@@ -13,6 +13,19 @@ function dynamicDefault(name, get) {
     case 'points_vote_up_a': case 'points_vote_down_a': return numericOr('points_vote_on_a', 1);
     case 'points_per_q_voted_up': case 'points_per_q_voted_down': return numericOr('points_per_q_voted', 1);
     case 'points_per_a_voted_up': case 'points_per_a_voted_down': return numericOr('points_per_a_voted', 2);
+    // qa_default_option()'s email defaults. PHP builds from_email from the host of the request that first
+    // reads it; Node sees no browser request, so it uses the host in site_url (the same host on a live site).
+    case 'from_email': {
+      let host = '';
+      try { host = new URL(get('site_url')).host; } catch { host = ''; }
+      const parts = host.split('.');
+      if (parts.length > 2 && parts[0].length < 5 && !/^[0-9]+$/.test(parts[0])) parts.shift(); // e.g. www. or qa.
+      return `no-reply@${parts.length > 1 ? parts.join('.') : 'example.com'}`;
+    }
+    case 'mailing_from_email': return get('from_email');
+    case 'mailing_from_name': return get('site_title');
+    case 'mailing_subject': return `A message from ${get('site_title')}`; // options/default_subject
+    case 'mailing_body': return `\n\n\n--\n${get('site_title')}\n${get('site_url')}`;
     default: return '';
   }
 }

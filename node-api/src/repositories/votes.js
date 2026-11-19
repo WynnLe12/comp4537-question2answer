@@ -35,8 +35,10 @@ function createVoteRepository(pool) {
           'SET x.upvotes=a.upvotes, x.downvotes=a.downvotes, x.netvotes=a.upvotes-a.downvotes WHERE x.postid=?', [postid, postid]);
       },
 
+      // Locked: the answer vote decides from amaxvote whether the question stops or starts counting as
+      // unupvoted, and two votes on different answers must not both decide from the same old value.
       async findQuestion(postid) {
-        const [[row]] = await db.execute('SELECT postid, amaxvote, acount, closedbyid FROM qa_posts WHERE postid=?', [postid]);
+        const [[row]] = await db.execute('SELECT postid, amaxvote, acount, closedbyid FROM qa_posts WHERE postid=? FOR UPDATE', [postid]);
         return row;
       },
 

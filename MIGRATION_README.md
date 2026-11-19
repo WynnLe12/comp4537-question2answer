@@ -171,6 +171,15 @@ To run one parity suite only, pass its file:
 docker compose run --build --rm tests npx jest --runInBand tests/parity/votes.test.js
 ```
 
+The reliability suites go further: random action histories run in lockstep on both sites with
+whole-database and rendered-page comparison, invariant checks on every cached count, concurrency,
+hostile read arguments, and the Node API being stopped. They reset both databases first; see
+[the reliability notes](docs/reliability-testing.md).
+
+```sh
+scripts/reliability.sh
+```
+
 Alternatively, with Node 24 installed: `cd node-api`, `npm ci`, then `npm test`.
 The parity suite needs the Docker stack, because it talks to both sites and both databases.
 

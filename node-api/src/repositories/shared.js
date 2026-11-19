@@ -7,8 +7,14 @@ const { phpNum } = require('../q2a/php');
 // One connection and one transaction per operation (PHP runs the same statements with autocommit).
 // MySQL user variables in the points SQL are per connection. Work queued on q.afterCommit (emails)
 // runs once the transaction has committed; a failure there is logged, not returned.
+// InnoDB picks a victim when simultaneous transactions lock rows in different orders (a deadlock) or
+// waits too long; MySQL's advice is to run the transaction again, so it is retried a few times, each
+// attempt with a fresh connection, transaction and after-commit queue (nothing from a failed attempt
+// is kept: it was rolled back and its emails never queued for sending).
+const RETRYABLE = new Set([1213, 1205]); // ER_LOCK_DEADLOCK, ER_LOCK_WAIT_TIMEOUT
+const ATTEMPTS = 5;
 function createTransactor(pool, queries) {
-  return async function transaction(work) {
+  async function attempt(work) {
     const connection = await pool.getConnection();
     let q;
     try {
@@ -22,10 +28,20 @@ function createTransactor(pool, queries) {
       for (const task of q.afterCommit) await task().catch(error => console.error('After-commit task failed:', error.message));
       return result;
     } catch (error) {
-      if (!q?.released) await connection.rollback();
+      if (!q?.released) await connection.rollback().catch(() => {});
       throw error;
     } finally {
       if (!q?.released) connection.release();
+    }
+  }
+  return async function transaction(work) {
+    for (let n = 1; ; n++) {
+      try {
+        return await attempt(work);
+      } catch (error) {
+        if (!RETRYABLE.has(error.errno) || n >= ATTEMPTS) throw error;
+        await new Promise(resolve => setTimeout(resolve, 10 * n + Math.floor(Math.random() * 25 * n)));
+      }
     }
   };
 }

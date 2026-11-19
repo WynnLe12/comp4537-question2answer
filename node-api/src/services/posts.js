@@ -13,9 +13,10 @@ const notify = require('../q2a/notify');
 const { UPDATE, permitFailure, stringField, readCommon, readId, filterQuestion, filterChild, sameWords, createPostHelpers } = require('./post-common');
 
 function createPostService(repository, { identify }) {
-  const { context, permit, postCookie, viewable, checkQuestionPage, indexPost, eventForQUser, reportWrite, checkCaptcha } = createPostHelpers({ identify });
+  const { withIdentity, context, permit, postCookie, viewable, checkQuestionPage, indexPost, eventForQUser, reportWrite, checkCaptcha } = createPostHelpers({ identify });
 
   async function createQuestion(request) {
+    request = await withIdentity(request);
     return repository.transaction(async q => {
       const ctx = await context(q, request);
       const { options, body } = { ...ctx, body: request.body ?? {} };
@@ -105,6 +106,7 @@ function createPostService(repository, { identify }) {
   }
 
   async function createAnswer(request) {
+    request = await withIdentity(request);
     return repository.transaction(async q => {
       const ctx = await context(q, request);
       const { options } = ctx;
@@ -166,6 +168,7 @@ function createPostService(repository, { identify }) {
   }
 
   async function createComment(request) {
+    request = await withIdentity(request);
     return repository.transaction(async q => {
       const ctx = await context(q, request);
       const { options } = ctx;
