@@ -7,6 +7,9 @@ const { ApiError } = require('../errors');
 const { phpBool } = require('../q2a/php');
 const { LIMIT, userPermitError } = require('../q2a/permissions');
 const text = require('../q2a/text');
+const notify = require('../q2a/notify');
+const { prepareNotification, sendEmail, strtr, lang } = require('../q2a/mail');
+const { pathAbsolute } = require('../q2a/paths');
 
 const USER_FLAGS = { NO_MESSAGES: 16, NO_WALL_POSTS: 256 }; // QA_USER_FLAGS_*
 const MAX_CONTENT = 12000; // the qa_messages.content column
@@ -39,7 +42,7 @@ function createMessageService(repository, { identify }) {
 
   // pages/message.php with qa_pm_send()
   async function sendMessage(request) {
-    return transaction(request, async ctx => {
+    const sent = await transaction(request, async ctx => {
       const { q, options, user } = ctx;
       if (request.handle === user.handle) throw new ApiError(403, 'no_permission');
       const to = request.handle ? await q.findUserByHandle(request.handle) : undefined;
@@ -55,8 +58,21 @@ function createMessageService(repository, { identify }) {
       // u_message: counted against the message limit, and recorded as the user's last write.
       await q.incrementLimits(user.userid, ctx.ip, LIMIT.MESSAGES, ctx.period);
       await q.userWritten(user.userid, ctx.ip);
-      return { id, to: { userid: to.userid, handle: to.handle } };
+      // qa_pm_send_notification(): the recipient is emailed the message, with a reply link unless
+      // the sender has switched off private messages.
+      const canreply = !(Number(user.flags) & USER_FLAGS.NO_MESSAGES);
+      const more = strtr(canreply ? lang.private_message_reply : lang.private_message_info, {
+        '^f_handle': user.handle, '^url': pathAbsolute(options, canreply ? `message/${user.handle}` : `user/${user.handle}`),
+      });
+      const email = await prepareNotification(q, options, {
+        userid: to.userid, email: null, handle: to.handle, subject: lang.private_message_subject, body: lang.private_message_body,
+        subs: { '^message': content, '^f_handle': user.handle, '^f_url': pathAbsolute(options, `user/${user.handle}`), '^more': more, '^a_url': pathAbsolute(options, 'account') },
+      });
+      return { id, to: { userid: to.userid, handle: to.handle }, email, options };
     });
+    // Sent after the message is saved; the page reports whether the email went out.
+    const emailed = sent.email ? await sendEmail(sent.options, sent.email) : false;
+    return { id: sent.id, to: sent.to, emailed };
   }
 
   // qa_wall_error_html() and the wall form, with qa_wall_add_post()
@@ -75,6 +91,7 @@ function createMessageService(repository, { identify }) {
       const id = await q.messageCreate(user.userid, to.userid, content, '', true);
       await q.userRecountPosts(to.userid);
       await q.incrementLimits(user.userid, ctx.ip, LIMIT.WALL_POSTS, ctx.period); // u_wall_post
+      await notify.wallPosted(q, options, { userid: user.userid, handle: user.handle, touserid: to.userid, tohandle: to.handle, text: text.viewerText(content, '') });
       return { id };
     });
   }

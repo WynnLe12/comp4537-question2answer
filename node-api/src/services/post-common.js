@@ -7,6 +7,7 @@ const {
   LEVEL, LIMIT, userPermitError, userLevelForPost, userLevelForCategories, userLevelMaximum, moderationReason, postIsByUser,
 } = require('../q2a/permissions');
 const text = require('../q2a/text');
+const notify = require('../q2a/notify');
 
 const MAX = { TITLE: 800, CONTENT: 12000, TAGS: 800, EMAIL: 80 }; // qa-include/db/maxima.php
 // QA_UPDATE_* (app/updates.php)
@@ -301,6 +302,7 @@ function createPostHelpers({ identify }) {
       await q.updatePoints(byId.get(selchildid).userid, ['aselecteds'], options);
       await report(); // a_select
       await eventForQUser(q, oldquestion.postid, selchildid, UPDATE.SELECTED, userid, byId.get(selchildid).userid);
+      await notify.answerSelected(q, options, { userid, cookieid: actor?.cookieid ?? null, handle: actor ? ctx.user?.handle ?? null : null, answer: byId.get(selchildid), question: oldquestion });
       if (!closed && phpBool(options.get('do_close_on_select'))) {
         await q.setClosed(oldquestion.postid, null, closeEdit);
         await report(); // q_close

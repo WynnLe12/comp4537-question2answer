@@ -80,39 +80,10 @@ if (qa_clicked('dofeedback')) {
 			qa_captcha_validate_post($errors);
 
 		if (empty($errors)) {
-			$subs = array(
-				'^message' => $inmessage,
-				'^name' => empty($inname) ? '-' : $inname,
-				'^email' => empty($inemail) ? '-' : $inemail,
-				'^previous' => empty($inreferer) ? '-' : $inreferer,
-				'^url' => isset($userid) ? qa_path_absolute('user/' . qa_get_logged_in_handle()) : '-',
-				'^ip' => qa_remote_ip_address(),
-				'^browser' => @$_SERVER['HTTP_USER_AGENT'],
-			);
-
-			if (qa_send_email(array(
-				'fromemail' => qa_opt('from_email'),
-				'fromname' => $inname,
-				'replytoemail' => qa_email_validate(@$inemail) ? $inemail : null,
-				'replytoname' => $inname,
-				'toemail' => qa_opt('feedback_email'),
-				'toname' => qa_opt('site_title'),
-				'subject' => qa_lang_sub('emails/feedback_subject', qa_opt('site_title')),
-				'body' => strtr(qa_lang('emails/feedback_body'), $subs),
-				'html' => false,
-			))) {
+			if (qa_send_feedback($userid, qa_get_logged_in_handle(), qa_cookie_get(), $inmessage, $inname, $inemail, $inreferer))
 				$feedbacksent = true;
-			} else {
+			else
 				$pageerror = qa_lang_html('main/general_error');
-			}
-
-			qa_report_event('feedback', $userid, qa_get_logged_in_handle(), qa_cookie_get(), array(
-				'email' => $inemail,
-				'name' => $inname,
-				'message' => $inmessage,
-				'previous' => $inreferer,
-				'browser' => @$_SERVER['HTTP_USER_AGENT'],
-			));
 		}
 	}
 }

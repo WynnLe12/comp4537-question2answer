@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createHash, randomBytes, timingSafeEqual } = require('node:crypto');
 const isEmail = require('validator/lib/isEmail');
+const { sendEmail } = require('../q2a/mail');
 
 class AuthError extends Error {
   constructor(status, code, fields) {
@@ -98,7 +99,8 @@ function createAuthService(repository, { jwtSecret, saltRounds = 10 } = {}) {
     async register(body, ip) {
       const input = registrationInput(body);
       const hash = await bcrypt.hash(input.password, saltRounds);
-      const user = await repository.createUser({ ...input, hash }, ip);
+      const { emails = [], options, ...user } = await repository.createUser({ ...input, hash }, ip);
+      for (const email of emails) await sendEmail(options, email); // a failed email does not undo the registration, as in PHP
       return session(user, false, ip);
     },
     async me(token) {

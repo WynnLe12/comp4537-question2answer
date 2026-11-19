@@ -5,20 +5,27 @@ const { pointsUpdateStatement } = require('../q2a/points');
 const { phpNum } = require('../q2a/php');
 
 // One connection and one transaction per operation (PHP runs the same statements with autocommit).
-// MySQL user variables in the points SQL are per connection.
+// MySQL user variables in the points SQL are per connection. Work queued on q.afterCommit (emails)
+// runs once the transaction has committed; a failure there is logged, not returned.
 function createTransactor(pool, queries) {
   return async function transaction(work) {
     const connection = await pool.getConnection();
+    let q;
     try {
       await connection.beginTransaction();
-      const result = await work(queries(connection));
+      q = queries(connection);
+      q.afterCommit = [];
+      const result = await work(q);
       await connection.commit();
+      connection.release();
+      q.released = true;
+      for (const task of q.afterCommit) await task().catch(error => console.error('After-commit task failed:', error.message));
       return result;
     } catch (error) {
-      await connection.rollback();
+      if (!q?.released) await connection.rollback();
       throw error;
     } finally {
-      connection.release();
+      if (!q?.released) connection.release();
     }
   };
 }
@@ -81,6 +88,17 @@ function sharedQueries(db) {
     },
 
     // qa_user_report_action() / qa_cookie_report_action(): record the last write and its address.
+    // qa_send_notification() reads a user's email and handle when the caller has no valid ones.
+    async findUserEmailHandle(userid) {
+      const [[row]] = await db.execute('SELECT email, handle FROM qa_users WHERE userid=?', [userid]);
+      return row;
+    },
+    // The handle Q2A's post selections join in (null for anonymous posts).
+    async findHandle(userid) {
+      if (userid === null || userid === undefined) return null;
+      const [[row]] = await db.execute('SELECT handle FROM qa_users WHERE userid=?', [userid]);
+      return row?.handle ?? null;
+    },
     async userWritten(userid, ip) {
       await db.execute('UPDATE qa_users SET written=NOW(), writeip=INET6_ATON(?) WHERE userid=?', [ip, userid]);
     },

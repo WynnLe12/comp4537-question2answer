@@ -9,6 +9,7 @@ const { ApiError } = require('../errors');
 const { phpBool, phpInt } = require('../q2a/php');
 const { LIMIT, userLevelForPost, userLevelForCategories, userLevelMaximum, moderationReason, postIsByUser } = require('../q2a/permissions');
 const text = require('../q2a/text');
+const notify = require('../q2a/notify');
 const { UPDATE, permitFailure, stringField, readCommon, readId, filterQuestion, filterChild, sameWords, createPostHelpers } = require('./post-common');
 
 function createPostService(repository, { identify }) {
@@ -93,6 +94,12 @@ function createPostService(repository, { identify }) {
         }
         for (const category of path) await q.eventCreateForEntity('C', category.categoryid, postid, postid, null, ctx.userid);
       }
+      // qa_event_notify, q_queue or q_post
+      const handle = ctx.user?.handle ?? null;
+      if (queued) await notify.queued(q, options, { basetype: 'Q', requeue: false, handle, name: input.name, postid, title: input.title, text: input.text });
+      // Q2A reports the followed answer as 'parent', but its notify module reads 'followanswer', so the
+      // answer's author is never emailed; Node keeps that behaviour.
+      else await notify.questionPosted(q, options, { userid: ctx.userid, cookieid: cookie.cookieid, handle, postid, title: input.title, text: input.text, name: input.name, followanswer: null });
       return { id: postid, type: queued ? 'Q_QUEUED' : 'Q', queued, cookieid: cookie.created ? cookie.cookieid : undefined };
     });
   }
@@ -150,6 +157,10 @@ function createPostService(repository, { identify }) {
 
       await reportWrite(ctx, cookie.cookieid, LIMIT.ANSWERS);
       if (!queued) await eventForQUser(q, question.postid, postid, null, ctx.userid, question.userid);
+      // qa_event_notify, a_queue or a_post
+      const handle = ctx.user?.handle ?? null;
+      if (queued) await notify.queued(q, options, { basetype: 'A', requeue: false, handle, name: input.name, postid, text: input.text, question });
+      else await notify.answerPosted(q, options, { userid: ctx.userid, cookieid: cookie.cookieid, handle, postid, text: input.text, name: input.name, question });
       return { id: postid, type: queued ? 'A_QUEUED' : 'A', queued, cookieid: cookie.created ? cookie.cookieid : undefined };
     });
   }
@@ -210,6 +221,14 @@ function createPostService(repository, { identify }) {
         const updatetype = parent.basetype === 'Q' ? UPDATE.C_FOR_Q : UPDATE.C_FOR_A;
         const parentUser = parent.userid === null || keyuserids.has(Number(parent.userid)) ? null : parent.userid;
         await eventForQUser(q, question.postid, postid, updatetype, ctx.userid, parentUser);
+      }
+      // qa_event_notify, c_queue or c_post (the thread: visible comments already on the same parent)
+      const handle = ctx.user?.handle ?? null;
+      if (queued) await notify.queued(q, options, { basetype: 'C', requeue: false, handle, name: input.name, postid, text: input.text, question });
+      else {
+        await notify.commentPosted(q, options, {
+          userid: ctx.userid, cookieid: cookie.cookieid, handle, postid, text: input.text, name: input.name, parent, question, thread: comments.filter(c => c.type === 'C'),
+        });
       }
       return { id: postid, type: queued ? 'C_QUEUED' : 'C', queued, cookieid: cookie.created ? cookie.cookieid : undefined };
     });

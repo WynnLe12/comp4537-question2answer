@@ -274,9 +274,9 @@ function qa_user_favorite_set($userid, $handle, $cookieid, $entitytype, $entityi
 // message page's permission switch) so they can show their messages; Node checks again and writes.
 function qa_pm_send($userid, $handle, $cookieid, $toaccount, $message)
 {
-    node_bridge_message('POST', '/api/v1/users/' . rawurlencode($toaccount['handle']) . '/messages', array('content' => (string)$message));
-    // Emails move to Node with the notifications slice; until then PHP still sends this one.
-    return qa_pm_send_notification($handle, $toaccount, $message);
+    // Node saves the message and emails the recipient; the page reports whether the email went out.
+    $result = node_bridge_message('POST', '/api/v1/users/' . rawurlencode($toaccount['handle']) . '/messages', array('content' => (string)$message));
+    return !empty($result['emailed']);
 }
 
 function qa_wall_add_post($userid, $handle, $cookieid, $touserid, $tohandle, $content, $format)
@@ -369,5 +369,16 @@ function qa_finish_reset_user($userId, $newPassword)
     ));
     if ($result['status'] !== 200 || empty($result['token'])) qa_fatal_error('Node could not reset the password: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
     node_bridge_cookie($result['token']);
+}
+
+// The feedback form: Node emails the site's feedback address.
+function qa_send_feedback($userid, $handle, $cookieid, $message, $name, $email, $referer)
+{
+    header('X-Q2A-Feedback-Backend: node-api-v1');
+    $result = node_bridge_api('POST', '/api/v1/feedback', array(
+        'message' => (string)$message, 'name' => (string)$name, 'email' => (string)$email, 'referer' => (string)$referer,
+        'browser' => (string)@$_SERVER['HTTP_USER_AGENT'],
+    ));
+    return $result['status'] === 200;
 }
 

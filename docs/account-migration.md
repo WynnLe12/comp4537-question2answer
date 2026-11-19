@@ -87,7 +87,7 @@ The codes from those emails are then used to confirm the address and reset the p
 - Node has no local mailer: with `smtp_active` off it sends nothing, where PHP would use `mail()`.
 - The resized avatar is produced by sharp, not GD, so its bytes differ; its size, format and flags
   match. Node does not estimate PHP's memory limit (`qa_image_file_too_big()`).
-- Registration through Node does not yet send a confirmation email when `confirm_user_emails` is
-  on (the authentication slice predates email support); this moves with the notifications slice.
+- Registration through Node sends the welcome email (with its confirmation link) since the
+  [notifications slice](notifications-migration.md).
 - Custom page slugs (`qa_get_request_map()`) are not applied to links in emails.
 - `sessioncode` is not set by Node logins; Node's sessions live in `node_auth_sessions`.

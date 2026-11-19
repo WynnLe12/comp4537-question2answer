@@ -25,10 +25,6 @@ function createAccountRepository(pool) {
         const [rows] = await db.execute(`SELECT userid FROM qa_users WHERE ${field === 'email' ? 'email' : 'handle'}=?`, [value]);
         return rows.map(row => Number(row.userid));
       },
-      async findUserEmailHandle(userid) {
-        const [[row]] = await db.execute('SELECT email, handle FROM qa_users WHERE userid=?', [userid]);
-        return row;
-      },
       async userPostCounts(userid) {
         const [[row]] = await db.execute('SELECT qposts, aposts, cposts FROM qa_userpoints WHERE userid=?', [userid]);
         return row ?? { qposts: 0, aposts: 0, cposts: 0 };

@@ -65,8 +65,7 @@ who may delete a wall post.
 
 ## Known differences
 
-- Email: the private message email is still sent by PHP through the bridge, so an API-only client
-  sends none; the wall post email from `qa_event_notify` is not sent on the shared UI. Both move
-  to Node with the notifications slice.
+- Email: since the [notifications slice](notifications-migration.md) Node sends both the private
+  message email (`emailed` in the response says whether it went out) and the wall post email.
 - Characters outside the Basic Multilingual Plane are removed, since the table is utf8mb3; PHP
   would hit a database error. Content longer than the column (12000 characters) is refused.

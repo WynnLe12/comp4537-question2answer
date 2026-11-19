@@ -86,7 +86,7 @@ depend on each database's history are compared as changes. Cases:
   API client is not normalized by htmLawed.
 - PHP takes `LOCK TABLES qa_words` while adding new words. That would commit Node's transaction,
   so Node relies on `INSERT IGNORE` against the unique word index, which gives the same result.
-- Email notifications from `qa_event_notify` are not sent yet; that is the notifications slice.
+- Email notifications from `qa_event_notify` are sent by Node since the [notifications slice](notifications-migration.md).
 - Captchas: Node cannot verify one, so it returns `captcha_required` when a captcha module with
   keys is configured and Q2A would ask for one. None is configured by default.
 - Q2A's optional question cache (`caching_enabled`, off by default) is not cleared by Node.

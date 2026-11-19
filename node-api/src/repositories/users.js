@@ -1,4 +1,12 @@
 const { AuthError } = require('../services/auth');
+const { loadOptions } = require('../q2a/options');
+const { phpBool } = require('../q2a/php');
+const { prepareNotification, strtr, lang } = require('../q2a/mail');
+const { pathAbsolute } = require('../q2a/paths');
+const { randomAlphanum } = require('../q2a/text');
+const strings = require('../data/lang-strings.json');
+
+const FLAGS = { WELCOME_NOTICE: 64, MUST_CONFIRM: 128 };
 
 function createUserRepository(pool) {
   return {
@@ -39,8 +47,35 @@ function createUserRepository(pool) {
           const [[{ total }]] = await connection.query(query);
           await connection.execute('INSERT INTO qa_options (title,content) VALUES (?,?) ON DUPLICATE KEY UPDATE content=?', [name, String(total), String(total)]);
         }
+        // The rest of qa_create_new_user(): the welcome notice, the confirmation code, and the emails,
+        // which are sent once the account is committed.
+        const userid = result.insertId;
+        const options = await loadOptions(connection);
+        let flags = 0;
+        if (phpBool(options.get('show_notice_welcome'))) flags |= FLAGS.WELCOME_NOTICE;
+        let confirm = '';
+        if (phpBool(options.get('confirm_user_emails'))) { // level is always QA_USER_LEVEL_BASIC here
+          const code = randomAlphanum(8);
+          await connection.execute('UPDATE qa_users SET emailcode=? WHERE userid=?', [code, userid]);
+          confirm = strtr(lang.welcome_confirm, { '^url': pathAbsolute(options, 'confirm', { c: code, u: input.handle }) });
+          if (phpBool(options.get('confirm_user_required'))) flags |= FLAGS.MUST_CONFIRM;
+        }
+        if (flags) await connection.execute('UPDATE qa_users SET flags=flags|? WHERE userid=?', [flags, userid]);
+        const custom = phpBool(options.get('show_custom_welcome')) ? String(options.get('custom_welcome') ?? '').trim() : '';
+        const lookup = { findUserEmailHandle: async () => ({ email: input.email, handle: input.handle }) };
+        const emails = [await prepareNotification(lookup, options, {
+          userid, email: input.email, handle: input.handle, subject: lang.welcome_subject, body: lang.welcome_body,
+          subs: { '^password': strings['main/hidden'], '^url': options.get('site_url'), '^custom': custom.length ? `${custom}\n\n` : '', '^confirm': confirm },
+        })];
+        if (phpBool(options.get('register_notify_admin'))) { // qa_event_notify, u_register
+          emails.push(await prepareNotification(lookup, options, {
+            userid: null, email: options.get('feedback_email'), handle: null, subject: lang.u_registered_subject,
+            body: phpBool(options.get('moderate_users')) ? lang.u_to_approve_body : lang.u_registered_body,
+            subs: { '^u_handle': input.handle, '^url': pathAbsolute(options, `user/${input.handle}`), '^a_url': pathAbsolute(options, 'admin/approve') },
+          }));
+        }
         await connection.commit();
-        return { userid: result.insertId, handle: input.handle, email: input.email, level: 0, flags: 0 };
+        return { userid, handle: input.handle, email: input.email, level: 0, flags, emails: emails.filter(Boolean), options };
       } catch (error) {
         await connection.rollback();
         throw error;

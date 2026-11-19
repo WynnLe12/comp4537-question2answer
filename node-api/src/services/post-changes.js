@@ -6,6 +6,7 @@ const { ApiError } = require('../errors');
 const { phpBool } = require('../q2a/php');
 const { LIMIT, limitsRemaining, userLevelForPost, userLevelForCategories, moderationReason } = require('../q2a/permissions');
 const text = require('../q2a/text');
+const notify = require('../q2a/notify');
 const { UPDATE, stringField, readContent, filterQuestion, filterChild, createPostHelpers } = require('./post-common');
 
 const STATUS = { NORMAL: 0, HIDDEN: 1, QUEUED: 2 }; // QA_POST_STATUS_*
@@ -105,6 +106,7 @@ function createPostChangeService(repository, { identify }) {
       await q.queuedcountUpdate(1);
       await q.updatePoints(old.userid, ['qposts', 'aselects'], options);
       await flaggedChange(q, old, -1);
+      await notify.queued(q, options, { basetype: 'Q', requeue: true, handle: ctx.user?.handle ?? null, name: input.name ?? old.name, postid: old.postid, title: input.title, text: input.text }); // q_requeue
     } else if (old.type === 'Q') {
       await indexPost(q, old.postid, 'Q', old.postid, input.title, input.text, input.tagstring);
       if (tagschanged) await q.tagcountUpdate();
@@ -155,6 +157,7 @@ function createPostChangeService(repository, { identify }) {
       await q.queuedcountUpdate(1);
       await q.updatePoints(old.userid, ['aposts', 'aselecteds'], options);
       await flaggedChange(q, old, -1);
+      await notify.queued(q, options, { basetype: 'A', requeue: true, handle: ctx.user?.handle ?? null, name: input.name ?? old.name, postid: old.postid, text: input.text, question }); // a_requeue
     } else if (old.type === 'A' && question.type === 'Q') {
       await indexPost(q, old.postid, 'A', question.postid, null, input.text, null);
     }
@@ -184,8 +187,10 @@ function createPostChangeService(repository, { identify }) {
     if (wasqueued) { if (newtype !== 'C_QUEUED') await q.queuedcountUpdate(-1); } else if (newtype === 'C_QUEUED') await q.queuedcountUpdate(1);
     await q.updatePoints(old.userid, ['aposts', 'aselecteds', 'cposts', 'avoteds', 'cvoteds'], options);
     for (const { userid, vote } of await q.postUserVotes(old.postid)) await q.updatePoints(userid, [vote > 0 ? 'aupvotes' : 'adownvotes'], options);
-    if (setupdated && remoderate) await flaggedChange(q, old, -1);
-    else if (old.type === 'A' && question.type === 'Q' && ['Q', 'A'].includes(parent.type)) {
+    if (setupdated && remoderate) {
+      await flaggedChange(q, old, -1);
+      await notify.queued(q, options, { basetype: 'C', requeue: true, handle: ctx.user?.handle ?? null, name: input.name ?? old.name, postid: old.postid, text: input.text, question }); // c_requeue
+    } else if (old.type === 'A' && question.type === 'Q' && ['Q', 'A'].includes(parent.type)) {
       await indexPost(q, old.postid, 'C', question.postid, null, input.text, null);
     }
     if (question.selchildid !== null && Number(question.selchildid) === Number(old.postid)) await setSelchildid(ctx, question, null, [old], null);
@@ -209,6 +214,7 @@ function createPostChangeService(repository, { identify }) {
       await q.queuedcountUpdate(1);
       await q.updatePoints(old.userid, ['cposts'], options);
       await flaggedChange(q, old, -1);
+      await notify.queued(q, options, { basetype: 'C', requeue: true, handle: ctx.user?.handle ?? null, name: input.name ?? old.name, postid: old.postid, text: input.text, question }); // c_requeue
     } else if (old.type === 'C' && question.type === 'Q' && ['Q', 'A'].includes(parent.type)) {
       await indexPost(q, old.postid, 'C', question.postid, null, input.text, null);
     }
@@ -461,6 +467,13 @@ function createPostChangeService(repository, { identify }) {
       await eventForQUser(q, old.postid, old.postid, null, old.userid);
       await eventsForTags(q, old.tags, old.postid, null, old.userid);
       await eventsForCategory(q, old.categoryid, old.postid, null, old.userid);
+      await notify.questionPosted(q, options, {
+        userid: old.userid, cookieid: old.cookieid, handle: await q.findHandle(old.userid), postid: old.postid, title: old.title,
+        text: text.viewerText(old.content, old.format), name: old.name,
+      });
+    }
+    if (event === 'requeue') {
+      await notify.queued(q, options, { basetype: 'Q', requeue: true, handle: actor ? ctx.user?.handle ?? null : null, name: old.name, postid: old.postid, title: old.title, text: text.viewerText(old.content, old.format) });
     }
     return newtype;
   }
@@ -506,7 +519,15 @@ function createPostChangeService(repository, { identify }) {
     const userid = actor?.userid ?? null;
     if (event === 'hide' && old.userid !== null) await q.eventCreateNotEntity(old.userid, old.parentid, old.postid, UPDATE.VISIBLE, userid);
     if (event === 'reshow') await eventForQUser(q, old.parentid, old.postid, UPDATE.VISIBLE, userid, old.userid);
-    if (wasqueued && status === STATUS.NORMAL && !wasrequeued) await eventForQUser(q, question.postid, old.postid, null, old.userid, question.userid);
+    if (wasqueued && status === STATUS.NORMAL && !wasrequeued) {
+      await eventForQUser(q, question.postid, old.postid, null, old.userid, question.userid);
+      await notify.answerPosted(q, options, {
+        userid: old.userid, cookieid: old.cookieid, handle: await q.findHandle(old.userid), postid: old.postid, text: text.viewerText(old.content, old.format), name: old.name, question,
+      });
+    }
+    if (event === 'requeue') {
+      await notify.queued(q, options, { basetype: 'A', requeue: true, handle: actor ? ctx.user?.handle ?? null : null, name: old.name, postid: old.postid, text: text.viewerText(old.content, old.format), question });
+    }
     return newtype;
   }
 
@@ -540,6 +561,13 @@ function createPostChangeService(repository, { identify }) {
       for (const keyuserid of keyuserids) if (keyuserid !== author) await q.eventCreateNotEntity(keyuserid, question.postid, old.postid, UPDATE.FOLLOWS, author);
       const parentUser = parent.userid === null || keyuserids.has(Number(parent.userid)) ? null : parent.userid;
       await eventForQUser(q, question.postid, old.postid, parent.basetype === 'Q' ? UPDATE.C_FOR_Q : UPDATE.C_FOR_A, author, parentUser);
+      await notify.commentPosted(q, options, {
+        userid: old.userid, cookieid: old.cookieid, handle: await q.findHandle(old.userid), postid: old.postid, text: text.viewerText(old.content, old.format), name: old.name,
+        parent, question, thread,
+      });
+    }
+    if (event === 'requeue') {
+      await notify.queued(q, options, { basetype: 'C', requeue: true, handle: actor ? ctx.user?.handle ?? null : null, name: old.name, postid: old.postid, text: text.viewerText(old.content, old.format), question });
     }
     return newtype;
   }
@@ -731,6 +759,7 @@ function createPostChangeService(repository, { identify }) {
       await q.flaggedcountUpdate(1);
       await report(ctx, actorOf(ctx), LIMIT.FLAGS); // *_flag
       const flagcount = Number(post.flagcount) + 1;
+      await notify.flagged(q, options, { flagcount, oldpost: { ...post, handle: await q.findHandle(post.userid) }, question: page.question });
       let type = post.type;
       if (flagcount >= Number(options.get('flagging_hide_after'))) {
         // The page hides it as a system action ("not really by this user"), passing the post as it

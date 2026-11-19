@@ -58,5 +58,5 @@ and questions, answers and comments hidden by the flag that reaches the threshol
 
 ## Known differences
 
-- Email notifications to admins about flagged posts (`qa_event_notify`, `flagging_notify_first`
-  and `flagging_notify_every`) are not sent yet; that is the notifications slice.
+- Email notifications to admins about flagged posts are sent by Node since the
+  [notifications slice](notifications-migration.md).

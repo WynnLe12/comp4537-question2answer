@@ -185,3 +185,57 @@ function qa_send_email($params)
 	}
 	return $send_status;
 }
+
+
+/**
+ * Send the feedback form's $message, from a visitor who gave $name and $email and came from $referer, to the site's
+ * feedback address, and report the event. The visitor is user $userid with $handle and $cookieid, if known.
+ * Returns true if the email was sent.
+ * @param $userid
+ * @param $handle
+ * @param $cookieid
+ * @param string $message
+ * @param string $name
+ * @param string $email
+ * @param string $referer
+ * @return bool
+ */
+function qa_send_feedback($userid, $handle, $cookieid, $message, $name, $email, $referer)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'util/string.php';
+
+	$subs = array(
+		'^message' => $message,
+		'^name' => empty($name) ? '-' : $name,
+		'^email' => empty($email) ? '-' : $email,
+		'^previous' => empty($referer) ? '-' : $referer,
+		'^url' => isset($userid) ? qa_path_absolute('user/' . $handle) : '-',
+		'^ip' => qa_remote_ip_address(),
+		'^browser' => @$_SERVER['HTTP_USER_AGENT'],
+	);
+
+	$sent = qa_send_email(array(
+		'fromemail' => qa_opt('from_email'),
+		'fromname' => $name,
+		'replytoemail' => qa_email_validate(@$email) ? $email : null,
+		'replytoname' => $name,
+		'toemail' => qa_opt('feedback_email'),
+		'toname' => qa_opt('site_title'),
+		'subject' => qa_lang_sub('emails/feedback_subject', qa_opt('site_title')),
+		'body' => strtr(qa_lang('emails/feedback_body'), $subs),
+		'html' => false,
+	));
+
+	qa_report_event('feedback', $userid, $handle, $cookieid, array(
+		'email' => $email,
+		'name' => $name,
+		'message' => $message,
+		'previous' => $referer,
+		'browser' => @$_SERVER['HTTP_USER_AGENT'],
+	));
+
+	return $sent;
+}
+

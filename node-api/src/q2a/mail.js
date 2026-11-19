@@ -21,7 +21,7 @@ function transportFor(options) {
 }
 
 // qa_send_email(): returns whether the email was sent.
-async function sendEmail(options, { fromemail, fromname, toemail, toname, subject, body, html = false }) {
+async function sendEmail(options, { fromemail, fromname, toemail, toname, replytoemail = null, replytoname = null, subject, body, html = false }) {
   // Without SMTP PHPMailer uses PHP's mail(); Node has no local mailer to hand it to.
   if (!phpBool(options.get('smtp_active'))) return false;
   // PHPMailer's encodeString() normalizes line breaks and ends the body with one; createBody()
@@ -33,6 +33,7 @@ async function sendEmail(options, { fromemail, fromname, toemail, toname, subjec
     await transportFor(options).sendMail({
       from: { name: fromname, address: fromemail }, sender: fromemail, envelope: { from: fromemail, to: toemail },
       to: { name: toname ?? '', address: toemail }, subject, [html ? 'html' : 'text']: body,
+      ...(replytoemail ? { replyTo: { name: replytoname ?? '', address: replytoemail } } : {}),
     });
     return true;
   } catch (error) {
@@ -43,18 +44,32 @@ async function sendEmail(options, { fromemail, fromname, toemail, toname, subjec
 
 // qa_send_notification(): fills in the user's email and handle when missing, adds the standard
 // substitutions and the "handle," greeting, and sends it.
-async function sendNotification(q, options, { userid = null, email = null, handle = null, subject, body, subs = {}, html = false }) {
+async function sendNotification(q, options, args) {
+  const email = await prepareNotification(q, options, args);
+  return email ? sendEmail(options, email) : false;
+}
+// The same, built inside the transaction and sent once it commits; the result is not waited for,
+// as PHP's event modules ignore it.
+async function queueNotification(q, options, args) {
+  const email = await prepareNotification(q, options, args);
+  if (email) q.afterCommit.push(() => sendEmail(options, email));
+}
+function queueEmail(q, options, params) {
+  q.afterCommit.push(() => sendEmail(options, params));
+}
+
+async function prepareNotification(q, options, { userid = null, email = null, handle = null, subject, body, subs = {}, html = false }) {
   if (userid !== null && (!emailValidate(email ?? '') || !handle)) {
     const account = await q.findUserEmailHandle(userid);
     if (!handle) handle = account?.handle ?? null;
     if (!emailValidate(email ?? '')) email = account?.email ?? null;
   }
-  if (!email || !emailValidate(email)) return false;
+  if (!email || !emailValidate(email)) return null;
   const all = { ...subs, '^site_title': options.get('site_title'), '^site_url': options.get('site_url'), '^handle': handle ?? '', '^email': email, '^open': '\n', '^close': '\n' };
-  return sendEmail(options, {
+  return {
     fromemail: options.get('from_email'), fromname: options.get('site_title'), toemail: email, toname: handle,
     subject: strtr(subject, all), body: (handle ? lang.to_handle_prefix.split('^').join(handle) : '') + strtr(body, all), html,
-  });
+  };
 }
 
 // PHP's strtr() with an array: longest keys first, each position replaced once.
@@ -65,4 +80,4 @@ function strtr(value, subs) {
   return String(value).replace(pattern, match => String(subs[match] ?? ''));
 }
 
-module.exports = { sendEmail, sendNotification, strtr, lang };
+module.exports = { sendEmail, sendNotification, prepareNotification, queueNotification, queueEmail, strtr, lang };

@@ -263,6 +263,17 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
         : { accepted: false, message: pageMessages(response.text) };
     },
+    // The feedback form.
+    async feedback({ message, name = '', email = '' }) {
+      const $ = cheerio.load((await client.get('/index.php?qa=feedback')).text);
+      const form = $('[name=dofeedback]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post('/index.php?qa=feedback').type('form').send({ ...formFields($, form), message, name, email, dofeedback: '1' });
+      const $result = cheerio.load(response.text);
+      return $result('.qa-form-tall-ok').length
+        ? { accepted: true, backend: response.headers['x-q2a-feedback-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
     // Whether this browser is signed in (the page shows a logout link).
     async signedIn() {
       return cheerio.load((await client.get('/index.php?qa=account').redirects(0).ok(() => true)).text)('[name=dosaveprofile]').length > 0;
@@ -361,6 +372,9 @@ function apiDriver(pool) {
       return accepted(await client.post('/api/v1/account/unsubscribe').set('X-Q2A-Request', '1').send(handle ? { handle, code } : {}));
     },
     async signedIn() { return (await client.get('/api/v1/auth/me')).status === 200; },
+    async feedback({ message, name = '', email = '' }) {
+      return accepted(await client.post('/api/v1/feedback').set('X-Q2A-Request', '1').send({ message, name, email, referer: '' }));
+    },
     async sendMessage(handle, message) {
       return accepted(await client.post(`/api/v1/users/${encodeURIComponent(handle)}/messages`).set('X-Q2A-Request', '1').send({ content: message }), 201);
     },
@@ -625,9 +639,23 @@ async function latestEmail(address, { after = 0 } = {}) {
   }
   return null;
 }
+// Every email Mailpit catches while perform() runs (both sites and the API send before responding).
+async function emailsDuring(perform) {
+  const ids = async () => new Set(((await request(MAILPIT_URL).get('/api/v1/messages').query({ limit: 500 })).body.messages ?? []).map(m => m.ID));
+  const before = await ids();
+  const outcome = await perform();
+  await new Promise(resolve => setTimeout(resolve, 150));
+  const fresh = [...await ids()].filter(id => !before.has(id));
+  const emails = [];
+  for (const id of fresh) {
+    const message = (await request(MAILPIT_URL).get(`/api/v1/message/${id}`)).body;
+    emails.push({ from: message.From, replyTo: message.ReplyTo, to: message.To, subject: message.Subject, text: message.Text });
+  }
+  return { outcome, emails };
+}
 async function emailCount(address) {
   const search = await request(MAILPIT_URL).get('/api/v1/search').query({ query: `to:"${address}"` });
   return search.body.messages_count ?? (search.body.messages ?? []).length;
 }
 
-module.exports = { limitRows, limitDelta, latestEmail, emailCount, PHP_URL, UI_URL, API_URL, siteDriver, apiDriver, createFixtures, snapshot, comparable, CACHES };
+module.exports = { emailsDuring, limitRows, limitDelta, latestEmail, emailCount, PHP_URL, UI_URL, API_URL, siteDriver, apiDriver, createFixtures, snapshot, comparable, CACHES };

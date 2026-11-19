@@ -51,6 +51,50 @@ function blockWordsMatch(string, wordsOption) {
   return new RegExp(patterns.join('|'), 'u').test(` ${cleaned} `);
 }
 
+// qa_block_words_replace(): each blocked word replaced by as many * as it has characters.
+function blockWordsReplace(string, wordsOption) {
+  string = String(string ?? '');
+  const words = String(wordsOption ?? '').split(new RegExp(`${BLOCK_SEPARATOR}+`)).filter(Boolean);
+  if (!words.length) return string;
+  const patterns = words.map(word => {
+    let pattern = word.toLowerCase().replace(/[.*+?^${}()|[\]\\/]/g, '\\$&').replace(/\\\*/g, '[^ ]*');
+    if (!isCjk([...word][0])) pattern = `(?<= )${pattern}`;
+    if (!isCjk([...word].at(-1))) pattern = `${pattern}(?= )`;
+    return pattern;
+  });
+  // Punctuation and separators become spaces of the same length, so positions line up with the original.
+  const cleaned = [...string.toLowerCase()].map(c => (punctuation[c] !== undefined ? ' '.repeat(c.length) : c)).join('').replace(new RegExp(BLOCK_SEPARATOR, 'g'), ' ');
+  const matches = [...` ${cleaned} `.matchAll(new RegExp(patterns.join('|'), 'gu'))].map(m => [m.index - 1, m[0].length]);
+  for (const [start, length] of matches.reverse()) {
+    string = string.slice(0, start) + '*'.repeat([...string.slice(start, start + length)].length) + string.slice(start + length);
+  }
+  return string;
+}
+
+// qa_slugify(): the title's words joined by hyphens, longest words kept first within maxLength,
+// and with asciiOnly accents converted and anything else outside [ a-zA-Z0-9-] removed.
+function slugify(string, asciiOnly = true, maxLength = null) {
+  const accents = require('../data/utf8-remove-accents.json');
+  const words = stringToWords(string, { tolowercase: true, splitideographs: false, splithyphens: true });
+  let keep = words.map(() => true);
+  if (maxLength !== null && !Number.isNaN(maxLength)) {
+    const lengths = words.map(word => strlen(word));
+    if (lengths.reduce((a, b) => a + b, 0) > maxLength) {
+      let remaining = maxLength;
+      // arsort(): longest first, ties in their original order
+      for (const index of lengths.map((length, i) => i).sort((a, b) => lengths[b] - lengths[a] || a - b)) {
+        if (remaining > 0) remaining -= lengths[index];
+        else keep[index] = false;
+      }
+    }
+  }
+  let slug = words.filter((word, i) => keep[i]).join('-');
+  if (asciiOnly) {
+    slug = [...slug].map(c => accents[c] ?? c).join('').replace(/[^ a-zA-Z0-9-]/g, '').replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-');
+  }
+  return slug;
+}
+
 // qa_random_alphanum(): base-36 digits in groups of three.
 function randomAlphanum(length) {
   const { randomInt } = require('node:crypto');
@@ -95,4 +139,4 @@ const emailValidate = email => isEmail(String(email), { allow_utf8_local_part: f
 // qa_combine_notify_email()
 const combineNotifyEmail = (userid, notify, email) => (notify ? (email ? email : (userid !== null && userid !== undefined ? '@' : null)) : null);
 
-module.exports = { blockWordsMatch, randomAlphanum, postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };
+module.exports = { blockWordsMatch, blockWordsReplace, slugify, randomAlphanum, postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };
