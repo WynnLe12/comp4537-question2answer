@@ -26,7 +26,7 @@ the hook does nothing, so the PHP reference keeps its behaviour.
 | 6 | Favorites | `app/favorites.php`, `ajax/favorite.php` | Done ([notes](favorites-migration.md)) |
 | 7 | Messages and wall posts | `app/messages.php`, `pages/message.php`, `pages/user-wall.php` | Done ([notes](messages-migration.md)) |
 | 8 | Account and profile: edit profile, change password/email, avatars, password reset, email confirmation, unsubscribe | `pages/account.php`, `pages/forgot.php`, `pages/reset.php`, `pages/confirm.php`, `pages/unsubscribe.php`, `app/blobs.php` | Done ([notes](account-migration.md)) |
-| 8b | Editor uploads: images and files added through the editor | `app/upload.php`, `ajax/upload.php`, `plugins/wysiwyg-editor/` | Not started |
+| 8b | Editor uploads: images and files added through the editor | `app/upload.php`, `qa-plugin/wysiwyg-editor/qa-wysiwyg-upload.php` | Done ([notes](uploads-migration.md)) |
 | 9 | Email notifications, welcome emails, private message emails and feedback | `plugins/qa-event-notify.php`, `app/emails.php`, `pages/feedback.php` | Done ([notes](notifications-migration.md)); bulk mailings moved with slice 11 |
 | 10 | Moderation and user administration: approve queue, user levels, block/unblock, delete user | `pages/admin/admin-moderate.php`, `admin-approve.php`, `admin-flagged.php`, `admin-hidden.php`, `pages/user-profile.php` | Done ([notes](admin-migration.md)) |
 | 11 | Site administration: options, categories, pages, widgets, plugins, points, user titles, user fields, recalculation, mailings | `pages/admin/*`, `app/admin.php`, `app/recalc.php`, `app/mailing.php` | Done ([notes](site-admin-migration.md)) |

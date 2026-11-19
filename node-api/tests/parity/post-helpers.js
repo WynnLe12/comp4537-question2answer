@@ -50,6 +50,7 @@ function siteDriver(name, baseUrl, pool) {
   }
   return {
     name, pool,
+    _client: client,
     _get: path => client.get(path).redirects(3),
     async register(handle) {
       const page = await client.get('/?qa=register').expect(200);
@@ -485,6 +486,7 @@ function apiDriver(pool) {
   const common = input => ({ content: input.content, format: input.format ?? '', notify: Boolean(input.notify), email: input.email ?? '', name: input.name ?? '' });
   return {
     name: 'node-api', pool,
+    _client: client,
     async register(handle) {
       await client.post('/api/v1/auth/register').set('X-Q2A-Request', '1')
         .send({ handle, email: `${handle}@example.test`, password: 'Password123!' }).expect(201);

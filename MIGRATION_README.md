@@ -10,8 +10,8 @@ hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.m
 flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), private messages and wall posts
 ([notes](docs/messages-migration.md)), account and profile changes ([notes](docs/account-migration.md)),
 email notifications ([notes](docs/notifications-migration.md)), moderation and user administration
-([notes](docs/admin-migration.md)), site administration ([notes](docs/site-admin-migration.md)), and the
-page data every page shows ([notes](docs/reads-migration.md)).
+([notes](docs/admin-migration.md)), site administration ([notes](docs/site-admin-migration.md)), editor uploads
+([notes](docs/uploads-migration.md)), and the page data every page shows ([notes](docs/reads-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -44,6 +44,7 @@ For an annotated, file-by-file code walkthrough, see
   hide, reshow, delete and clear flags on posts from the admin pages, through Node.
 - Admins change settings, categories, custom pages and links, widgets, user titles and fields,
   points and plugins, run the recalculation tools and send mailings, through Node.
+- Images and files added through the editor are checked, resized and stored by Node.
 - Every page's data (question lists, questions, search, tags, categories, users, profiles,
   messages, favorites, updates, options, admin statistics, avatars and images) is read by Node; PHP
   only renders it.
@@ -233,6 +234,7 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/admin/recalc` | Run a recalculation tool step by step |
 | `POST /api/v1/admin/mailing/{test,start,stop,step}` | Send mailings |
 | `PUT /api/v1/admin/plugins`, `PUT /api/v1/admin/default-avatar` | Enable plugins; set the default avatar |
+| `POST /api/v1/uploads` | Store an image or file added through the editor |
 | `POST /api/v1/internal/reads` | The bridge's page reads (needs `X-Q2A-Bridge-Key`; not a public API) |
 | `POST /api/v1/internal/cache` | The bridge's scaled-image cache writes (needs `X-Q2A-Bridge-Key`) |
 
@@ -259,6 +261,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/q2a/mail.js`, `q2a/paths.js` | Q2A's email sending (through its SMTP options) and its links |
 | `node-api/src/services/user-admin.js`, `repositories/user-admin.js`, `routes/v1/user-admin.js` | Moderating and administering users |
 | `node-api/src/services/site-admin.js`, `services/recalc.js` and their repositories, `routes/v1/site-admin.js` | Site administration and the recalculation tools |
+| `node-api/src/services/uploads.js`, `repositories/uploads.js`, `routes/v1/uploads.js` | Editor uploads |
 | `node-api/src/reads/selects.js`, `reads/helpers.js`, `reads/execute.js`, `routes/v1/internal.js` | Page reads: the `db/selects.php` builders, the other `db/*.php` read helpers and `qa_db_post_select()` |
 | `node-api/src/q2a/notify.js` | The emails of Q2A's notification module, sent after each change commits |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |

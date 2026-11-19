@@ -9,8 +9,9 @@ const { feedbackRoutes } = require('./routes/v1/feedback');
 const { userAdminRoutes } = require('./routes/v1/user-admin');
 const { siteAdminRoutes } = require('./routes/v1/site-admin');
 const { internalRoutes } = require('./routes/v1/internal');
+const { uploadRoutes } = require('./routes/v1/uploads');
 
-function createApp({ service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, readPool, bridgeSecret, health = async () => {}, trustProxy = false, ...options }) {
+function createApp({ service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, uploadService, readPool, bridgeSecret, health = async () => {}, trustProxy = false, ...options }) {
   const app = express();
   app.disable('x-powered-by');
   // The PHP bridge forwards the browser's address in X-Forwarded-For so IP limits and
@@ -35,6 +36,7 @@ function createApp({ service, voteService, postService, postChangeService, favor
   if (feedbackService) app.use('/api/v1/feedback', feedbackRoutes({ feedbackService }));
   if (userAdminService) app.use('/api/v1/users', userAdminRoutes({ userAdminService }));
   if (siteAdminService) app.use('/api/v1/admin', siteAdminRoutes({ siteAdminService, recalcService }));
+  if (uploadService) app.use('/api/v1/uploads', uploadRoutes({ uploadService, secureCookies: options.secureCookies }));
   if (readPool) app.use('/api/v1/internal', internalRoutes({ pool: readPool, bridgeSecret }));
   app.get(['/demo', '/demo/'], (req, res) => res.redirect('http://localhost:8081/?qa=login'));
   app.use((req, res) => res.status(404).json({ error: { code: 'not_found' } }));

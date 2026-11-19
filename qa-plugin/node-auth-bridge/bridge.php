@@ -14,7 +14,8 @@ function node_bridge_request($action, $body = null)
 
 // Calls the Node API server to server. The browser's address is forwarded so Node records
 // the same IP that PHP's qa_remote_ip_address() would (Node trusts it only from TRUST_PROXY).
-function node_bridge_api($method, $path, $body = null, $extraheaders = '')
+// $raw, when given, is sent as the body (application/octet-stream) instead of $body as JSON.
+function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw = null)
 {
     $token = $_COOKIE['q2a_node_bridge'] ?? '';
     $headers = "Accept: application/json\r\n";
@@ -24,12 +25,13 @@ function node_bridge_api($method, $path, $body = null, $extraheaders = '')
     if (isset($_COOKIE['qa_id']) && preg_match('/^\d{1,20}$/D', $_COOKIE['qa_id'])) $cookies[] = 'qa_id=' . $_COOKIE['qa_id'];
     if ($cookies) $headers .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
     if (isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) $headers .= "X-Forwarded-For: " . $_SERVER['REMOTE_ADDR'] . "\r\n";
-    if ($body !== null) $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
+    if ($raw !== null) $headers .= "Content-Type: application/octet-stream\r\nX-Q2A-Request: 1\r\n";
+    elseif ($body !== null) $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
     $headers .= $extraheaders;
     $context = stream_context_create(array('http' => array(
         'method' => $method, 'header' => $headers,
-        'content' => $body === null ? '' : json_encode($body),
-        'ignore_errors' => true, 'timeout' => 5, 'follow_location' => 0,
+        'content' => $raw !== null ? $raw : ($body === null ? '' : json_encode($body)),
+        'ignore_errors' => true, 'timeout' => $raw !== null ? 30 : 5, 'follow_location' => 0,
     )));
     $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . $path, false, $context);
     $status = 503;
@@ -202,6 +204,29 @@ function node_bridge_read_spec($name, $args)
     // Q2A renames override functions to <name>_override_<n>_in_<file>.
     $name = preg_replace('/_override_\d+_in_\w+$/', '', $name);
     return array('node_read' => array('name' => $name, 'args' => $args, 'count' => false));
+}
+
+// qa_upload_file() through Node: the same result array, with PHP's messages for Node's error codes.
+function node_bridge_upload_file($localfilename, $sourcefilename, $maxfilesize, $onlyimage, $imagemaxwidth, $imagemaxheight)
+{
+    header('X-Q2A-Upload-Backend: node-api-v1');
+    $query = array('name' => (string)$sourcefilename);
+    if (isset($maxfilesize)) $query['maxSize'] = (string)$maxfilesize;
+    if ($onlyimage) $query['onlyImage'] = '1';
+    if (isset($imagemaxwidth)) $query['maxWidth'] = (string)$imagemaxwidth;
+    if (isset($imagemaxheight)) $query['maxHeight'] = (string)$imagemaxheight;
+    // A file over PHP's own upload limit arrives empty, and Node refuses it as too large, as PHP does.
+    $content = strlen((string)$localfilename) && is_file($localfilename) ? (string)@file_get_contents($localfilename) : '';
+    $result = node_bridge_api('POST', '/api/v1/uploads?' . http_build_query($query), null, '', $content);
+    if ($result['status'] === 201 && isset($result['data']['upload']['blobid'])) return $result['data']['upload'];
+    $error = $result['data']['error'] ?? array();
+    switch ($error['code'] ?? '') {
+        case 'upload_limit': return array('error' => qa_lang('main/upload_limit'));
+        case 'no_permission': return array('error' => qa_lang('users/no_permission'));
+        case 'max_upload_size': return array('error' => qa_lang_sub('main/max_upload_size_x', qa_format_number(($error['maxSize'] ?? 0) / pow(1024, 2), 1) . 'MB'));
+        case 'image_not_read': return array('error' => qa_lang_sub('main/image_not_read', 'GIF, JPG, PNG'));
+        default: return array('error' => qa_lang('main/general_error'));
+    }
 }
 
 // A read helper from db/*.php (outside db/selects.php), run by Node: returns what the PHP function returns.

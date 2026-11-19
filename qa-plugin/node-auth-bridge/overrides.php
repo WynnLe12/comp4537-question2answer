@@ -1106,3 +1106,9 @@ function qa_db_cache_set($type, $cacheid, $content)
 {
     node_bridge_cache_set($type, $cacheid, $content);
 }
+
+// Editor uploads (slice 8b): the WYSIWYG editor's upload page calls this through qa_upload_file_one().
+function qa_upload_file($localfilename, $sourcefilename, $maxfilesize = null, $onlyimage = false, $imagemaxwidth = null, $imagemaxheight = null)
+{
+    return node_bridge_upload_file($localfilename, $sourcefilename, $maxfilesize, $onlyimage, $imagemaxwidth, $imagemaxheight);
+}

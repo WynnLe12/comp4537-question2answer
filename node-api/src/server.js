@@ -19,6 +19,8 @@ const { createSiteAdminRepository } = require('./repositories/site-admin');
 const { createSiteAdminService } = require('./services/site-admin');
 const { createRecalcRepository } = require('./repositories/recalc');
 const { createRecalcService } = require('./services/recalc');
+const { createUploadRepository } = require('./repositories/uploads');
+const { createUploadService } = require('./services/uploads');
 const { createApp } = require('./app');
 
 async function start() {
@@ -44,8 +46,9 @@ async function start() {
   const accountService = createAccountService(createAccountRepository(pool), {
     identify, startSession: (userid, ip) => service.startSession(userid, ip), saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
   });
+  const uploadService = createUploadService(createUploadRepository(pool), { identify });
   const app = createApp({
-    service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, readPool, bridgeSecret: process.env.BRIDGE_SECRET, health: () => pool.query('SELECT 1'),
+    service, uploadService, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, readPool, bridgeSecret: process.env.BRIDGE_SECRET, health: () => pool.query('SELECT 1'),
     secureCookies: process.env.NODE_ENV === 'production',
     trustProxy: process.env.TRUST_PROXY || false,
   });
