@@ -222,6 +222,8 @@ function qa_db_meta_clear($metatable, $idcolumn, $idvalue, $title)
  */
 function qa_db_meta_get($metatable, $idcolumn, $idvalue, $title)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (is_array($title)) {
 		if (count($title)) {
 			return qa_db_read_all_assoc(qa_db_query_sub(

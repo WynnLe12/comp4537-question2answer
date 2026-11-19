@@ -1,15 +1,16 @@
 // Runs a selectspec the way qa_db_single_select() and qa_db_post_select() do (qa-include/qa-db.php),
 // returning PHP's result in a form the bridge can rebuild exactly: every value as the text MySQL sends
 // (binary values as base64), rows in order with their keys, then PHP's sorting, arrayvalue and single.
+const { escape } = require('mysql2');
 const STRING_TYPES = new Set([15, 249, 250, 251, 252, 253, 254]); // VARCHAR, the BLOBs, VAR_STRING, STRING
 const BINARY_CHARSET = 63;
 
 // qa_db_apply_sub(): ^ becomes the table prefix, then each $ or # (whichever comes first) takes the next
-// argument; $ is always quoted, # is quoted only when not numeric. Here they become ? parameters.
+// argument, written into the SQL as qa_db_argument_to_mysql() writes it: $ is always quoted, # only when
+// not numeric (so 64-bit IDs keep every digit, and MySQL compares them as PHP's queries do).
 function applySub(query, args) {
   let sql = query.replace(/\^([A-Za-z_0-9]+)/g, 'qa_$1');
-  if (!Array.isArray(args)) return { sql, params: [] };
-  const params = [];
+  if (!Array.isArray(args)) return { sql };
   let out = '';
   let offset = 0;
   for (const arg of args) {
@@ -19,21 +20,24 @@ function applySub(query, args) {
     let alwaysquote;
     if (stringpos < 0 || (numberpos >= 0 && numberpos < stringpos)) { alwaysquote = false; position = numberpos; } else { alwaysquote = true; position = stringpos; }
     if (position < 0) throw new Error(`Insufficient parameters in query: ${query}`);
-    out += sql.slice(offset, position) + '?';
-    params.push(toParam(arg, alwaysquote));
+    out += sql.slice(offset, position) + toSql(arg, alwaysquote);
     offset = position + 1;
   }
   out += sql.slice(offset);
-  return { sql: out, params };
+  return { sql: out };
 }
 const isNumeric = value => (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && /^\s*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?\s*$/.test(value));
-// qa_db_argument_to_mysql()
-function toParam(arg, alwaysquote) {
-  if (Array.isArray(arg)) return arg.map(item => (Array.isArray(item) ? item.map(sub => toParam(sub, alwaysquote)) : toParam(item, alwaysquote)));
-  if (arg === null || arg === undefined) return null;
-  if (typeof arg === 'boolean') return arg ? (alwaysquote ? '1' : 1) : (alwaysquote ? '' : '');
-  if (!alwaysquote && isNumeric(arg)) return Number(arg);
-  return String(arg);
+// qa_db_argument_to_mysql(): arrays become comma lists (inner arrays in brackets), null NULL, booleans
+// the strings '1' and '' (PHP's string forms), numbers unquoted unless $.
+function toSql(arg, alwaysquote, brackets = false) {
+  if (Array.isArray(arg) || (arg && typeof arg === 'object')) {
+    const parts = Object.values(arg).map(item => toSql(item, alwaysquote, true));
+    return brackets ? `(${parts.join(',')})` : parts.join(',');
+  }
+  if (arg === null || arg === undefined) return 'NULL';
+  const text = typeof arg === 'boolean' ? (arg ? '1' : '') : String(arg);
+  if (!alwaysquote && typeof arg !== 'boolean' && isNumeric(arg)) return text.trim();
+  return escape(text);
 }
 
 // PHP's sort comparison in qa_sort_by_fn()
@@ -59,8 +63,8 @@ function sortBy(entries, by1, by2) {
 async function runSelect(db, spec) {
   const columns = spec.columns.map(([alias, expression]) => (alias === null ? expression : `${expression} AS \`${alias}\``)).join(', ');
   const query = `SELECT ${columns}${String(spec.source ?? '').length ? ` FROM ${spec.source}` : ''}`;
-  const { sql, params } = applySub(query, spec.arguments ?? []);
-  const [rows, fields] = await db.query({ sql, values: params, typeCast: field => field.buffer() });
+  const { sql } = applySub(query, spec.arguments ?? []);
+  const [rows, fields] = await db.query({ sql, typeCast: field => field.buffer() });
   const binary = new Set(fields.filter(f => f.characterSet === BINARY_CHARSET && STRING_TYPES.has(f.columnType)).map(f => f.name));
   // Values as mysqli gives them: text, or the raw bytes for binary columns (sent as base64).
   let entries = rows.map((row, index) => {

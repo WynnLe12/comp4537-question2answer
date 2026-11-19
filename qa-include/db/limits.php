@@ -35,6 +35,8 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
  */
 function qa_db_limits_get($userid, $ip, $action)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selects = array();
 	$arguments = array();
 

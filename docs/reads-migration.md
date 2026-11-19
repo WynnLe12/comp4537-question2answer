@@ -1,6 +1,7 @@
 # Reads migration
 
-The twelfth migrated slice: the data every page shows. On the shared UI (port 8081), the database
+Slices 12 and 12b. 
+The data every page shows. On the shared UI (port 8081), the database
 reads Q2A's pages make through `db/selects.php` run in the Node API. PHP still builds and renders
 the pages from the results. Reference behaviour: every builder in `qa-include/db/selects.php`,
 with `qa_db_single_select()`, `qa_db_multi_select()`, `qa_db_post_select()` and
@@ -32,6 +33,30 @@ reads of every page. The page controllers do not change.
 
 Responses that used Node reads carry `X-Q2A-Read-Backend: node-api-v1`.
 
+## Read helpers (slice 12b)
+
+The rest of the reads pages make go through small helpers in other `db/*.php` files. Each gains the
+standard `qa_to_override` hook, and the bridge sends it to the same Node endpoint by name, getting back
+exactly what the PHP function returns (a list, a keyed map, one row, one value, a count or a boolean).
+Node's ports are in `node-api/src/reads/helpers.js`:
+
+- `db/users.php`: users by email or handle, handles of user IDs and back, external logins.
+- `db/metas.php`: `qa_db_meta_get()` for post, user, category and tag meta (only those four tables).
+- `db/cookies.php`, `db/notices.php`, `db/limits.php`: cookie checks, user notices, rate-limit counts.
+- `db/votes.php`: one user's vote, a post's votes, the posts a user voted on or flagged, and the
+  voters and flaggers shown to moderators.
+- `db/post-update.php`: which posts are questions (closing as a duplicate) and the authors of posts.
+- `db/admin.php`: the statistics page (post, user and category counts, active users, table sizes, the
+  MySQL version), the approve-users list, the IP and user post lists, dependents, blob checks, and the
+  category position, depth, parent and slug lookups.
+- `qa-db.php`: `qa_db_list_tables()` (the plugins page).
+- `db/blobs.php`, `db/cache.php`: blobs (avatars and images) and the scaled-image cache. A cache hit
+  also records when it was read, as PHP does, and `qa_db_cache_set()` (storing a scaled image) goes to
+  a second internal endpoint.
+
+With the bridge on, a trace of every query PHP sends showed none left: neither while browsing every
+page (signed out, signed in and as an admin, images included) nor during the whole parity suite.
+
 ## v1 contract
 
 This endpoint is for the bridge only. It returns private columns (emails, password hashes) the
@@ -40,7 +65,8 @@ It is not a public API.
 
 | Method and path | Body | Does |
 | --- | --- | --- |
-| POST `/api/v1/internal/reads` (header `X-Q2A-Bridge-Key`) | `{ reads: [{ name, args, count }] }`, at most 100 | Runs each named `db/selects.php` builder with PHP's arguments (`count` wraps it like `qa_db_selectspec_count()`) and returns `{ results }` in order |
+| POST `/api/v1/internal/reads` (header `X-Q2A-Bridge-Key`) | `{ reads: [{ name, args, count }] }`, at most 100 | Runs each named `db/selects.php` builder or read helper with PHP's arguments (`count` wraps a builder like `qa_db_selectspec_count()`) and returns `{ results }` in order |
+| POST `/api/v1/internal/cache` (header `X-Q2A-Bridge-Key`) | `{ type, cacheid, content }` (content in base64) | `qa_db_cache_set()`: prunes entries unread for a day and stores the scaled image; 204 |
 
 Each result is `{ single: true, value }` or `{ single: false, entries: [[key, row], ...] }`.
 Entries keep PHP's array order, which the `sortasc`/`sortdesc` keys decide. Values are the raw text
@@ -55,6 +81,9 @@ come as `{ b64 }`. Unknown builder names or bad arguments are refused with 400 `
   navigation, custom pages and widgets, popular tags, users (accounts, profiles, points, ranks,
   levels, notices, top and newest, blocked, by level), messages and walls, favorites and update
   streams, rate limits, options and the database time.
+- `qa_db_apply_sub()` exactly: arguments are written into the SQL as `qa_db_argument_to_mysql()`
+  writes them, so numeric `#` arguments stay unquoted with every digit (64-bit blob and cookie IDs
+  included) and MySQL compares them as it does for PHP.
 - PHP's argument handling, including its loose comparisons: `qa_db_qs_selectspec(..., $specialtype
   = true)` keeps `true` as the post type (since `true == 'Q'` in PHP) and so finds nothing, exactly
   as PHP does.
@@ -63,15 +92,15 @@ come as `{ b64 }`. Unknown builder names or bad arguments are refused with 400 `
 
 ## Parity tests
 
-`node-api/tests/parity/reads.test.js` (101 cases) runs 87 builder calls, with real arguments taken
+`node-api/tests/parity/reads.test.js` (157 cases) runs 87 builder calls and 55 helper calls, with real arguments taken
 from the database (a busy question, an active user, categories, a page, messages, favorites), both
 ways on the same database: through PHP's own builders and `qa_db_single_select()`
 (`docker/php/read-harness.php` on the shared UI, with the bridge switched off and the same bridge
-key required), and through the Node endpoint. Keys, order and every byte of every value must
+key required), and through the Node endpoint. Helpers are compared as the PHP values they return. Keys, order and every byte of every value must
 match. It also checks the endpoint's key and name checks, and loads the shared UI's main pages, a
-question, a user, a tag and a category page, plus a signed-in user's pages (account, messages,
+question, a user, a tag and a category page, stores a scaled image through Node, plus a signed-in user's pages (account, messages,
 favorites, updates, walls) and every admin page, to confirm they render from Node reads without PHP
-errors. Its fixtures (categories, post meta, favorites) are removed afterwards, since a category on
+errors. Its fixtures (categories, post meta, favorites, a notice, an external login, a cached image) are removed afterwards, since a category on
 the site makes Q2A require one for every new question.
 
 ```bash
@@ -82,11 +111,7 @@ The other suites keep passing with every page reading through Node.
 
 ## Known differences
 
-- Reads made through the other `db/*.php` helpers still run in PHP; slice 12b moves them. They are:
-  the admin statistics counts (`qa_db_count_*`, table sizes, the MySQL version), the unapproved
-  users list and the IP and user post lists in `db/admin.php`; user lookups by handle, email or ID
-  (`db/users.php`); post, user and category meta (`qa_db_meta_get()`); blobs (avatars and uploaded
-  images); the page cache; cookie checks; user notices; rate-limit counts (`qa_db_limits_get()`);
-  and single vote and flag lookups in `db/votes.php`.
 - Plugins' own queries stay in PHP.
+- Reads inside write paths that never run on the shared UI (because the write itself moved to Node in
+  an earlier slice) keep their PHP code for the reference site; Node has its own versions.
 - The read harness is a Docker test fixture; it is not part of a production deployment.

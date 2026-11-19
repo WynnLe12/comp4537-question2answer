@@ -72,6 +72,8 @@ function qa_db_cookie_written($cookieid, $ipaddress)
  */
 function qa_db_cookie_exists($cookieid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$cookie = qa_db_read_one_value(qa_db_query_sub(
 		'SELECT COUNT(*) FROM ^cookies WHERE cookieid=#',
 		$cookieid

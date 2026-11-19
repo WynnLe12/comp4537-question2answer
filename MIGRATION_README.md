@@ -45,7 +45,8 @@ For an annotated, file-by-file code walkthrough, see
 - Admins change settings, categories, custom pages and links, widgets, user titles and fields,
   points and plugins, run the recalculation tools and send mailings, through Node.
 - Every page's data (question lists, questions, search, tags, categories, users, profiles,
-  messages, favorites, updates, options) is read by Node; PHP only renders it.
+  messages, favorites, updates, options, admin statistics, avatars and images) is read by Node; PHP
+  only renders it.
 
 ## Start the demo
 
@@ -233,6 +234,7 @@ until it is installed under `.github/workflows/`.
 | `POST /api/v1/admin/mailing/{test,start,stop,step}` | Send mailings |
 | `PUT /api/v1/admin/plugins`, `PUT /api/v1/admin/default-avatar` | Enable plugins; set the default avatar |
 | `POST /api/v1/internal/reads` | The bridge's page reads (needs `X-Q2A-Bridge-Key`; not a public API) |
+| `POST /api/v1/internal/cache` | The bridge's scaled-image cache writes (needs `X-Q2A-Bridge-Key`) |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -257,7 +259,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/q2a/mail.js`, `q2a/paths.js` | Q2A's email sending (through its SMTP options) and its links |
 | `node-api/src/services/user-admin.js`, `repositories/user-admin.js`, `routes/v1/user-admin.js` | Moderating and administering users |
 | `node-api/src/services/site-admin.js`, `services/recalc.js` and their repositories, `routes/v1/site-admin.js` | Site administration and the recalculation tools |
-| `node-api/src/reads/selects.js`, `reads/execute.js`, `routes/v1/internal.js` | Page reads: the `db/selects.php` builders and `qa_db_post_select()` |
+| `node-api/src/reads/selects.js`, `reads/helpers.js`, `reads/execute.js`, `routes/v1/internal.js` | Page reads: the `db/selects.php` builders, the other `db/*.php` read helpers and `qa_db_post_select()` |
 | `node-api/src/q2a/notify.js` | The emails of Q2A's notification module, sent after each change commits |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |

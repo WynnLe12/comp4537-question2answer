@@ -1,7 +1,8 @@
 <?php
-// Test harness for the read parity tests (Docker only): runs the original db/selects.php builders with
-// PHP's own SQL, without the bridge, and returns their results in the same shape as the Node API's
-// internal reads (every value base64-encoded, so binary values compare exactly). Needs the bridge key.
+// Test harness for the read parity tests (Docker only): runs the original db/selects.php builders and the
+// other db/*.php read helpers with PHP's own SQL, without the bridge, and returns their results in the same
+// shape as the Node API's internal reads (every value base64-encoded, so binary values compare exactly).
+// Needs the bridge key.
 $key = getenv('BRIDGE_SECRET');
 if (!strlen((string)$key) || !hash_equals($key, (string)@$_SERVER['HTTP_X_Q2A_BRIDGE_KEY'])) {
     http_response_code(404);
@@ -13,6 +14,10 @@ $qa_autoconnect = false;
 require __DIR__ . '/../../qa-include/qa-base.php';
 qa_db_connect('qa_page_db_fail_handler');
 require_once QA_INCLUDE_DIR . 'db/selects.php';
+require_once QA_INCLUDE_DIR . 'app/users.php'; // the user level and flag constants pages always have
+foreach (array('users', 'metas', 'cookies', 'notices', 'limits', 'votes', 'post-update', 'admin', 'blobs', 'cache') as $file) {
+    require_once QA_INCLUDE_DIR . 'db/' . $file . '.php';
+}
 
 function harness_value($value)
 {
@@ -27,6 +32,17 @@ function harness_value($value)
 $input = json_decode(file_get_contents('php://input'), true);
 $results = array();
 foreach ($input['reads'] as $read) {
+    if (strpos($read['name'], '_selectspec') === false) { // a read helper: what the function returns
+        $result = call_user_func_array($read['name'], $read['args']);
+        if (is_array($result)) {
+            $entries = array();
+            foreach ($result as $k => $v) $entries[] = array((string)$k, harness_value($v));
+            $results[] = array('single' => false, 'entries' => $entries);
+        } else {
+            $results[] = array('single' => true, 'value' => is_bool($result) || is_int($result) ? $result : harness_value($result));
+        }
+        continue;
+    }
     $spec = call_user_func_array($read['name'], $read['args']);
     if (!empty($read['count'])) $spec = qa_db_selectspec_count($spec);
     $result = qa_db_single_select($spec);

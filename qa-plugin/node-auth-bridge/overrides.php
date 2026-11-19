@@ -921,3 +921,188 @@ function qa_db_multi_select($selectspecs)
     return $outresults;
 }
 
+// Read helpers from the other db/*.php files (slice 12b): Node runs them and returns what PHP's would.
+function qa_db_user_find_by_email()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_find_by_handle()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_get_userid_handles()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_get_handle_userids()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_login_find()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_meta_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_cookie_exists()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_usernotices_list()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_limits_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_uservote_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_uservote_post_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_uservoteflag_user_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_uservoteflag_posts_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_posts_filter_q_postids()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_posts_get_userids()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_list_tables()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_mysql_version()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_table_size()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_count_posts()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_count_users()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_count_active_users()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_count_categories()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_count_categoryid_qs()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_get_user_visible_postids()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_get_ip_visible_postids()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_postids_count_dependents()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_get_unapproved_users()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_has_blobs_on_disk()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_has_blobs_in_db()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_last_pos()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_child_depth()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_get_parent()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_slug_to_id()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_blob_read()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_blob_exists()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_cache_get()
+{
+    return node_bridge_read_helper(__FUNCTION__, func_get_args());
+}
+
+function qa_db_cache_set($type, $cacheid, $content)
+{
+    node_bridge_cache_set($type, $cacheid, $content);
+}

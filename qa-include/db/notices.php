@@ -65,6 +65,8 @@ function qa_db_usernotice_delete($userid, $noticeid)
  */
 function qa_db_usernotices_list($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_assoc(qa_db_query_sub(
 		'SELECT noticeid, tags, UNIX_TIMESTAMP(created) AS created FROM ^usernotices WHERE userid=$ ORDER BY created',
 		$userid

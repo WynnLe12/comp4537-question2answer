@@ -204,6 +204,23 @@ function node_bridge_read_spec($name, $args)
     return array('node_read' => array('name' => $name, 'args' => $args, 'count' => false));
 }
 
+// A read helper from db/*.php (outside db/selects.php), run by Node: returns what the PHP function returns.
+function node_bridge_read_helper($name, $args)
+{
+    $name = preg_replace('/_override_\d+_in_\w+$/', '', $name);
+    $results = node_bridge_run_reads(array(array('name' => $name, 'args' => $args, 'count' => false)));
+    return $results[0];
+}
+
+// qa_db_cache_set() (qa-image.php's scaled images) through Node.
+function node_bridge_cache_set($type, $cacheid, $content)
+{
+    $result = node_bridge_api('POST', '/api/v1/internal/cache',
+        array('type' => (string)$type, 'cacheid' => (string)$cacheid, 'content' => base64_encode((string)$content)),
+        'X-Q2A-Bridge-Key: ' . getenv('BRIDGE_SECRET') . "\r\n");
+    if ($result['status'] !== 204) qa_fatal_error('Node could not store the cached image: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+}
+
 function node_bridge_decode_value($value)
 {
     if (is_array($value)) {

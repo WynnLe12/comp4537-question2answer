@@ -50,6 +50,8 @@ function qa_db_uservote_set($postid, $userid, $vote)
  */
 function qa_db_uservote_get($postid, $userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_assoc(qa_db_query_sub(
 		'SELECT postid, userid, vote, flag, votecreated, voteupdated FROM ^uservotes WHERE postid=# AND userid=#',
 		$postid, $userid
@@ -146,6 +148,8 @@ function qa_db_post_reset_flags($postid)
  */
 function qa_db_uservote_post_get($postid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_assoc(qa_db_query_sub(
 		'SELECT userid, vote FROM ^uservotes WHERE postid=# AND vote!=0',
 		$postid
@@ -160,6 +164,8 @@ function qa_db_uservote_post_get($postid)
  */
 function qa_db_uservoteflag_user_get($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_values(qa_db_query_sub(
 		'SELECT postid FROM ^uservotes WHERE userid=# AND (vote!=0 OR flag!=0)',
 		$userid
@@ -174,6 +180,8 @@ function qa_db_uservoteflag_user_get($userid)
  */
 function qa_db_uservoteflag_posts_get($postids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (QA_FINAL_EXTERNAL_USERS) {
 		return qa_db_read_all_assoc(qa_db_query_sub(
 			'SELECT postid, userid, vote, flag, votecreated, voteupdated FROM ^uservotes WHERE postid IN (#) AND (vote!=0 OR flag!=0)',

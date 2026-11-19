@@ -470,6 +470,8 @@ function qa_db_list_tables_lc()
  */
 function qa_db_list_tables($onlyTablesWithPrefix = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$query = 'SHOW TABLES';
 
 	if ($onlyTablesWithPrefix) {

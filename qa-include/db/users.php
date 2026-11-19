@@ -106,6 +106,8 @@ function qa_db_user_delete($userid)
  */
 function qa_db_user_find_by_email($email)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_values(qa_db_query_sub(
 		'SELECT userid FROM ^users WHERE email=$',
 		$email
@@ -120,6 +122,8 @@ function qa_db_user_find_by_email($email)
  */
 function qa_db_user_find_by_handle($handle)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_values(qa_db_query_sub(
 		'SELECT userid FROM ^users WHERE handle=$',
 		$handle
@@ -134,6 +138,8 @@ function qa_db_user_find_by_handle($handle)
  */
 function qa_db_user_get_userid_handles($userids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (count($userids)) {
 		return qa_db_read_all_assoc(qa_db_query_sub(
 			'SELECT userid, handle FROM ^users WHERE userid IN (#)',
@@ -152,6 +158,8 @@ function qa_db_user_get_userid_handles($userids)
  */
 function qa_db_user_get_handle_userids($handles)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (count($handles)) {
 		return qa_db_read_all_assoc(qa_db_query_sub(
 			'SELECT handle, userid FROM ^users WHERE handle IN ($)',
@@ -328,6 +336,8 @@ function qa_db_user_login_add($userid, $source, $identifier)
  */
 function qa_db_user_login_find($source, $identifier)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_assoc(qa_db_query_sub(
 		'SELECT ^userlogins.userid, handle, email FROM ^userlogins LEFT JOIN ^users ON ^userlogins.userid=^users.userid ' .
 		'WHERE source=$ AND identifiermd5=UNHEX($) AND identifier=$',

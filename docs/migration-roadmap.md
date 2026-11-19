@@ -31,10 +31,11 @@ the hook does nothing, so the PHP reference keeps its behaviour.
 | 10 | Moderation and user administration: approve queue, user levels, block/unblock, delete user | `pages/admin/admin-moderate.php`, `admin-approve.php`, `admin-flagged.php`, `admin-hidden.php`, `pages/user-profile.php` | Done ([notes](admin-migration.md)) |
 | 11 | Site administration: options, categories, pages, widgets, plugins, points, user titles, user fields, recalculation, mailings | `pages/admin/*`, `app/admin.php`, `app/recalc.php`, `app/mailing.php` | Done ([notes](site-admin-migration.md)) |
 | 12 | Reads: question lists, search, tags, users, activity, feeds: every `db/selects.php` builder | `db/selects.php`, `qa-db.php` (`qa_db_single_select`, `qa_db_multi_select`), `app/options.php` | Done ([notes](reads-migration.md)) |
-| 12b | Remaining reads: the other `db/*.php` read helpers (admin stats, user lookups, metas, blobs, cache, cookies, notices, limits, single vote lookups) | `db/admin.php`, `db/users.php`, `db/metas.php`, `db/blobs.php`, `db/cache.php`, `db/cookies.php`, `db/notices.php`, `db/limits.php`, `db/votes.php` | Not started |
+| 12b | Remaining reads: the other `db/*.php` read helpers (admin stats, user lookups, metas, blobs, cache, cookies, notices, limits, single vote lookups) | `db/admin.php`, `db/users.php`, `db/metas.php`, `db/blobs.php`, `db/cache.php`, `db/cookies.php`, `db/notices.php`, `db/limits.php`, `db/votes.php`, `db/post-update.php`, `qa-db.php` | Done ([notes](reads-migration.md#read-helpers-slice-12b)) |
 
 ### Reads
 
 Slices 1–11 move every write and every rule that decides one. Slice 12 moves the page data: every
 `db/selects.php` builder runs in Node and PHP only renders the results, without changing the page
-controllers. Slice 12b moves the reads still made through the smaller `db/*.php` helpers.
+controllers. Slice 12b moves the reads still made through the smaller `db/*.php` helpers, so the shared UI
+sends no queries of its own.

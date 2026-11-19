@@ -22,9 +22,21 @@ const normalise = result => (result.single
   ? { single: true, value: bytes(result.value) }
   : { single: false, entries: result.entries.map(([k, v]) => [String(k), bytes(v)]) });
 
+// Helpers return plain PHP values: arrays (rows, maps, lists) compare as ordered key/value lists, strings
+// as bytes, and ints and booleans as themselves.
+function canonValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'string') return Buffer.from(value, 'utf8').toString('base64');
+  if (Object.keys(value).length === 1 && typeof value.b64 === 'string') return value.b64;
+  return { list: Object.entries(value).map(([k, v]) => [String(k), canonValue(v)]) };
+}
+const canonResult = result => (result.single ? canonValue(result.value) : { list: result.entries.map(([k, v]) => [String(k), canonValue(v)]) });
+
 async function runReads(url, reads) {
   const res = await request(url).post('').set('X-Q2A-Bridge-Key', KEY).send({ reads });
-  if (res.status !== 200) throw new Error(`${url}: ${res.status} ${JSON.stringify(res.body)}`);
+  if (res.status !== 200 || !Array.isArray(res.body?.results)) throw new Error(`${url}: ${res.status} ${res.text.slice(0, 500)}`);
   return res.body.results;
 }
 
@@ -118,9 +130,67 @@ const CASES = [
   ['user levels full', 'qa_db_user_levels_selectspec', f => [f.levelsuser, true, true]],
 ];
 
+// The read helpers in the other db/*.php files (slice 12b): [label, function, args(fixtures)]
+const HELPER_CASES = [
+  ['user by email', 'qa_db_user_find_by_email', f => [f.email]],
+  ['user by email, none', 'qa_db_user_find_by_email', () => ['nobody@example.invalid']],
+  ['user by handle', 'qa_db_user_find_by_handle', f => [f.handle]],
+  ['handles of users', 'qa_db_user_get_userid_handles', f => [[f.user, f.voter, 999999999]]],
+  ['handles of no users', 'qa_db_user_get_userid_handles', () => [[]]],
+  ['users of handles', 'qa_db_user_get_handle_userids', f => [[f.handle, 'no-such-handle']]],
+  ['external login', 'qa_db_user_login_find', f => ['reads', f.loginid]],
+  ['post meta', 'qa_db_meta_get', f => ['postmetas', 'postid', f.q, f.metatitle]],
+  ['post meta list', 'qa_db_meta_get', f => ['postmetas', 'postid', f.q, [f.metatitle, 'qa_q_none']]],
+  ['user meta, none', 'qa_db_meta_get', f => ['usermetas', 'userid', f.user, 'nothing']],
+  ['cookie exists', 'qa_db_cookie_exists', f => [f.cookieid]],
+  ['cookie missing', 'qa_db_cookie_exists', () => ['1']],
+  ['notices', 'qa_db_usernotices_list', f => [f.user]],
+  ['user and ip limits', 'qa_db_limits_get', f => [f.limituser, f.ip, f.limitaction]],
+  ['ip limits only', 'qa_db_limits_get', f => [null, f.ip, 'Q']],
+  ['no limits asked', 'qa_db_limits_get', () => [null, null, 'Q']],
+  ['one vote', 'qa_db_uservote_get', f => [f.votepost, f.voteuser]],
+  ['no vote', 'qa_db_uservote_get', f => [f.votepost, 999999999]],
+  ['votes on a post', 'qa_db_uservote_post_get', f => [f.votepost]],
+  ['posts a user voted or flagged', 'qa_db_uservoteflag_user_get', f => [f.voteuser]],
+  ['voters and flaggers', 'qa_db_uservoteflag_posts_get', f => [[f.votepost, ...f.postids]]],
+  ['questions among posts', 'qa_db_posts_filter_q_postids', f => [f.postids]],
+  ['authors of posts', 'qa_db_posts_get_userids', f => [f.postids]],
+  ['tables', 'qa_db_list_tables', () => []],
+  ['prefixed tables', 'qa_db_list_tables', () => [true]],
+  ['mysql version', 'qa_db_mysql_version', () => []],
+  ['table size', 'qa_db_table_size', () => []],
+  ['post count', 'qa_db_count_posts', () => []],
+  ['question count', 'qa_db_count_posts', () => ['Q']],
+  ['anonymous answers', 'qa_db_count_posts', () => ['A', false]],
+  ['user comments', 'qa_db_count_posts', () => ['C', true]],
+  ['user count', 'qa_db_count_users', () => []],
+  ['active posters', 'qa_db_count_active_users', () => ['posts']],
+  ['active voters', 'qa_db_count_active_users', () => ['uservotes']],
+  ['category count', 'qa_db_count_categories', () => []],
+  ['category questions', 'qa_db_count_categoryid_qs', f => [f.childcat]],
+  ['uncategorized questions', 'qa_db_count_categoryid_qs', () => [null]],
+  ['user visible posts', 'qa_db_get_user_visible_postids', f => [f.user]],
+  ['ip visible posts', 'qa_db_get_ip_visible_postids', f => [f.ip]],
+  ['dependents', 'qa_db_postids_count_dependents', f => [f.postids]],
+  ['unapproved users', 'qa_db_get_unapproved_users', () => [30]],
+  ['blobs on disk', 'qa_db_has_blobs_on_disk', () => []],
+  ['blobs in db', 'qa_db_has_blobs_in_db', () => []],
+  ['last category position', 'qa_db_category_last_pos', f => [f.parentcat]],
+  ['last top category position', 'qa_db_category_last_pos', () => [null]],
+  ['category depth', 'qa_db_category_child_depth', f => [f.parentcat]],
+  ['category parent', 'qa_db_category_get_parent', f => [f.childcat]],
+  ['category by slug', 'qa_db_category_slug_to_id', f => [f.parentcat, `child-${f.suffix}`]],
+  ['category by slug, none', 'qa_db_category_slug_to_id', () => [null, 'no-such-slug']],
+  ['blob', 'qa_db_blob_read', f => [f.blobid]],
+  ['blob missing', 'qa_db_blob_read', () => ['1']],
+  ['blob exists', 'qa_db_blob_exists', f => [f.blobid]],
+  ['cached image', 'qa_db_cache_get', f => ['i_reads', f.cacheid]],
+  ['cache miss', 'qa_db_cache_get', () => ['i_reads', '1']],
+];
+
 describe('PHP ↔ Node read parity (db/selects.php builders and the shared UI pages)', () => {
   const suffix = randomBytes(3).toString('hex');
-  let pool, fixtures, php, node;
+  let pool, fixtures, php, node, phpHelpers, nodeHelpers;
   // Everything the fixtures change is put back afterwards: a category on the site, for one, makes
   // Q2A require a category for every new question, which would break the other suites.
   const undo = [];
@@ -178,6 +248,26 @@ describe('PHP ↔ Node read parity (db/selects.php builders and the shared UI pa
       from: pm.from ?? author.user, to: pm.to ?? author.user, wallto: wall.wallto ?? author.user,
       levelsuser: levels.levelsuser ?? author.user, favuser, favq: q,
     };
+    // Fixtures for the helpers: a notice, an external login, a cached image, an existing blob and cookie.
+    const [notice] = await pool.query("INSERT INTO qa_usernotices (userid, content, format, tags, created) VALUES (?, ?, '', ?, NOW())", [author.user, `Notice ${suffix}`, `tag-${suffix}`]);
+    undo.push(() => pool.query('DELETE FROM qa_usernotices WHERE noticeid=?', [notice.insertId]));
+    const loginid = `reads-${suffix}`;
+    await pool.query("INSERT INTO qa_userlogins (userid, source, identifier, identifiermd5) VALUES (?, 'reads', ?, UNHEX(MD5(?)))", [author.user, loginid, loginid]);
+    undo.push(() => pool.query("DELETE FROM qa_userlogins WHERE source='reads' AND identifier=?", [loginid]));
+    const cacheid = String(900000000 + parseInt(suffix, 16) % 99999999);
+    await pool.query("INSERT INTO qa_cache (type, cacheid, content, created, lastread) VALUES ('i_reads', ?, ?, NOW(), NOW())", [cacheid, Buffer.from([0, 255, 1, 254, 137, 80, 78, 71])]);
+    undo.push(() => pool.query("DELETE FROM qa_cache WHERE type='i_reads' AND cacheid=?", [cacheid]));
+    const email = await one('SELECT email FROM qa_users WHERE userid=?', [author.user]);
+    const blob = await one('SELECT blobid FROM qa_blobs ORDER BY blobid DESC LIMIT 1');
+    const cookie = await one('SELECT cookieid FROM qa_cookies ORDER BY created DESC LIMIT 1');
+    const limit = await one('SELECT userid, action FROM qa_userlimits ORDER BY period DESC LIMIT 1');
+    const vote = await one('SELECT postid, userid FROM qa_uservotes WHERE vote!=0 ORDER BY postid DESC LIMIT 1');
+    Object.assign(fixtures, {
+      suffix, email: email.email, loginid, cacheid, blobid: blob.blobid ?? '1', cookieid: cookie.cookieid ?? '1',
+      limituser: limit.userid ?? author.user, limitaction: limit.action ?? 'Q', votepost: vote.postid ?? q, voteuser: vote.userid ?? fixtures.voter,
+    });
+    const helperReads = HELPER_CASES.map(([, name, args]) => ({ name, args: args(fixtures) }));
+    [phpHelpers, nodeHelpers] = await Promise.all([runReads(`${UI_URL}/docker/php/read-harness.php`, helperReads), runReads(`${API_URL}/api/v1/internal/reads`, helperReads)]);
     const reads = [...CASES.map(([, name, args, count]) => ({ name, args: args(fixtures), count: !!count })), { name: 'qa_db_time_selectspec', args: [] }];
     [php, node] = await Promise.all([runReads(`${UI_URL}/docker/php/read-harness.php`, reads), runReads(`${API_URL}/api/v1/internal/reads`, reads)]);
   });
@@ -188,6 +278,28 @@ describe('PHP ↔ Node read parity (db/selects.php builders and the shared UI pa
 
   test.each(CASES.map(([label], index) => [label, index]))('%s', (label, index) => {
     expect(normalise(node[index])).toEqual(normalise(php[index]));
+  });
+
+  test.each(HELPER_CASES.map(([label], index) => [label, index]))('helper: %s', (label, index) => {
+    expect(canonResult(nodeHelpers[index])).toEqual(canonResult(phpHelpers[index]));
+  });
+
+  test('helper fixtures found real rows', () => {
+    for (const label of ['user by email', 'external login', 'notices', 'one vote', 'blob', 'cached image', 'cookie exists', 'category parent', 'unapproved users']) {
+      const result = phpHelpers[HELPER_CASES.findIndex(([name]) => name === label)];
+      expect([label, result.single ? result.value !== null && result.value !== false : result.entries.length > 0]).toEqual([label, true]);
+    }
+  });
+
+  test('the bridge stores scaled images through Node', async () => {
+    const cacheid = String(800000000 + parseInt(suffix, 16) % 99999999);
+    const content = Buffer.from([1, 2, 3, 0, 250]).toString('base64');
+    const res = await request(API_URL).post('/api/v1/internal/cache').set('X-Q2A-Bridge-Key', KEY).send({ type: 'i_reads', cacheid, content });
+    expect(res.status).toBe(204);
+    const [[row]] = await pool.query("SELECT content, lastread>=NOW()-INTERVAL 5 SECOND AS fresh FROM qa_cache WHERE type='i_reads' AND cacheid=?", [cacheid]);
+    expect([row.content.toString('base64'), Number(row.fresh)]).toEqual([content, 1]);
+    await pool.query("DELETE FROM qa_cache WHERE type='i_reads' AND cacheid=?", [cacheid]);
+    expect((await request(API_URL).post('/api/v1/internal/cache').send({ type: 'i_reads', cacheid, content })).status).toBe(404);
   });
 
   test('the database time agrees', () => {

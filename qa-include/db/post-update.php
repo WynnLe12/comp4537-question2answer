@@ -387,6 +387,8 @@ function qa_db_posttags_delete_post($postid)
  */
 function qa_db_posts_filter_q_postids($postids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (count($postids)) {
 		return qa_db_read_all_values(qa_db_query_sub(
 			"SELECT postid FROM ^posts WHERE type='Q' AND postid IN (#)",
@@ -405,6 +407,8 @@ function qa_db_posts_filter_q_postids($postids)
  */
 function qa_db_posts_get_userids($postids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (count($postids)) {
 		return qa_db_read_all_values(qa_db_query_sub(
 			"SELECT DISTINCT userid FROM ^posts WHERE postid IN (#) AND userid IS NOT NULL",

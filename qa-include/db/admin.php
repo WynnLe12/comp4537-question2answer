@@ -30,6 +30,8 @@ if (!defined('QA_VERSION')) { // don't allow this page to be requested directly 
  */
 function qa_db_mysql_version()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_raw('SELECT VERSION()'));
 }
 
@@ -39,6 +41,8 @@ function qa_db_mysql_version()
  */
 function qa_db_table_size()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (defined('QA_MYSQL_USERS_PREFIX')) { // check if one of the prefixes is a prefix itself of the other
 		if (stripos(QA_MYSQL_USERS_PREFIX, QA_MYSQL_TABLE_PREFIX) === 0)
 			$prefixes = array(QA_MYSQL_TABLE_PREFIX);
@@ -73,6 +77,8 @@ function qa_db_table_size()
  */
 function qa_db_count_posts($type = null, $fromuser = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$wheresql = '';
 
 	if (isset($type))
@@ -92,6 +98,8 @@ function qa_db_count_posts($type = null, $fromuser = null)
  */
 function qa_db_count_users()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		'SELECT COUNT(*) FROM ^users'
 	));
@@ -105,6 +113,8 @@ function qa_db_count_users()
  */
 function qa_db_count_active_users($table)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	switch ($table) {
 		case 'posts':
 		case 'uservotes':
@@ -127,6 +137,8 @@ function qa_db_count_active_users($table)
  */
 function qa_db_count_categories()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		'SELECT COUNT(*) FROM ^categories'
 	));
@@ -140,6 +152,8 @@ function qa_db_count_categories()
  */
 function qa_db_count_categoryid_qs($categoryid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		"SELECT COUNT(*) FROM ^posts WHERE categoryid<=># AND type='Q'",
 		$categoryid
@@ -154,6 +168,8 @@ function qa_db_count_categoryid_qs($categoryid)
  */
 function qa_db_get_user_visible_postids($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_values(qa_db_query_sub(
 		"SELECT postid FROM ^posts WHERE userid=# AND type IN ('Q', 'A', 'C', 'Q_QUEUED', 'A_QUEUED', 'C_QUEUED')",
 		$userid
@@ -168,6 +184,8 @@ function qa_db_get_user_visible_postids($userid)
  */
 function qa_db_get_ip_visible_postids($ip)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_all_values(qa_db_query_sub(
 		"SELECT postid FROM ^posts WHERE createip=UNHEX($) AND type IN ('Q', 'A', 'C', 'Q_QUEUED', 'A_QUEUED', 'C_QUEUED')",
 		bin2hex(@inet_pton($ip))
@@ -182,6 +200,8 @@ function qa_db_get_ip_visible_postids($ip)
  */
 function qa_db_postids_count_dependents($postids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (count($postids))
 		return qa_db_read_all_assoc(qa_db_query_sub(
 			"SELECT postid, COALESCE(childcount, 0) AS count FROM ^posts LEFT JOIN (SELECT parentid, COUNT(*) AS childcount FROM ^posts WHERE parentid IN (#) AND LEFT(type, 1) IN ('A', 'C') GROUP BY parentid) x ON postid=x.parentid WHERE postid IN (#)",
@@ -200,6 +220,8 @@ function qa_db_postids_count_dependents($postids)
  */
 function qa_db_get_unapproved_users($count)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$results = qa_db_read_all_assoc(qa_db_query_sub(
 		"SELECT ^users.userid, UNIX_TIMESTAMP(created) AS created, createip, email, handle, flags, title, content FROM ^users LEFT JOIN ^userprofile ON ^users.userid=^userprofile.userid AND LENGTH(content)>0 WHERE level<# AND NOT (flags&#) ORDER BY created DESC LIMIT #",
 		QA_USER_LEVEL_APPROVED, QA_USER_FLAGS_USER_BLOCKED, $count
@@ -230,6 +252,8 @@ function qa_db_get_unapproved_users($count)
  */
 function qa_db_has_blobs_on_disk()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub('SELECT blobid FROM ^blobs WHERE content IS NULL LIMIT 1'), true) != null;
 }
 
@@ -239,6 +263,8 @@ function qa_db_has_blobs_on_disk()
  */
 function qa_db_has_blobs_in_db()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub('SELECT blobid FROM ^blobs WHERE content IS NOT NULL LIMIT 1'), true) != null;
 }
 
@@ -250,6 +276,8 @@ function qa_db_has_blobs_in_db()
  */
 function qa_db_category_last_pos($parentid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		'SELECT COALESCE(MAX(position), 0) FROM ^categories WHERE parentid<=>#',
 		$parentid
@@ -264,6 +292,8 @@ function qa_db_category_last_pos($parentid)
  */
 function qa_db_category_child_depth($categoryid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	// This is potentially a very slow query since it counts all the multi-generational offspring of a particular category
 	// But it's only used for admin purposes when moving a category around so I don't think it's worth making more efficient
 	// (Incidentally, this could be done by keeping a count for every category of how many generations of offspring it has.)
@@ -360,6 +390,8 @@ function qa_db_category_set_content($categoryid, $content)
  */
 function qa_db_category_get_parent($categoryid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		'SELECT parentid FROM ^categories WHERE categoryid=#',
 		$categoryid
@@ -433,6 +465,8 @@ function qa_db_category_delete($categoryid)
  */
 function qa_db_category_slug_to_id($parentid, $slug)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return qa_db_read_one_value(qa_db_query_sub(
 		'SELECT categoryid FROM ^categories WHERE parentid<=># AND tags=$',
 		$parentid, $slug
