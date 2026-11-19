@@ -537,6 +537,8 @@ function qa_db_list_tables($onlyTablesWithPrefix = false)
  */
 function qa_db_single_select($selectspec)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	// check for cached results
 	if (isset($selectspec['caching'])) {
 		$cacheDriver = Q2A_Storage_CacheFactory::getCacheDriver();
@@ -581,6 +583,8 @@ function qa_db_single_select($selectspec)
  */
 function qa_db_multi_select($selectspecs)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if (!count($selectspecs))
 		return array();
 

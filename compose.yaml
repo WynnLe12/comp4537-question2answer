@@ -66,6 +66,7 @@ services:
       NODE_ENV: development
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Create .env from .env.example and set AUTH_JWT_SECRET}
       BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-10}
+      BRIDGE_SECRET: ${BRIDGE_SECRET:?Create .env from .env.example and set BRIDGE_SECRET}
       # Believe X-Forwarded-For only from private Docker addresses (the PHP bridge).
       TRUST_PROXY: uniquelocal
     ports: ["127.0.0.1:3000:3000"]
@@ -83,6 +84,7 @@ services:
       <<: *credentials
       DB_HOST: node-db
       NODE_AUTH_API: http://api:3000
+      BRIDGE_SECRET: ${BRIDGE_SECRET:?Create .env from .env.example and set BRIDGE_SECRET}
     ports: ["127.0.0.1:8081:80"]
     depends_on:
       api: {condition: service_healthy}

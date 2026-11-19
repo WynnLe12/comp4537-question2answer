@@ -130,6 +130,8 @@ function qa_db_flush_pending_result($pendingid)
  */
 function qa_db_selectspec_count($selectSpec)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectSpec['columns'] = array('count' => 'COUNT(*)');
 	$selectSpec['single'] = true;
 	unset($selectSpec['arraykey']);
@@ -341,6 +343,8 @@ function qa_db_categoryslugs_sql_args($categoryslugs, &$arguments)
  */
 function qa_db_qs_selectspec($voteuserid, $sort, $start, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($specialtype == 'Q' || $specialtype == 'Q_QUEUED') {
 		$type = $specialtype;
 	} else {
@@ -404,6 +408,8 @@ function qa_db_qs_selectspec($voteuserid, $sort, $start, $categoryslugs = null, 
  */
 function qa_db_unanswered_qs_selectspec($voteuserid, $by, $start, $categoryslugs = null, $specialtype = false, $full = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($specialtype == 'Q' || $specialtype == 'Q_QUEUED') {
 		$type = $specialtype;
 	} else {
@@ -455,6 +461,8 @@ function qa_db_unanswered_qs_selectspec($voteuserid, $by, $start, $categoryslugs
  */
 function qa_db_recent_a_qs_selectspec($voteuserid, $start, $categoryslugs = null, $createip = null, $specialtype = false, $fullanswers = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($specialtype == 'A' || $specialtype == 'A_QUEUED') {
 		$type = $specialtype;
 	} else {
@@ -507,6 +515,8 @@ function qa_db_recent_a_qs_selectspec($voteuserid, $start, $categoryslugs = null
  */
 function qa_db_recent_c_qs_selectspec($voteuserid, $start, $categoryslugs = null, $createip = null, $specialtype = false, $fullcomments = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($specialtype == 'C' || $specialtype == 'C_QUEUED') {
 		$type = $specialtype;
 	} else {
@@ -561,6 +571,8 @@ function qa_db_recent_c_qs_selectspec($voteuserid, $start, $categoryslugs = null
  */
 function qa_db_recent_edit_qs_selectspec($voteuserid, $start, $categoryslugs = null, $lastip = null, $onlyvisible = true, $fulledited = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -606,6 +618,8 @@ function qa_db_recent_edit_qs_selectspec($voteuserid, $start, $categoryslugs = n
  */
 function qa_db_flagged_post_qs_selectspec($voteuserid, $start, $fullflagged = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -640,6 +654,8 @@ function qa_db_flagged_post_qs_selectspec($voteuserid, $start, $fullflagged = fa
  */
 function qa_db_posts_selectspec($voteuserid, $postids, $full = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid, $full);
 
 	$selectspec['source'] .= " WHERE ^posts.postid IN (#)";
@@ -656,6 +672,8 @@ function qa_db_posts_selectspec($voteuserid, $postids, $full = false)
  */
 function qa_db_posts_basetype_selectspec($postids)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('postid', 'basetype' => 'LEFT(type, 1)'),
 		'source' => "^posts WHERE postid IN (#)",
@@ -675,6 +693,8 @@ function qa_db_posts_basetype_selectspec($postids)
  */
 function qa_db_posts_to_qs_selectspec($voteuserid, $postids, $full = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid, $full);
 
 	$selectspec['columns']['obasetype'] = 'LEFT(childposts.type, 1)';
@@ -701,6 +721,8 @@ function qa_db_posts_to_qs_selectspec($voteuserid, $postids, $full = false)
  */
 function qa_db_full_post_selectspec($voteuserid, $postid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid, true);
 
 	$selectspec['source'] .= " WHERE ^posts.postid=#";
@@ -720,6 +742,8 @@ function qa_db_full_post_selectspec($voteuserid, $postid)
  */
 function qa_db_full_child_posts_selectspec($voteuserid, $parentid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid, true);
 
 	$selectspec['source'] .= " WHERE ^posts.parentid=#";
@@ -738,6 +762,8 @@ function qa_db_full_child_posts_selectspec($voteuserid, $parentid)
  */
 function qa_db_full_a_child_posts_selectspec($voteuserid, $questionid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid, true);
 
 	$selectspec['source'] .= " JOIN ^posts AS parents ON ^posts.parentid=parents.postid WHERE parents.parentid=# AND LEFT(parents.type, 1)='A'";
@@ -755,6 +781,8 @@ function qa_db_full_a_child_posts_selectspec($voteuserid, $questionid)
  */
 function qa_db_post_parent_q_selectspec($postid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec();
 
 	$selectspec['source'] .= " WHERE ^posts.postid=(SELECT IF(LEFT(parent.type, 1)='A', parent.parentid, parent.postid) FROM ^posts AS child LEFT JOIN ^posts AS parent ON parent.postid=child.parentid WHERE child.postid=# AND parent.type IN('Q','A'))";
@@ -772,6 +800,8 @@ function qa_db_post_parent_q_selectspec($postid)
  */
 function qa_db_post_close_post_selectspec($questionid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec(null, true);
 
 	$selectspec['source'] .= " WHERE ^posts.postid=(SELECT closedbyid FROM ^posts WHERE postid=#)";
@@ -789,6 +819,8 @@ function qa_db_post_close_post_selectspec($questionid)
  */
 function qa_db_post_duplicates_selectspec($questionid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = qa_db_posts_basic_selectspec(null, true);
 
 	$selectspec['source'] .= " WHERE ^posts.closedbyid=#";
@@ -806,6 +838,8 @@ function qa_db_post_duplicates_selectspec($questionid)
  */
 function qa_db_post_meta_selectspec($postid, $title)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = array(
 		'columns' => array('title', 'content'),
 		'source' => "^postmetas WHERE postid=# AND " . (is_array($title) ? "title IN ($)" : "title=$"),
@@ -834,6 +868,8 @@ function qa_db_post_meta_selectspec($postid, $title)
  */
 function qa_db_related_qs_selectspec($voteuserid, $questionid, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -883,6 +919,8 @@ function qa_db_related_qs_selectspec($voteuserid, $questionid, $count = null)
  */
 function qa_db_search_posts_selectspec($voteuserid, $titlewords, $contentwords, $tagwords, $handlewords, $handle, $start, $full = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	// add LOG(postid)/1000000 here to ensure ordering is deterministic even if several posts have same score
@@ -1021,6 +1059,8 @@ function qa_search_set_max_match($question, &$type, &$postid)
  */
 function qa_db_full_category_selectspec($slugsorid, $isid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($isid) {
 		$identifiersql = 'categoryid=#';
 	} else {
@@ -1051,6 +1091,8 @@ function qa_db_full_category_selectspec($slugsorid, $isid)
  */
 function qa_db_category_nav_selectspec($slugsorid, $isid, $ispostid = false, $full = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	if ($isid) {
 		if ($ispostid) {
 			$identifiersql = 'categoryid=(SELECT categoryid FROM ^posts WHERE postid=#)';
@@ -1112,6 +1154,8 @@ function qa_db_category_nav_selectspec($slugsorid, $isid, $ispostid = false, $fu
  */
 function qa_db_category_sub_selectspec($categoryid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('categoryid', 'title', 'tags', 'qcount', 'position'),
 		'source' => '^categories WHERE parentid<=># ORDER BY position',
@@ -1129,6 +1173,8 @@ function qa_db_category_sub_selectspec($categoryid)
  */
 function qa_db_slugs_to_category_id_selectspec($slugs)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('categoryid'),
 		'source' => '^categories WHERE backpath=$',
@@ -1147,6 +1193,8 @@ function qa_db_slugs_to_category_id_selectspec($slugs)
  */
 function qa_db_pages_selectspec($onlynavin = null, $onlypageids = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectspec = array(
 		// +0 required to work around MySQL bug where by permit value is mis-read as signed, e.g. -106 instead of 150
 		'columns' => array('pageid', 'title', 'flags', 'permit' => 'permit+0', 'nav', 'tags', 'position', 'heading'),
@@ -1173,6 +1221,8 @@ function qa_db_pages_selectspec($onlynavin = null, $onlypageids = null)
  */
 function qa_db_widgets_selectspec()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('widgetid', 'place', 'position', 'tags', 'title'),
 		'source' => '^widgets ORDER BY position',
@@ -1189,6 +1239,8 @@ function qa_db_widgets_selectspec()
  */
 function qa_db_page_full_selectspec($slugorpageid, $ispageid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('pageid', 'title', 'flags', 'permit', 'nav', 'tags', 'position', 'heading', 'content'),
 		'source' => '^pages WHERE ' . ($ispageid ? 'pageid' : 'tags') . '=$',
@@ -1211,6 +1263,8 @@ function qa_db_page_full_selectspec($slugorpageid, $ispageid)
  */
 function qa_db_tag_recent_qs_selectspec($voteuserid, $tag, $start, $full = false, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	require_once QA_INCLUDE_DIR . 'util/string.php';
@@ -1233,6 +1287,8 @@ function qa_db_tag_recent_qs_selectspec($voteuserid, $tag, $start, $full = false
  */
 function qa_db_tag_word_selectspec($tag)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('wordid', 'word', 'tagcount'),
 		'source' => '^words WHERE word=$ AND word=$ COLLATE utf8_bin',
@@ -1255,6 +1311,8 @@ function qa_db_tag_word_selectspec($tag)
  */
 function qa_db_user_recent_qs_selectspec($voteuserid, $identifier, $count = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -1280,6 +1338,8 @@ function qa_db_user_recent_qs_selectspec($voteuserid, $identifier, $count = null
  */
 function qa_db_user_recent_a_qs_selectspec($voteuserid, $identifier, $count = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -1315,6 +1375,8 @@ function qa_db_user_recent_a_qs_selectspec($voteuserid, $identifier, $count = nu
  */
 function qa_db_user_recent_c_qs_selectspec($voteuserid, $identifier, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -1348,6 +1410,8 @@ function qa_db_user_recent_c_qs_selectspec($voteuserid, $identifier, $count = nu
  */
 function qa_db_user_recent_edit_qs_selectspec($voteuserid, $identifier, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_QS_AS) : QA_DB_RETRIEVE_QS_AS;
 
 	$selectspec = qa_db_posts_basic_selectspec($voteuserid);
@@ -1379,6 +1443,8 @@ function qa_db_user_recent_edit_qs_selectspec($voteuserid, $identifier, $count =
  */
 function qa_db_popular_tags_selectspec($start, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? $count : QA_DB_RETRIEVE_TAGS;
 
 	return array(
@@ -1397,6 +1463,8 @@ function qa_db_popular_tags_selectspec($start, $count = null)
  */
 function qa_db_userfields_selectspec()
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('fieldid', 'title', 'content', 'flags', 'permit', 'position'),
 		'source' => '^userfields',
@@ -1415,6 +1483,8 @@ function qa_db_userfields_selectspec()
  */
 function qa_db_user_account_selectspec($useridhandle, $isuserid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array(
 			'^users.userid', 'passsalt', 'passcheck' => 'HEX(passcheck)', 'passhash', 'email', 'level', 'emailcode', 'handle',
@@ -1440,6 +1510,8 @@ function qa_db_user_account_selectspec($useridhandle, $isuserid)
  */
 function qa_db_user_profile_selectspec($useridhandle, $isuserid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('title', 'content'),
 		'source' => '^userprofile WHERE userid=' . ($isuserid ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)'),
@@ -1457,6 +1529,8 @@ function qa_db_user_profile_selectspec($useridhandle, $isuserid)
  */
 function qa_db_user_notices_selectspec($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('noticeid', 'content', 'format', 'tags', 'created' => 'UNIX_TIMESTAMP(created)'),
 		'source' => '^usernotices WHERE userid=$ ORDER BY created',
@@ -1475,6 +1549,8 @@ function qa_db_user_notices_selectspec($userid)
  */
 function qa_db_user_points_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('points', 'qposts', 'aposts', 'cposts', 'aselects', 'aselecteds', 'qupvotes', 'qdownvotes', 'aupvotes', 'adownvotes', 'qvoteds', 'avoteds', 'upvoteds', 'downvoteds', 'bonus'),
 		'source' => '^userpoints WHERE userid=' . ($isuserid ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)'),
@@ -1493,6 +1569,8 @@ function qa_db_user_points_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL
  */
 function qa_db_user_rank_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('rank' => '1+COUNT(*)'),
 		'source' => '^userpoints WHERE points>COALESCE((SELECT points FROM ^userpoints WHERE userid=' . ($isuserid ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)') . '), 0)',
@@ -1512,6 +1590,8 @@ function qa_db_user_rank_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_U
  */
 function qa_db_top_users_selectspec($start, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_USERS) : QA_DB_RETRIEVE_USERS;
 
 	if (QA_FINAL_EXTERNAL_USERS) {
@@ -1551,6 +1631,8 @@ function qa_db_top_users_selectspec($start, $count = null)
  */
 function qa_db_newest_users_selectspec($start, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_USERS) : QA_DB_RETRIEVE_USERS;
 
 	return array(
@@ -1572,6 +1654,8 @@ function qa_db_newest_users_selectspec($start, $count = null)
  */
 function qa_db_users_from_level_selectspec($level, $start = 0, $count = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_USERS) : QA_DB_RETRIEVE_USERS;
 
 	return array(
@@ -1589,6 +1673,8 @@ function qa_db_users_from_level_selectspec($level, $start = 0, $count = null)
  */
 function qa_db_users_from_level_count_selectspec($level)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$selectSpec = array(
 		'source' => '^users WHERE level >= #',
 		'arguments' => array($level),
@@ -1607,6 +1693,8 @@ function qa_db_users_from_level_count_selectspec($level)
  */
 function qa_db_users_with_flag_selectspec($flag, $start = 0, $limit = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$source = '^users WHERE (flags & #)';
 	$arguments = array($flag);
 
@@ -1661,6 +1749,8 @@ function qa_db_messages_columns()
  */
 function qa_db_recent_messages_selectspec($fromidentifier, $fromisuserid, $toidentifier, $toisuserid, $count = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$count = isset($count) ? min($count, QA_DB_RETRIEVE_MESSAGES) : QA_DB_RETRIEVE_MESSAGES;
 
 	if (isset($fromidentifier)) {
@@ -1698,6 +1788,8 @@ function qa_db_recent_messages_selectspec($fromidentifier, $fromisuserid, $toide
  */
 function qa_db_messages_inbox_selectspec($type, $toidentifier, $toisuserid, $start = 0, $limit = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$type = strtoupper($type);
 
 	$where = 'touserid=' . ($toisuserid ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)') . ' AND type=$ AND tohidden=0';
@@ -1734,6 +1826,8 @@ function qa_db_messages_inbox_selectspec($type, $toidentifier, $toisuserid, $sta
  */
 function qa_db_messages_outbox_selectspec($type, $fromidentifier, $fromisuserid, $start = 0, $limit = null)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	$type = strtoupper($type);
 
 	$where = 'fromuserid=' . ($fromisuserid ? '$' : '(SELECT userid FROM ^users WHERE handle=$ LIMIT 1)') . ' AND type=$ AND fromhidden=0';
@@ -1767,6 +1861,8 @@ function qa_db_messages_outbox_selectspec($type, $fromidentifier, $fromisuserid,
  */
 function qa_db_is_favorite_selectspec($userid, $entitytype, $identifier)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$selectspec = array(
@@ -1811,6 +1907,8 @@ function qa_db_is_favorite_selectspec($userid, $entitytype, $identifier)
  */
 function qa_db_user_favorite_qs_selectspec($userid, $limit = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$selectspec = qa_db_posts_basic_selectspec($userid);
@@ -1842,6 +1940,8 @@ function qa_db_user_favorite_qs_selectspec($userid, $limit = null, $start = 0)
  */
 function qa_db_user_favorite_users_selectspec($userid, $limit = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$source = '^users JOIN ^userpoints ON ^users.userid=^userpoints.userid JOIN ^userfavorites ON ^users.userid=^userfavorites.entityid WHERE ^userfavorites.userid=$ AND ^userfavorites.entitytype=$ ORDER BY ^users.handle';
@@ -1873,6 +1973,8 @@ function qa_db_user_favorite_users_selectspec($userid, $limit = null, $start = 0
  */
 function qa_db_user_favorite_tags_selectspec($userid, $limit = null, $start = 0)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$source = '^words JOIN ^userfavorites ON ^words.wordid=^userfavorites.entityid WHERE ^userfavorites.userid=$ AND ^userfavorites.entitytype=$ ORDER BY ^words.tagcount DESC';
@@ -1901,6 +2003,8 @@ function qa_db_user_favorite_tags_selectspec($userid, $limit = null, $start = 0)
  */
 function qa_db_user_favorite_categories_selectspec($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	return array(
@@ -1920,6 +2024,8 @@ function qa_db_user_favorite_categories_selectspec($userid)
  */
 function qa_db_user_favorite_non_qs_selectspec($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	return array(
@@ -1942,6 +2048,8 @@ function qa_db_user_favorite_non_qs_selectspec($userid)
  */
 function qa_db_user_updates_selectspec($userid, $forfavorites = true, $forcontent = true)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$selectspec = qa_db_posts_basic_selectspec($userid);
@@ -1995,6 +2103,8 @@ function qa_db_user_updates_selectspec($userid, $forfavorites = true, $forconten
  */
 function qa_db_user_limits_selectspec($userid)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('action', 'period', 'count'),
 		'source' => '^userlimits WHERE userid=$',
@@ -2011,6 +2121,8 @@ function qa_db_user_limits_selectspec($userid)
  */
 function qa_db_ip_limits_selectspec($ip)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	return array(
 		'columns' => array('action', 'period', 'count'),
 		'source' => '^iplimits WHERE ip=UNHEX($)',
@@ -2031,6 +2143,8 @@ function qa_db_ip_limits_selectspec($ip)
  */
 function qa_db_user_levels_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS, $full = false)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'app/updates.php';
 
 	$selectspec = array(
@@ -2046,3 +2160,37 @@ function qa_db_user_levels_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL
 
 	return $selectspec;
 }
+
+
+/**
+ * Return the selectspec to retrieve every option (used by qa_preload_options()).
+ * @return array
+ */
+function qa_db_options_selectspec()
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	return array(
+		'columns' => array('title', 'content'),
+		'source' => '^options',
+		'arraykey' => 'title',
+		'arrayvalue' => 'content',
+	);
+}
+
+
+/**
+ * Return the selectspec to retrieve the database's current time (used by qa_preload_options()).
+ * @return array
+ */
+function qa_db_time_selectspec()
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	return array(
+		'columns' => array('title' => "'db_time'", 'content' => 'UNIX_TIMESTAMP(NOW())'),
+		'arraykey' => 'title',
+		'arrayvalue' => 'content',
+	);
+}
+

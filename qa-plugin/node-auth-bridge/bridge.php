@@ -14,7 +14,7 @@ function node_bridge_request($action, $body = null)
 
 // Calls the Node API server to server. The browser's address is forwarded so Node records
 // the same IP that PHP's qa_remote_ip_address() would (Node trusts it only from TRUST_PROXY).
-function node_bridge_api($method, $path, $body = null)
+function node_bridge_api($method, $path, $body = null, $extraheaders = '')
 {
     $token = $_COOKIE['q2a_node_bridge'] ?? '';
     $headers = "Accept: application/json\r\n";
@@ -25,6 +25,7 @@ function node_bridge_api($method, $path, $body = null)
     if ($cookies) $headers .= 'Cookie: ' . implode('; ', $cookies) . "\r\n";
     if (isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) $headers .= "X-Forwarded-For: " . $_SERVER['REMOTE_ADDR'] . "\r\n";
     if ($body !== null) $headers .= "Content-Type: application/json\r\nX-Q2A-Request: 1\r\n";
+    $headers .= $extraheaders;
     $context = stream_context_create(array('http' => array(
         'method' => $method, 'header' => $headers,
         'content' => $body === null ? '' : json_encode($body),
@@ -187,3 +188,51 @@ function node_bridge_edit_body($content, $format, $notify, $name, $silent)
     if (isset($name)) $body['name'] = (string)$name;
     return $body;
 }
+
+// Page reads. A query builder from db/selects.php only records its name and arguments; the database
+// functions then send those reads to Node in one request and rebuild PHP's result arrays exactly.
+function node_bridge_read_spec($name, $args)
+{
+    // The original builders and qa_db_post_select() load these files, and pages rely on that (message.php
+    // calls qa_sort_by() without loading util/sort.php), so load them as PHP would. They only define functions.
+    require_once QA_INCLUDE_DIR . 'app/updates.php';
+    require_once QA_INCLUDE_DIR . 'app/users.php';
+    require_once QA_INCLUDE_DIR . 'util/string.php';
+    require_once QA_INCLUDE_DIR . 'util/sort.php';
+    // Q2A renames override functions to <name>_override_<n>_in_<file>.
+    $name = preg_replace('/_override_\d+_in_\w+$/', '', $name);
+    return array('node_read' => array('name' => $name, 'args' => $args, 'count' => false));
+}
+
+function node_bridge_decode_value($value)
+{
+    if (is_array($value)) {
+        if (isset($value['b64']) && count($value) === 1) return base64_decode($value['b64']);
+        $row = array();
+        foreach ($value as $column => $item) $row[$column] = node_bridge_decode_value($item);
+        return $row;
+    }
+    return $value;
+}
+
+function node_bridge_run_reads($reads)
+{
+    $result = node_bridge_api('POST', '/api/v1/internal/reads', array('reads' => array_values($reads)),
+        'X-Q2A-Bridge-Key: ' . getenv('BRIDGE_SECRET') . "\r\n");
+    if ($result['status'] !== 200 || !isset($result['data']['results'])) {
+        qa_fatal_error('Node could not read the page data: ' . ($result['data']['error']['code'] ?? 'service_unavailable') . ' ' . json_encode($result['data']['error']['fields'] ?? array()) . ' ' . json_encode(array_column(array_values($reads), 'name')));
+    }
+    if (!headers_sent()) header('X-Q2A-Read-Backend: node-api-v1');
+    $outs = array();
+    foreach ($result['data']['results'] as $one) {
+        if (!empty($one['single'])) {
+            $outs[] = node_bridge_decode_value($one['value']);
+        } else {
+            $out = array();
+            foreach ($one['entries'] as $entry) $out[node_bridge_decode_value($entry[0])] = node_bridge_decode_value($entry[1]);
+            $outs[] = $out;
+        }
+    }
+    return $outs;
+}
+

@@ -116,19 +116,11 @@ function qa_preload_options()
 	global $qa_options_loaded;
 
 	if (!@$qa_options_loaded) {
-		$selectspecs = array(
-			'options' => array(
-				'columns' => array('title', 'content'),
-				'source' => '^options',
-				'arraykey' => 'title',
-				'arrayvalue' => 'content',
-			),
+		require_once QA_INCLUDE_DIR . 'db/selects.php';
 
-			'time' => array(
-				'columns' => array('title' => "'db_time'", 'content' => 'UNIX_TIMESTAMP(NOW())'),
-				'arraykey' => 'title',
-				'arrayvalue' => 'content',
-			),
+		$selectspecs = array(
+			'options' => qa_db_options_selectspec(),
+			'time' => qa_db_time_selectspec(),
 		);
 
 		// fetch options in a separate query before everything else

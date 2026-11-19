@@ -595,3 +595,329 @@ function qa_admin_set_enabled_plugins($directories)
     node_bridge_site_admin('PUT', '/plugins', array('directories' => array_values($directories)));
 }
 
+// Page reads: every query builder in db/selects.php records its read for Node (see node_bridge_run_reads()).
+// The functions run them, as qa_db_single_select() and qa_db_multi_select() would run PHP's SQL.
+function qa_db_qs_selectspec($voteuserid, $sort, $start, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_unanswered_qs_selectspec($voteuserid, $by, $start, $categoryslugs = null, $specialtype = false, $full = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_recent_a_qs_selectspec($voteuserid, $start, $categoryslugs = null, $createip = null, $specialtype = false, $fullanswers = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_recent_c_qs_selectspec($voteuserid, $start, $categoryslugs = null, $createip = null, $specialtype = false, $fullcomments = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_recent_edit_qs_selectspec($voteuserid, $start, $categoryslugs = null, $lastip = null, $onlyvisible = true, $fulledited = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_flagged_post_qs_selectspec($voteuserid, $start, $fullflagged = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_posts_selectspec($voteuserid, $postids, $full = false)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_posts_basetype_selectspec($postids)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_posts_to_qs_selectspec($voteuserid, $postids, $full = false)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_full_post_selectspec($voteuserid, $postid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_full_child_posts_selectspec($voteuserid, $parentid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_full_a_child_posts_selectspec($voteuserid, $questionid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_post_parent_q_selectspec($postid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_post_close_post_selectspec($questionid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_post_duplicates_selectspec($questionid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_post_meta_selectspec($postid, $title)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_related_qs_selectspec($voteuserid, $questionid, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_search_posts_selectspec($voteuserid, $titlewords, $contentwords, $tagwords, $handlewords, $handle, $start, $full = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_full_category_selectspec($slugsorid, $isid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_nav_selectspec($slugsorid, $isid, $ispostid = false, $full = false)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_category_sub_selectspec($categoryid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_slugs_to_category_id_selectspec($slugs)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_pages_selectspec($onlynavin = null, $onlypageids = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_widgets_selectspec()
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_page_full_selectspec($slugorpageid, $ispageid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_tag_recent_qs_selectspec($voteuserid, $tag, $start, $full = false, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_tag_word_selectspec($tag)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_recent_qs_selectspec($voteuserid, $identifier, $count = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_recent_a_qs_selectspec($voteuserid, $identifier, $count = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_recent_c_qs_selectspec($voteuserid, $identifier, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_recent_edit_qs_selectspec($voteuserid, $identifier, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_popular_tags_selectspec($start, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_userfields_selectspec()
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_account_selectspec($useridhandle, $isuserid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_profile_selectspec($useridhandle, $isuserid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_notices_selectspec($userid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_points_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_rank_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_top_users_selectspec($start, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_newest_users_selectspec($start, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_users_from_level_selectspec($level, $start = 0, $count = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_users_from_level_count_selectspec($level)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_users_with_flag_selectspec($flag, $start = 0, $limit = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_recent_messages_selectspec($fromidentifier, $fromisuserid, $toidentifier, $toisuserid, $count = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_messages_inbox_selectspec($type, $toidentifier, $toisuserid, $start = 0, $limit = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_messages_outbox_selectspec($type, $fromidentifier, $fromisuserid, $start = 0, $limit = null)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_is_favorite_selectspec($userid, $entitytype, $identifier)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_favorite_qs_selectspec($userid, $limit = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_favorite_users_selectspec($userid, $limit = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_favorite_tags_selectspec($userid, $limit = null, $start = 0)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_favorite_categories_selectspec($userid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_favorite_non_qs_selectspec($userid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_updates_selectspec($userid, $forfavorites = true, $forcontent = true)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_limits_selectspec($userid)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_ip_limits_selectspec($ip)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_user_levels_selectspec($identifier, $isuserid = QA_FINAL_EXTERNAL_USERS, $full = false)
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_options_selectspec()
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_time_selectspec()
+{
+    return node_bridge_read_spec(__FUNCTION__, func_get_args());
+}
+
+function qa_db_selectspec_count($selectSpec)
+{
+    if (!isset($selectSpec['node_read'])) return qa_db_selectspec_count_base($selectSpec);
+    $selectSpec['node_read']['count'] = true;
+    return $selectSpec;
+}
+
+function qa_db_single_select($selectspec)
+{
+    if (!isset($selectspec['node_read'])) return qa_db_single_select_base($selectspec);
+    $results = node_bridge_run_reads(array($selectspec['node_read']));
+    return $results[0];
+}
+
+function qa_db_multi_select($selectspecs)
+{
+    $reads = array();
+    $readkeys = array();
+    $outresults = array();
+    foreach ($selectspecs as $key => $selectspec) {
+        if (isset($selectspec['node_read'])) {
+            $reads[] = $selectspec['node_read'];
+            $readkeys[] = $key;
+            $outresults[$key] = null; // keeps the order of the keys
+        } else {
+            $outresults[$key] = qa_db_single_select_base($selectspec);
+        }
+    }
+    if (count($reads)) {
+        foreach (node_bridge_run_reads($reads) as $index => $result) $outresults[$readkeys[$index]] = $result;
+    }
+    return $outresults;
+}
+

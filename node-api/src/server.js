@@ -23,6 +23,8 @@ const { createApp } = require('./app');
 
 async function start() {
   const pool = createPool();
+  // Page reads run like PHP's mysqli connection (set_charset('utf8')), so its collations and charset conversions match.
+  const readPool = createPool({ charset: 'UTF8_GENERAL_CI' });
   const service = createAuthService(createUserRepository(pool), {
     jwtSecret: process.env.AUTH_JWT_SECRET,
     saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
@@ -43,13 +45,13 @@ async function start() {
     identify, startSession: (userid, ip) => service.startSession(userid, ip), saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
   });
   const app = createApp({
-    service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, health: () => pool.query('SELECT 1'),
+    service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, readPool, bridgeSecret: process.env.BRIDGE_SECRET, health: () => pool.query('SELECT 1'),
     secureCookies: process.env.NODE_ENV === 'production',
     trustProxy: process.env.TRUST_PROXY || false,
   });
   const server = app.listen(3000, '0.0.0.0', () => console.log('Q2A API listening on port 3000'));
   for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
-    server.close(() => pool.end().then(() => process.exit(0)));
+    server.close(() => Promise.all([pool.end(), readPool.end()]).then(() => process.exit(0)));
   });
 }
 start().catch(error => { console.error(error.message); process.exit(1); });
