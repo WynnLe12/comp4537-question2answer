@@ -120,6 +120,8 @@ function qa_wall_add_post($userid, $handle, $cookieid, $touserid, $tohandle, $co
  */
 function qa_wall_delete_post($userid, $handle, $cookieid, $message)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/messages.php';
 
 	qa_db_message_delete($message['messageid']);
@@ -222,8 +224,76 @@ function qa_wall_view_more_link($handle, $start)
  */
 function qa_pm_delete($userid, $handle, $cookieid, $message, $box)
 {
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
 	require_once QA_INCLUDE_DIR . 'db/messages.php';
 
 	qa_db_message_user_hide($message['messageid'], $box);
 	qa_db_message_delete($message['messageid'], false);
+}
+
+
+/**
+ * Send a private message from user $userid (with $handle and $cookieid) to the user in $toaccount (as obtained via
+ * qa_db_user_account_selectspec()), containing $message as text. Records it if message history is shown, emails the
+ * recipient and reports the event. Returns true if the email notification was sent.
+ * @param $userid
+ * @param $handle
+ * @param $cookieid
+ * @param array $toaccount
+ * @param string $message
+ * @return bool
+ */
+function qa_pm_send($userid, $handle, $cookieid, $toaccount, $message)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/messages.php';
+
+	if (qa_opt('show_message_history'))
+		$messageid = qa_db_message_create($userid, $toaccount['userid'], $message, '', false);
+	else
+		$messageid = null;
+
+	$messagesent = qa_pm_send_notification($handle, $toaccount, $message);
+
+	qa_report_event('u_message', $userid, $handle, $cookieid, array(
+		'userid' => $toaccount['userid'],
+		'handle' => $toaccount['handle'],
+		'messageid' => $messageid,
+		'message' => $message,
+	));
+
+	return $messagesent;
+}
+
+
+/**
+ * Email the private $message from the logged in user with $fromhandle to the user in $toaccount. Returns true if sent.
+ * @param string $fromhandle
+ * @param array $toaccount
+ * @param string $message
+ * @return bool
+ */
+function qa_pm_send_notification($fromhandle, $toaccount, $message)
+{
+	require_once QA_INCLUDE_DIR . 'app/emails.php';
+
+	$canreply = !(qa_get_logged_in_flags() & QA_USER_FLAGS_NO_MESSAGES);
+
+	$more = strtr(qa_lang($canreply ? 'emails/private_message_reply' : 'emails/private_message_info'), array(
+		'^f_handle' => $fromhandle,
+		'^url' => qa_path_absolute($canreply ? ('message/' . $fromhandle) : ('user/' . $fromhandle)),
+	));
+
+	$subs = array(
+		'^message' => $message,
+		'^f_handle' => $fromhandle,
+		'^f_url' => qa_path_absolute('user/' . $fromhandle),
+		'^more' => $more,
+		'^a_url' => qa_path_absolute('account'),
+	);
+
+	return qa_send_notification($toaccount['userid'], $toaccount['email'], $toaccount['handle'],
+		qa_lang('emails/private_message_subject'), qa_lang('emails/private_message_body'), $subs);
 }

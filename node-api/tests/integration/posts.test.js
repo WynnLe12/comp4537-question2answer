@@ -103,3 +103,40 @@ describe('favorite service checks (repository replaced)', () => {
     expect(writes).toEqual([['create', 5, 'C', 3], ['delete', 5, 'Q', 9]]);
   });
 });
+
+describe('message and wall routes (service replaced in these tests)', () => {
+  const calls = [];
+  const messageService = new Proxy({}, { get: (target, name) => async request => { calls.push([name, request]); return { ok: true }; } });
+  const app = createApp({ service: {}, messageService });
+  test('route each operation with its handle, box and ID', async () => {
+    calls.length = 0;
+    await request(app).post('/api/v1/users/J%C3%BCrgen%20K/messages').set('X-Q2A-Request', '1').send({ content: 'Hi' }).expect(201);
+    await request(app).post('/api/v1/users/bob/wall').set('X-Q2A-Request', '1').send({ content: 'Hey' }).expect(201);
+    await request(app).delete('/api/v1/wall-posts/31').set('X-Q2A-Request', '1').send({}).expect(200);
+    await request(app).delete('/api/v1/messages/outbox/32').set('X-Q2A-Request', '1').send({}).expect(200);
+    expect(calls.map(([name]) => name)).toEqual(['sendMessage', 'postOnWall', 'deleteWallPost', 'deleteMessage']);
+    expect(calls[0][1]).toMatchObject({ handle: 'Jürgen K', body: { content: 'Hi' } });
+    expect(calls[2][1].messageid).toBe(31);
+    expect(calls[3][1]).toMatchObject({ box: 'outbox', messageid: 32 });
+  });
+  test('accept messages up to the 12000-character column', async () => {
+    await request(app).post('/api/v1/users/bob/messages').set('X-Q2A-Request', '1').send({ content: 'é'.repeat(12000) }).expect(201);
+  });
+});
+
+describe('message service checks (repository replaced)', () => {
+  const { createMessageService } = require('../../src/services/messages');
+  const service = createMessageService({ transaction: work => work({
+    loadOptions: async () => ({ get: name => ({ allow_private_messages: '1', show_message_history: '1', max_rate_user_messages: '5', max_rate_ip_messages: '10' }[name] ?? ''), dbTime: 0 }),
+    findActor: async () => ({ userid: 5, handle: 'me', level: 0, flags: 0 }),
+    findUserByHandle: async handle => ({ userid: 6, handle, flags: handle === 'quiet' ? 16 : 0 }),
+    findLimits: async () => ({}),
+  }) }, { identify: async token => (token ? { id: 5 } : null) });
+  test('refuse anonymous users, yourself, disabled messages and "0"', async () => {
+    await expect(service.sendMessage({ token: null, handle: 'bob' })).rejects.toMatchObject({ status: 401 });
+    await expect(service.sendMessage({ token: 't', handle: 'me', body: { content: 'x' } })).rejects.toMatchObject({ status: 403, code: 'no_permission' });
+    await expect(service.sendMessage({ token: 't', handle: 'quiet', body: { content: 'x' } })).rejects.toMatchObject({ status: 403, code: 'messages_disabled' });
+    await expect(service.sendMessage({ token: 't', handle: 'bob', body: { content: '0' } })).rejects.toMatchObject({ status: 400, code: 'validation_failed' });
+    await expect(service.sendMessage({ token: 't', handle: 'bob', body: { content: 'x'.repeat(12001) } })).rejects.toMatchObject({ status: 400 });
+  });
+});

@@ -24,7 +24,7 @@ the hook does nothing, so the PHP reference keeps its behaviour.
 | 4 | Post changes: edit, retag, recategorize, close/reopen, hide/reshow/delete, select answer, convert answer↔comment | `app/post-update.php`, `pages/question-post.php`, `ajax/click-*.php` | Done ([notes](post-changes-migration.md)) |
 | 5 | Flags | `app/votes.php` (flags) | Done ([notes](flags-migration.md)) |
 | 6 | Favorites | `app/favorites.php`, `ajax/favorite.php` | Done ([notes](favorites-migration.md)) |
-| 7 | Messages and wall posts | `app/messages.php`, `pages/message.php`, `pages/user-wall.php` | Not started |
+| 7 | Messages and wall posts | `app/messages.php`, `pages/message.php`, `pages/user-wall.php` | Done ([notes](messages-migration.md)) |
 | 8 | Account and profile: edit profile, change password/email, avatars, password reset, email confirmation, unsubscribe | `pages/account.php`, `pages/forgot.php`, `pages/reset.php`, `pages/confirm.php`, `app/blobs.php`, `app/upload.php` | Not started |
 | 9 | Email notifications | `plugins/qa-event-notify.php`, `app/emails.php`, `app/mailing.php` | Not started |
 | 10 | Moderation and user administration: approve queue, user levels, block/unblock, delete user | `pages/admin/admin-moderate.php`, `admin-approve.php`, `admin-flagged.php`, `admin-hidden.php`, `pages/user-profile.php` | Not started |

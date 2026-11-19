@@ -269,3 +269,29 @@ function qa_user_favorite_set($userid, $handle, $cookieid, $entitytype, $entityi
     if ($entitytype == 'U' && $userid == $entityid) return; // QA_ENTITY_USER
     node_bridge_favorite($entitytype, $entityid, (bool)$favorite);
 }
+
+// Private messages and wall posts. The pages still run their own checks (qa_wall_error_html(), the
+// message page's permission switch) so they can show their messages; Node checks again and writes.
+function qa_pm_send($userid, $handle, $cookieid, $toaccount, $message)
+{
+    node_bridge_message('POST', '/api/v1/users/' . rawurlencode($toaccount['handle']) . '/messages', array('content' => (string)$message));
+    // Emails move to Node with the notifications slice; until then PHP still sends this one.
+    return qa_pm_send_notification($handle, $toaccount, $message);
+}
+
+function qa_wall_add_post($userid, $handle, $cookieid, $touserid, $tohandle, $content, $format)
+{
+    $result = node_bridge_message('POST', '/api/v1/users/' . rawurlencode($tohandle) . '/wall', array('content' => (string)$content));
+    return $result['id'];
+}
+
+function qa_wall_delete_post($userid, $handle, $cookieid, $message)
+{
+    node_bridge_message('DELETE', '/api/v1/wall-posts/' . (int)$message['messageid'], new stdClass());
+}
+
+function qa_pm_delete($userid, $handle, $cookieid, $message, $box)
+{
+    node_bridge_message('DELETE', '/api/v1/messages/' . ($box === 'inbox' ? 'inbox' : 'outbox') . '/' . (int)$message['messageid'], new stdClass());
+}
+

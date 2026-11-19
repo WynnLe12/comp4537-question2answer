@@ -124,6 +124,15 @@ function node_bridge_change_post($method, $path, $body)
     qa_fatal_error('Node could not change the post: ' . $code . ' ' . json_encode($result['data']['error']['fields'] ?? array()));
 }
 
+// Private messages and wall posts: returns Node's response data, or stops with its error code.
+function node_bridge_message($method, $path, $body)
+{
+    header('X-Q2A-Message-Backend: node-api-v1');
+    $result = node_bridge_api($method, $path, $body);
+    if ($result['status'] >= 200 && $result['status'] < 300) return $result['data'];
+    qa_fatal_error('Node could not change the message: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+}
+
 // Favorites: the entity codes of app/updates.php as the API's URL names.
 function node_bridge_favorite($entitytype, $entityid, $favorite)
 {

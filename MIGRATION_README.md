@@ -7,7 +7,8 @@ every slice and its status. Done so far: authentication, voting
 ([notes](docs/votes-migration.md)), posting questions, answers and comments
 ([notes](docs/posts-migration.md)), and changing them: editing, selecting answers, closing,
 hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)),
-flagging ([notes](docs/flags-migration.md)) and favorites ([notes](docs/favorites-migration.md)).
+flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), and
+private messages and wall posts ([notes](docs/messages-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -31,6 +32,7 @@ For an annotated, file-by-file code walkthrough, see
   threshold is hidden in the same request.
 - Add and remove favorite questions, users, tags and categories through Node, from the
   favorite buttons (with or without JavaScript).
+- Send and delete private messages, and post on and delete from user walls, through Node.
 
 ## Start the demo
 
@@ -190,6 +192,10 @@ until it is installed under `.github/workflows/`.
 | `DELETE /api/v1/posts/:id/flags` | Clear every flag on a post |
 | `PUT /api/v1/favorites/:type/:id` | Add a question, user, tag or category to your favorites |
 | `DELETE /api/v1/favorites/:type/:id` | Remove it from your favorites |
+| `POST /api/v1/users/:handle/messages` | Send a private message |
+| `DELETE /api/v1/messages/:box/:id` | Delete a private message from your inbox or outbox |
+| `POST /api/v1/users/:handle/wall` | Post on a user's wall |
+| `DELETE /api/v1/wall-posts/:id` | Delete a wall post |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -209,6 +215,7 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/services/posts.js`, `repositories/posts.js` | Posting rules and SQL |
 | `node-api/src/services/post-changes.js` | Editing, selecting, closing, status, deleting, claiming and flags |
 | `node-api/src/services/favorites.js`, `repositories/favorites.js`, `routes/v1/favorites.js` | Favorites and their update streams |
+| `node-api/src/services/messages.js`, `repositories/messages.js`, `routes/v1/messages.js` | Private messages and wall posts |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |
 | `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits, points formulas and text/word splitting |

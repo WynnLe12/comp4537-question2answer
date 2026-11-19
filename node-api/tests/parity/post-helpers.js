@@ -116,6 +116,69 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, backend: response.headers['x-q2a-favorite-backend'] }
         : { accepted: false, message: pageMessages(response.text) };
     },
+    // Private messages: the message page form (pages/message.php).
+    async sendMessage(handle, message) {
+      const path = `/index.php?qa=message/${encodeURIComponent(handle)}`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const form = $('[name=domessage]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post(path).type('form').send({ ...formFields($, form), message, domessage: '1' });
+      if (response.status === 302) return { accepted: true, backend: response.headers['x-q2a-message-backend'] };
+      // Without message history there is no redirect: the page shows the form again, with no error.
+      const sent = cheerio.load(response.text)('.qa-form-tall-ok').length > 0 || !pageMessages(response.text);
+      return sent ? { accepted: true, backend: response.headers['x-q2a-message-backend'] } : { accepted: false, message: pageMessages(response.text) };
+    },
+    // Wall posts: the form on the user's wall page (pages/user-wall.php).
+    async wallPost(handle, message) {
+      const path = `/index.php?qa=user/${encodeURIComponent(handle)}/wall`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const form = $('[name=dowallpost]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post(path).type('form').send({ ...formFields($, form), message, dowallpost: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-message-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // The delete button on a wall post, without JavaScript.
+    async deleteWallPost(handle, messageid) {
+      const path = `/index.php?qa=user/${encodeURIComponent(handle)}/wall`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const name = `m${messageid}_dodelete`;
+      const button = $(`[name=${name}]`);
+      if (!button.length) return { accepted: false, message: '' };
+      const response = await client.post(path).type('form').send({ ...formFields($, button.closest('form')), [name]: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-message-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // The same wall delete button with JavaScript on: qa_wall_post_click() posts to ajax/click-wall.php.
+    async deleteWallPostAjax(handle, messageid) {
+      const $ = cheerio.load((await client.get(`/index.php?qa=user/${encodeURIComponent(handle)}/wall`)).text);
+      const name = `m${messageid}_dodelete`;
+      if (!$(`[name=${name}]`).length) return { accepted: false, message: '' };
+      const form = $('form[name=wallpost]');
+      const response = await client.post('/index.php').type('form').send({
+        messageid: String(messageid), handle: form.find('[name=handle]').val(), start: form.find('[name=start]').val(), code: form.find('[name=code]').val(),
+        [name]: '1', qa: 'ajax', qa_operation: 'click_wall', qa_root: './', qa_request: `user/${handle}/wall`,
+      });
+      return /QA_AJAX_RESPONSE\s+1/.test(response.text)
+        ? { accepted: true, backend: response.headers['x-q2a-message-backend'] }
+        : { accepted: false, message: '' };
+    },
+    // The delete button in the inbox or outbox, which only works through ajax (qa_pm_click()).
+    async deleteMessage(box, messageid) {
+      const $ = cheerio.load((await client.get(`/index.php?qa=${box === 'inbox' ? 'messages' : 'messages/sent'}`)).text);
+      const name = `m${messageid}_dodelete`;
+      if (!$(`[name=${name}]`).length) return { accepted: false, message: '' };
+      const form = $('form[name=pmessage]');
+      const response = await client.post('/index.php').type('form').send({
+        messageid: String(messageid), box, handle: form.find('[name=handle]').val(), start: form.find('[name=start]').val(), code: form.find('[name=code]').val(),
+        [name]: '1', qa: 'ajax', qa_operation: 'click_pm', qa_root: './', qa_request: box === 'inbox' ? 'messages' : 'messages/sent',
+      });
+      return /QA_AJAX_RESPONSE\s+1/.test(response.text)
+        ? { accepted: true, backend: response.headers['x-q2a-message-backend'] }
+        : { accepted: false, message: '' };
+    },
     // The same button with JavaScript on: qa_favorite_click() posts to ajax/favorite.php.
     async favoriteAjax(page, entitytype, entityid, favorite) {
       const $ = cheerio.load((await client.get(page).redirects(3)).text);
@@ -159,6 +222,9 @@ function apiDriver(pool) {
       ? { accepted: true, id: response.body.id }
       : { accepted: false, status: response.status, code: response.body.error?.code, fields: response.body.error?.fields };
   };
+  const accepted = (response, status = 200) => (response.status === status
+    ? { accepted: true, id: response.body.id ?? null }
+    : { accepted: false, status: response.status, code: response.body.error?.code, fields: response.body.error?.fields });
   const common = input => ({ content: input.content, format: input.format ?? '', notify: Boolean(input.notify), email: input.email ?? '', name: input.name ?? '' });
   return {
     name: 'node-api', pool,
@@ -184,6 +250,18 @@ function apiDriver(pool) {
       return response.status === 200
         ? { accepted: true, id: postid }
         : { accepted: false, status: response.status, code: response.body.error?.code, fields: response.body.error?.fields };
+    },
+    async sendMessage(handle, message) {
+      return accepted(await client.post(`/api/v1/users/${encodeURIComponent(handle)}/messages`).set('X-Q2A-Request', '1').send({ content: message }), 201);
+    },
+    async wallPost(handle, message) {
+      return accepted(await client.post(`/api/v1/users/${encodeURIComponent(handle)}/wall`).set('X-Q2A-Request', '1').send({ content: message }), 201);
+    },
+    async deleteWallPost(handle, messageid) {
+      return accepted(await client.delete(`/api/v1/wall-posts/${messageid}`).set('X-Q2A-Request', '1').send({}));
+    },
+    async deleteMessage(box, messageid) {
+      return accepted(await client.delete(`/api/v1/messages/${box}/${messageid}`).set('X-Q2A-Request', '1').send({}));
     },
     async favorite(page, entitytype, entityid, favorite) {
       const type = { Q: 'questions', U: 'users', T: 'tags', C: 'categories' }[entitytype];
@@ -323,7 +401,7 @@ async function snapshot(backend, newId, focusId = newId) {
     points[label] = row ?? null;
   }
   const limits = {};
-  for (const action of ['Q', 'A', 'C', 'F']) {
+  for (const action of ['Q', 'A', 'C', 'F', 'M', 'W']) {
     const [[user]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_userlimits WHERE userid=? AND action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [users.actor, action]);
     const [[ip]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_iplimits WHERE action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [action]);
     limits[action] = [Number(user.n), Number(ip.n)];
@@ -354,6 +432,15 @@ async function snapshot(backend, newId, focusId = newId) {
   const [entityEventRows] = await pool.query("SELECT userid, entitytype, COUNT(*) AS n FROM qa_userevents WHERE userid IN (?) AND entitytype<>'-' GROUP BY userid, entitytype", [userIds]);
   const entityEvents = sortRows(entityEventRows.map(row => ({ userid: ul(row.userid), entitytype: row.entitytype, n: Number(row.n) })));
   const [[copyOption]] = await pool.query("SELECT content FROM qa_options WHERE title='max_copy_user_updates'");
+  // Private messages and wall posts between the test users, and each user's cached wall post count.
+  const [messageRows] = await pool.query(
+    'SELECT type, fromuserid, touserid, fromhidden, tohidden, content, format FROM qa_messages WHERE fromuserid IN (?) OR touserid IN (?)', [userIds, userIds]);
+  const messages = sortRows(messageRows.map(row => ({ ...row, fromuserid: ul(row.fromuserid), touserid: ul(row.touserid), content: mask(row.content) })));
+  const wallposts = {};
+  for (const [label, userid] of Object.entries(users)) {
+    const [[row]] = await pool.execute('SELECT wallposts FROM qa_users WHERE userid=?', [userid]);
+    wallposts[label] = row.wallposts;
+  }
   // Votes and flags on the tracked posts.
   const [voteRows] = await pool.query('SELECT postid, userid, vote, flag FROM qa_uservotes WHERE postid IN (?)', [postIds]);
   const uservotes = sortRows(voteRows.map(row => ({ postid: pl(row.postid), userid: ul(row.userid), vote: row.vote, flag: row.flag })));
@@ -378,7 +465,7 @@ async function snapshot(backend, newId, focusId = newId) {
     ? await pool.query('SELECT INET6_NTOA(createip) AS createip, written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_cookies WHERE cookieid IN (?)', [cookieids])
     : [[]];
 
-  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, writers, uservotes, favorites, entityEvents, maxCopyUserUpdates: copyOption?.content ?? null, events, cookies: sortRows(cookies) };
+  return { posts, metas, index, words, caches, tagcountConsistent: Number(tagcount.cached) === Number(tagcount.actual), points, limits, actor, writers, uservotes, favorites, entityEvents, messages, wallposts, maxCopyUserUpdates: copyOption?.content ?? null, events, cookies: sortRows(cookies) };
 }
 
 // Values that depend on each database's earlier history are compared as changes.
