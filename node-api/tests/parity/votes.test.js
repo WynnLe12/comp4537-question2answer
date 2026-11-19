@@ -5,6 +5,7 @@ const request = require('supertest');
 const cheerio = require('cheerio');
 const { randomBytes } = require('node:crypto');
 const { createPool } = require('../../src/db');
+const { limitRows, limitDelta } = require('./post-helpers');
 
 const PHP_URL = process.env.PHP_URL || 'http://localhost:8080';
 const UI_URL = process.env.MIGRATED_UI_URL || 'http://localhost:8081';
@@ -110,15 +111,14 @@ async function snapshot(pool, ids, voterHandle) {
     delete row.userid;
     points[label] = row;
   }
-  const [[limit]] = await pool.execute(
-    "SELECT COALESCE(SUM(count),0) AS n FROM qa_userlimits WHERE userid=? AND action='V' AND period=FLOOR(UNIX_TIMESTAMP()/3600)", [voter.userid]);
-  const [[ipLimit]] = await pool.query("SELECT COALESCE(SUM(count),0) AS n FROM qa_iplimits WHERE action='V' AND period=FLOOR(UNIX_TIMESTAMP()/3600)");
+  const limit = await limitRows(pool, "SELECT userid AS k, period, count FROM qa_userlimits WHERE userid=? AND action='V'", [voter.userid]);
+  const ipLimit = await limitRows(pool, "SELECT HEX(ip) AS k, period, count FROM qa_iplimits WHERE action='V'", []);
   const caches = {};
   for (const name of ['cache_unupaqcount', 'cache_userpointscount']) {
     const [[row]] = await pool.execute('SELECT content FROM qa_options WHERE title=?', [name]);
     caches[name] = row ? Number(row.content) : 0;
   }
-  return { posts, votes, points, userVoteLimit: Number(limit.n), ipVoteLimit: Number(ipLimit.n), caches,
+  return { posts, votes, points, userVoteLimit: limit, ipVoteLimit: ipLimit, caches,
     written: Boolean(voter.written), writeip: voter.writeip };
 }
 
@@ -126,8 +126,8 @@ async function snapshot(pool, ids, voterHandle) {
 function comparable(before, after) {
   return {
     ...after,
-    userVoteLimit: after.userVoteLimit - before.userVoteLimit,
-    ipVoteLimit: after.ipVoteLimit - before.ipVoteLimit,
+    userVoteLimit: limitDelta(before.userVoteLimit, after.userVoteLimit),
+    ipVoteLimit: limitDelta(before.ipVoteLimit, after.ipVoteLimit),
     caches: Object.fromEntries(Object.keys(after.caches).map(key => [key, after.caches[key] - before.caches[key]])),
   };
 }

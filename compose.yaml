@@ -24,6 +24,10 @@ x-php: &php
     DB_NAME: q2a
 
 services:
+  # Catches every email both sites and the Node API send; browse them at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports: ["127.0.0.1:8025:8025"]
   php-db:
     <<: *db
     volumes: [php-data:/var/lib/mysql]
@@ -48,6 +52,7 @@ services:
     ports: ["127.0.0.1:8080:80"]
     depends_on:
       seed-php: {condition: service_completed_successfully}
+      mailpit: {condition: service_started}
     healthcheck:
       test: ["CMD", "php", "-r", "exit(file_get_contents('http://localhost/?qa=login') === false ? 1 : 0);"]
       interval: 5s
@@ -66,6 +71,7 @@ services:
     ports: ["127.0.0.1:3000:3000"]
     depends_on:
       seed-node: {condition: service_completed_successfully}
+      mailpit: {condition: service_started}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 5s
@@ -94,6 +100,7 @@ services:
       PHP_DB_HOST: php-db
       API_URL: http://api:3000
       MIGRATED_UI_URL: http://migrated-ui
+      MAILPIT_URL: http://mailpit:8025
     command: ["npm", "run", "test:parity"]
     depends_on:
       php: {condition: service_healthy}

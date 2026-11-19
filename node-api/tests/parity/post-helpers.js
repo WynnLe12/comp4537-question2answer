@@ -11,7 +11,7 @@ const clean = value => value.replace(/\s+/g, ' ').trim();
 // Messages a Q2A page shows: the page error plus any field errors, in page order.
 function pageMessages(html) {
   const $ = cheerio.load(html);
-  return $('.qa-error, .qa-form-tall-error').map((i, el) => clean($(el).text())).get().filter(Boolean).join(' | ');
+  return $('.qa-error, .qa-form-tall-error, .qa-form-wide-error').map((i, el) => clean($(el).text())).get().filter(Boolean).join(' | ');
 }
 
 // The fields a browser would submit for a form: inputs, checked boxes, textareas and selections.
@@ -179,6 +179,94 @@ function siteDriver(name, baseUrl, pool) {
         ? { accepted: true, backend: response.headers['x-q2a-message-backend'] }
         : { accepted: false, message: '' };
     },
+    // --- account pages ---
+    // The account page's profile form. changes: handle, email, messages, wallPosts, mailings
+    // (booleans for the checkboxes), avatar ('', 'gravatar', 'uploaded') and profile { title: value }.
+    async saveProfile(changes, image = null) {
+      const $ = cheerio.load((await client.get('/index.php?qa=account')).text);
+      const form = $('[name=dosaveprofile]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const fields = { ...formFields($, form), dosaveprofile: '1' };
+      for (const [key, name] of [['handle', 'handle'], ['email', 'email'], ['avatar', 'avatar']]) if (changes[key] !== undefined) fields[name] = changes[key];
+      for (const [key, name] of [['messages', 'messages'], ['wallPosts', 'wall'], ['mailings', 'mailings']]) {
+        if (changes[key] === true) fields[name] = '1';
+        if (changes[key] === false) delete fields[name];
+      }
+      if (changes.profile) {
+        const [rows] = await pool.query('SELECT fieldid, title FROM qa_userfields');
+        for (const row of rows) if (changes.profile[row.title] !== undefined) fields[`field_${row.fieldid}`] = changes.profile[row.title];
+      }
+      let call = client.post('/index.php?qa=account');
+      if (image) {
+        for (const [key, value] of Object.entries(fields)) call = call.field(key, value);
+        call = call.attach('file', image, 'avatar.png');
+      } else call = call.type('form').send(fields);
+      const response = await call;
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    async uploadAvatar(image) { return this.saveProfile({}, image); },
+    async changePassword(oldPassword, newPassword, repeat = newPassword) {
+      const $ = cheerio.load((await client.get('/index.php?qa=account')).text);
+      const form = $('[name=dochangepassword]').closest('form');
+      const response = await client.post('/index.php?qa=account').type('form')
+        .send({ ...formFields($, form), oldpassword: oldPassword, newpassword1: newPassword, newpassword2: repeat, dochangepassword: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // The confirm page's "send link" button, for a signed-in user.
+    async sendConfirmation() {
+      const $ = cheerio.load((await client.get('/index.php?qa=confirm')).text);
+      const form = $('[name=dosendconfirm]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post('/index.php?qa=confirm').type('form').send({ ...formFields($, form), dosendconfirm: '1' });
+      return cheerio.load(response.text)('.qa-success').length
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // Following the link in the confirmation email.
+    async confirmEmail(handle, code) {
+      const response = await client.get(`/index.php?qa=confirm&c=${encodeURIComponent(code)}&u=${encodeURIComponent(handle)}`);
+      return cheerio.load(response.text)('.qa-success').length
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    async forgotPassword(emailHandle) {
+      const $ = cheerio.load((await client.get('/index.php?qa=forgot')).text);
+      const form = $('[name=doforgot]').closest('form');
+      const response = await client.post('/index.php?qa=forgot').type('form').send({ ...formFields($, form), emailhandle: emailHandle, doforgot: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // Following the link in the reset email, then choosing a new password.
+    async resetPassword(emailHandle, code, newPassword) {
+      const path = `/index.php?qa=reset&e=${encodeURIComponent(emailHandle)}&c=${encodeURIComponent(code)}`;
+      const $ = cheerio.load((await client.get(path)).text);
+      const form = $('[name=dochangepassword]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post(path).type('form')
+        .send({ ...formFields($, form), newpassword1: newPassword, newpassword2: newPassword, dochangepassword: '1' });
+      return response.status === 302
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    async unsubscribe(handle = null, code = null) {
+      const path = handle ? `/index.php?qa=unsubscribe&c=${encodeURIComponent(code)}&u=${encodeURIComponent(handle)}` : '/index.php?qa=unsubscribe';
+      const $ = cheerio.load((await client.get(path)).text);
+      const form = $('[name=dounsubscribe]').closest('form');
+      if (!form.length) return { accepted: false, message: pageMessages($.html()) };
+      const response = await client.post(path).type('form').send({ ...formFields($, form), dounsubscribe: '1' });
+      return cheerio.load(response.text)('.qa-success').length
+        ? { accepted: true, backend: response.headers['x-q2a-account-backend'] }
+        : { accepted: false, message: pageMessages(response.text) };
+    },
+    // Whether this browser is signed in (the page shows a logout link).
+    async signedIn() {
+      return cheerio.load((await client.get('/index.php?qa=account').redirects(0).ok(() => true)).text)('[name=dosaveprofile]').length > 0;
+    },
     // The same button with JavaScript on: qa_favorite_click() posts to ajax/favorite.php.
     async favoriteAjax(page, entitytype, entityid, favorite) {
       const $ = cheerio.load((await client.get(page).redirects(3)).text);
@@ -251,6 +339,28 @@ function apiDriver(pool) {
         ? { accepted: true, id: postid }
         : { accepted: false, status: response.status, code: response.body.error?.code, fields: response.body.error?.fields };
     },
+    // --- account ---
+    async saveProfile(changes) {
+      const response = await client.patch('/api/v1/account').set('X-Q2A-Request', '1').send(changes);
+      if (response.status !== 200) return { accepted: false, status: response.status, code: response.body.error?.code };
+      return Object.keys(response.body.errors).length ? { accepted: false, status: 200, errors: response.body.errors } : { accepted: true };
+    },
+    async uploadAvatar(image) {
+      return accepted(await client.put('/api/v1/account/avatar').set('X-Q2A-Request', '1').set('Content-Type', 'image/png').send(image));
+    },
+    async changePassword(oldPassword, newPassword) {
+      return accepted(await client.put('/api/v1/account/password').set('X-Q2A-Request', '1').send({ oldPassword, newPassword }));
+    },
+    async sendConfirmation() { return accepted(await client.post('/api/v1/account/confirmation-email').set('X-Q2A-Request', '1').send({})); },
+    async confirmEmail(handle, code) { return accepted(await client.post('/api/v1/account/confirm-email').set('X-Q2A-Request', '1').send({ handle, code })); },
+    async forgotPassword(emailHandle) { return accepted(await client.post('/api/v1/account/password-reset').set('X-Q2A-Request', '1').send({ emailHandle })); },
+    async resetPassword(emailHandle, code, newPassword) {
+      return accepted(await client.post('/api/v1/account/password-reset/complete').set('X-Q2A-Request', '1').send({ emailHandle, code, newPassword }));
+    },
+    async unsubscribe(handle = null, code = null) {
+      return accepted(await client.post('/api/v1/account/unsubscribe').set('X-Q2A-Request', '1').send(handle ? { handle, code } : {}));
+    },
+    async signedIn() { return (await client.get('/api/v1/auth/me')).status === 200; },
     async sendMessage(handle, message) {
       return accepted(await client.post(`/api/v1/users/${encodeURIComponent(handle)}/messages`).set('X-Q2A-Request', '1').send({ content: message }), 201);
     },
@@ -325,6 +435,21 @@ async function createFixtures(pool, handles, token) {
     await pool.query(`INSERT INTO qa_options (title,content) SELECT ?, COUNT(*) FROM qa_posts WHERE ${where} ON DUPLICATE KEY UPDATE content=VALUES(content)`, [key]);
   }
   return { ids, users };
+}
+
+// Rate-limit rows, keyed by user or IP, with their hourly period. Q2A starts the count again when
+// the period changes, so a change is the new count after a new hour and the difference otherwise.
+async function limitRows(pool, sql, params) {
+  const [rows] = await pool.query(sql, params);
+  return Object.fromEntries(rows.map(row => [String(row.k), { period: Number(row.period), count: Number(row.count) }]));
+}
+function limitDelta(before, after) {
+  let delta = 0;
+  for (const [key, row] of Object.entries(after)) {
+    const old = before[key];
+    delta += old && old.period === row.period ? row.count - old.count : row.count;
+  }
+  return delta;
 }
 
 const CACHES = ['cache_qcount', 'cache_acount', 'cache_ccount', 'cache_unaqcount', 'cache_unselqcount', 'cache_unupaqcount', 'cache_queuedcount', 'cache_userpointscount', 'cache_flaggedcount'];
@@ -402,9 +527,10 @@ async function snapshot(backend, newId, focusId = newId) {
   }
   const limits = {};
   for (const action of ['Q', 'A', 'C', 'F', 'M', 'W']) {
-    const [[user]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_userlimits WHERE userid=? AND action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [users.actor, action]);
-    const [[ip]] = await pool.execute('SELECT COALESCE(SUM(count),0) AS n FROM qa_iplimits WHERE action=? AND period=FLOOR(UNIX_TIMESTAMP()/3600)', [action]);
-    limits[action] = [Number(user.n), Number(ip.n)];
+    limits[action] = [
+      await limitRows(pool, 'SELECT userid AS k, period, count FROM qa_userlimits WHERE userid=? AND action=?', [users.actor, action]),
+      await limitRows(pool, 'SELECT HEX(ip) AS k, period, count FROM qa_iplimits WHERE action=?', [action]),
+    ];
   }
   const [[actor]] = await pool.execute('SELECT written IS NOT NULL AS written, INET6_NTOA(writeip) AS writeip FROM qa_users WHERE userid=?', [users.actor]);
   const writers = {};
@@ -480,9 +606,28 @@ function comparable(before, after) {
     ...after,
     words: wordDelta,
     caches: Object.fromEntries(CACHES.map(key => [key, after.caches[key] - before.caches[key]])),
-    limits: Object.fromEntries(Object.keys(after.limits).map(key => [key, after.limits[key].map((value, i) => value - before.limits[key][i])])),
+    limits: Object.fromEntries(Object.keys(after.limits).map(key => [key, after.limits[key].map((rows, i) => limitDelta(before.limits[key][i], rows))])),
   };
 }
 
 
-module.exports = { PHP_URL, UI_URL, API_URL, siteDriver, apiDriver, createFixtures, snapshot, comparable, CACHES };
+// The newest email Mailpit caught for an address (Q2A sends it before the page or API responds).
+const MAILPIT_URL = process.env.MAILPIT_URL || 'http://localhost:8025';
+async function latestEmail(address, { after = 0 } = {}) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const search = await request(MAILPIT_URL).get('/api/v1/search').query({ query: `to:"${address}"` });
+    const newest = (search.body.messages ?? []).filter(m => new Date(m.Created).getTime() > after).sort((a, b) => new Date(b.Created) - new Date(a.Created))[0];
+    if (newest) {
+      const message = await request(MAILPIT_URL).get(`/api/v1/message/${newest.ID}`);
+      return { subject: message.body.Subject, from: message.body.From, to: message.body.To, text: message.body.Text };
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  return null;
+}
+async function emailCount(address) {
+  const search = await request(MAILPIT_URL).get('/api/v1/search').query({ query: `to:"${address}"` });
+  return search.body.messages_count ?? (search.body.messages ?? []).length;
+}
+
+module.exports = { limitRows, limitDelta, latestEmail, emailCount, PHP_URL, UI_URL, API_URL, siteDriver, apiDriver, createFixtures, snapshot, comparable, CACHES };

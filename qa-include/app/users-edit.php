@@ -595,3 +595,142 @@ function qa_set_user_avatar($userid, $imagedata, $oldblobid = null)
 
 	return false;
 }
+
+
+/**
+ * Save the account page's profile form for user $userid (whose account is $useraccount). $handle and $email have been
+ * through qa_handle_email_filter() and $profile through the filter modules, which reported problems in $errors; fields
+ * with errors are left unchanged. If $isblocked, the user is blocked but still waiting for email confirmation, so only
+ * the email address is saved. Sends a new confirmation link if the email changed and $doconfirms. Returns true if the
+ * email address changed.
+ * @param $userid
+ * @param array $useraccount
+ * @param bool $isblocked
+ * @param string $handle
+ * @param string $email
+ * @param mixed $messages
+ * @param mixed $wallposts
+ * @param mixed $mailings
+ * @param string $avatar
+ * @param array $userfields
+ * @param array $profile
+ * @param array $errors
+ * @param bool $doconfirms
+ * @return bool
+ */
+function qa_user_save_profile($userid, $useraccount, $isblocked, $handle, $email, $messages, $wallposts, $mailings, $avatar, $userfields, $profile, $errors, $doconfirms)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/users.php';
+
+	if (!$isblocked && !isset($errors['handle']))
+		qa_db_user_set($userid, 'handle', $handle);
+
+	$emailchanged = false;
+	if (!isset($errors['email']) && $email !== $useraccount['email']) {
+		qa_db_user_set($userid, 'email', $email);
+		qa_db_user_set_flag($userid, QA_USER_FLAGS_EMAIL_CONFIRMED, false);
+		$emailchanged = true;
+
+		if ($doconfirms)
+			qa_send_new_confirm($userid);
+	}
+
+	if (!$isblocked) {
+		if (qa_opt('allow_private_messages'))
+			qa_db_user_set_flag($userid, QA_USER_FLAGS_NO_MESSAGES, !$messages);
+
+		if (qa_opt('allow_user_walls'))
+			qa_db_user_set_flag($userid, QA_USER_FLAGS_NO_WALL_POSTS, !$wallposts);
+
+		if (qa_opt('mailing_enabled'))
+			qa_db_user_set_flag($userid, QA_USER_FLAGS_NO_MAILINGS, !$mailings);
+
+		qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_AVATAR, ($avatar == 'uploaded'));
+		qa_db_user_set_flag($userid, QA_USER_FLAGS_SHOW_GRAVATAR, ($avatar == 'gravatar'));
+
+		foreach ($userfields as $userfield) {
+			if (!isset($errors[$userfield['fieldid']]))
+				qa_db_user_profile_set($userid, $userfield['title'], $profile[$userfield['fieldid']]);
+		}
+	}
+
+	qa_report_event('u_save', $userid, $isblocked || isset($errors['handle']) ? $useraccount['handle'] : $handle, qa_cookie_get());
+
+	return $emailchanged;
+}
+
+
+/**
+ * Upload the image in file $imagefile as the avatar of user $userid, replacing $oldblobid. Checks the upload permission
+ * and limit and the image size. Returns an error message, or null on success.
+ * @param $userid
+ * @param string $imagefile
+ * @param $oldblobid
+ * @return string|null
+ */
+function qa_user_upload_avatar($userid, $imagefile, $oldblobid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'app/limits.php';
+	require_once QA_INCLUDE_DIR . 'util/image.php';
+
+	switch (qa_user_permit_error(null, QA_LIMIT_UPLOADS)) {
+		case 'limit':
+			return qa_lang('main/upload_limit');
+
+		default:
+			return qa_lang('users/no_permission');
+
+		case false:
+			qa_limits_increment($userid, QA_LIMIT_UPLOADS);
+			$toobig = qa_image_file_too_big($imagefile, qa_opt('avatar_store_size'));
+
+			if ($toobig)
+				return qa_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
+			elseif (!qa_set_user_avatar($userid, file_get_contents($imagefile), $oldblobid))
+				return qa_lang_sub('main/image_not_read', implode(', ', qa_gd_image_formats()));
+
+			return null;
+	}
+}
+
+
+/**
+ * Change the password of user $userid (whose account is $useraccount) to $newpassword, after the page checked that
+ * $oldpassword is the current one. Ends the user's other remembered logins, keeps this session and reports the event.
+ * @param $userid
+ * @param array $useraccount
+ * @param string $oldpassword
+ * @param string $newpassword
+ */
+function qa_user_change_password($userid, $useraccount, $oldpassword, $newpassword)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/users.php';
+	require_once QA_INCLUDE_DIR . 'app/users.php';
+
+	qa_db_user_set_password($userid, $newpassword);
+	qa_db_user_set($userid, 'sessioncode', ''); // stop old 'Remember me' style logins from still working
+	qa_set_logged_in_user($userid, $useraccount['handle'], false, $useraccount['sessionsource']); // reinstate this specific session
+
+	qa_report_event('u_password', $userid, $useraccount['handle'], qa_cookie_get());
+}
+
+
+/**
+ * Unsubscribe user $userid from mailings.
+ * @param $userid
+ */
+function qa_user_unsubscribe($userid)
+{
+	if (qa_to_override(__FUNCTION__)) { $args=func_get_args(); return qa_call_override(__FUNCTION__, $args); }
+
+	require_once QA_INCLUDE_DIR . 'db/users.php';
+
+	qa_db_user_set_flag($userid, QA_USER_FLAGS_NO_MAILINGS, true);
+}
+

@@ -3,6 +3,12 @@ const { rateLimit } = require('express-rate-limit');
 
 const { cookieName, cookiePath, readToken, requireApiRequest } = require('../../http/cookies');
 
+// Sets the session cookie for a new session, as login and registration do.
+function sessionCookie(res, result, secureCookies) {
+  const cookieOptions = { httpOnly: true, sameSite: 'strict', secure: secureCookies, path: cookiePath };
+  res.cookie(cookieName, result.token, { ...cookieOptions, ...(result.remember ? { maxAge: result.ttl * 1000 } : {}) });
+}
+
 function authRoutes(service, { secureCookies = false, rateLimitMax = 1000 } = {}) {
   const router = Router();
   const cookieOptions = { httpOnly: true, sameSite: 'strict', secure: secureCookies, path: cookiePath };
@@ -22,4 +28,4 @@ function authRoutes(service, { secureCookies = false, rateLimitMax = 1000 } = {}
   });
   return router;
 }
-module.exports = { authRoutes };
+module.exports = { authRoutes, sessionCookie };

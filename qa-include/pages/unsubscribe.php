@@ -47,7 +47,8 @@ if (qa_clicked('dounsubscribe')) {
 	} else {
 		if ($isLoggedIn) {
 			// logged in users can unsubscribe right away
-			qa_db_user_set_flag($loggedInUserId, QA_USER_FLAGS_NO_MAILINGS, true);
+			require_once QA_INCLUDE_DIR . 'app/users-edit.php';
+			qa_user_unsubscribe($loggedInUserId);
 			$unsubscribed = true;
 
 		} else {
@@ -59,7 +60,8 @@ if (qa_clicked('dounsubscribe')) {
 				$userinfo = qa_db_select_with_pending(qa_db_user_account_selectspec($inhandle, false));
 
 				if ($userinfo !== null && strtolower(trim($userinfo['emailcode'])) == strtolower($incode)) {
-					qa_db_user_set_flag($userinfo['userid'], QA_USER_FLAGS_NO_MAILINGS, true);
+					require_once QA_INCLUDE_DIR . 'app/users-edit.php';
+					qa_user_unsubscribe($userinfo['userid']);
 					$unsubscribed = true;
 				}
 			}

@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "description": "Selected Q2A functionality migrated to a versioned Node.js API",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node --env-file-if-exists=../.env src/server.js",
     "test": "jest --runInBand --testPathIgnorePatterns=tests/parity",
     "test:parity": "jest --runInBand tests/parity",
-    "check": "node --check src/app.js && node --check src/services/auth.js && node --check src/repositories/users.js && node --check src/services/votes.js && node --check src/repositories/votes.js && node --check src/services/posts.js && node --check src/repositories/posts.js && node --check src/services/post-changes.js && node --check src/services/post-common.js && node --check src/services/favorites.js && node --check src/repositories/favorites.js && node --check src/routes/v1/favorites.js && node --check src/services/messages.js && node --check src/repositories/messages.js && node --check src/routes/v1/messages.js"
+    "check": "node --check src/app.js && node --check src/services/auth.js && node --check src/repositories/users.js && node --check src/services/votes.js && node --check src/repositories/votes.js && node --check src/services/posts.js && node --check src/repositories/posts.js && node --check src/services/post-changes.js && node --check src/services/post-common.js && node --check src/services/favorites.js && node --check src/repositories/favorites.js && node --check src/routes/v1/favorites.js && node --check src/services/messages.js && node --check src/repositories/messages.js && node --check src/routes/v1/messages.js && node --check src/services/account.js && node --check src/repositories/account.js && node --check src/routes/v1/account.js && node --check src/q2a/mail.js && node --check src/q2a/paths.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -17,6 +19,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.15.0",
+    "nodemailer": "^6.9.16",
+    "sharp": "^0.33.5",
     "validator": "^13.15.20"
   },
   "devDependencies": {
@@ -24,5 +28,8 @@
     "jest": "^30.2.0",
     "supertest": "^7.1.4"
   },
-  "jest": { "testEnvironment": "node", "testTimeout": 30000 }
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000
+  }
 }

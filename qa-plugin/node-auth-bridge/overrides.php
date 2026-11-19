@@ -295,3 +295,79 @@ function qa_pm_delete($userid, $handle, $cookieid, $message, $box)
     node_bridge_message('DELETE', '/api/v1/messages/' . ($box === 'inbox' ? 'inbox' : 'outbox') . '/' . (int)$message['messageid'], new stdClass());
 }
 
+// Account and profile. The pages still check their forms (handle and email filters, the current
+// password, password length) so they can show their own messages; Node checks again and writes.
+function qa_user_save_profile($userid, $useraccount, $isblocked, $handle, $email, $messages, $wallposts, $mailings, $avatar, $userfields, $profile, $errors, $doconfirms)
+{
+    $body = array('handle' => (string)$handle, 'email' => (string)$email);
+    if (!$isblocked) {
+        $body += array('messages' => (bool)$messages, 'wallPosts' => (bool)$wallposts, 'mailings' => (bool)$mailings, 'avatar' => (string)$avatar, 'profile' => array());
+        foreach ($userfields as $userfield) $body['profile'][$userfield['title']] = (string)@$profile[$userfield['fieldid']];
+        if (!count($body['profile'])) $body['profile'] = new stdClass();
+    }
+    $result = node_bridge_account('PATCH', '', $body);
+    if ($result['status'] !== 200) qa_fatal_error('Node could not save the profile: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+    return !isset($errors['email']) && $email !== $useraccount['email'];
+}
+
+function qa_user_upload_avatar($userid, $imagefile, $oldblobid)
+{
+    $result = node_bridge_upload('/api/v1/account/avatar', $imagefile);
+    if ($result['status'] === 200) return null;
+    switch ($result['data']['error']['code'] ?? '') {
+        case 'upload_limit': return qa_lang('main/upload_limit');
+        case 'no_permission': return qa_lang('users/no_permission');
+        case 'payload_too_large': return qa_lang('main/file_upload_limit_exceeded');
+        default:
+            require_once QA_INCLUDE_DIR . 'util/image.php';
+            return qa_lang_sub('main/image_not_read', implode(', ', qa_gd_image_formats()));
+    }
+}
+
+function qa_user_change_password($userid, $useraccount, $oldpassword, $newpassword)
+{
+    // Node keeps this session and ends the user's others.
+    $result = node_bridge_account('PUT', '/password', array('oldPassword' => (string)$oldpassword, 'newPassword' => (string)$newpassword));
+    if ($result['status'] !== 200) qa_fatal_error('Node could not change the password: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+}
+
+function qa_user_unsubscribe($userid)
+{
+    // A signed-in user needs nothing more; otherwise Node checks the code from the email link.
+    $body = qa_is_logged_in() ? new stdClass() : array('handle' => (string)qa_post_text('handle'), 'code' => trim((string)qa_post_text('code')));
+    $result = node_bridge_account('POST', '/unsubscribe', $body);
+    if ($result['status'] !== 200) qa_fatal_error('Node could not unsubscribe the user: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+}
+
+function qa_send_new_confirm($userid)
+{
+    $result = node_bridge_account('POST', '/confirmation-email', new stdClass());
+    if ($result['status'] !== 200) qa_fatal_error('Could not send email confirmation');
+}
+
+function qa_complete_confirm($userid, $email, $handle)
+{
+    // pages/confirm.php matched the code from the link; Node matches it again.
+    $code = trim((string)(qa_post_text('code') ?? qa_get('c')));
+    $result = node_bridge_account('POST', '/confirm-email', array('handle' => (string)$handle, 'code' => $code));
+    if ($result['status'] !== 200) qa_fatal_error('Node could not confirm the email address: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+}
+
+function qa_start_reset_user($userid)
+{
+    $result = node_bridge_account('POST', '/password-reset', array('emailHandle' => (string)qa_post_text('emailhandle')));
+    if ($result['status'] !== 200) qa_fatal_error('Could not send reset password email');
+}
+
+function qa_finish_reset_user($userId, $newPassword)
+{
+    // pages/reset.php matched the code; Node checks it again, sets the password and signs the user in.
+    $result = node_bridge_account('POST', '/password-reset/complete', array(
+        'emailHandle' => trim((string)(qa_post_text('emailhandle') ?? qa_get('e'))),
+        'code' => trim((string)(qa_post_text('code') ?? qa_get('c'))),
+        'newPassword' => (string)$newPassword,
+    ));
+    if ($result['status'] !== 200 || empty($result['token'])) qa_fatal_error('Node could not reset the password: ' . ($result['data']['error']['code'] ?? 'service_unavailable'));
+    node_bridge_cookie($result['token']);
+}
+

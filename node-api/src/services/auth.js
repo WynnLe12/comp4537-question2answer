@@ -107,6 +107,12 @@ function createAuthService(repository, { jwtSecret, saltRounds = 10 } = {}) {
       if (!user || String(user.userid) !== claims.sub) throw new AuthError(401, 'unauthenticated');
       return publicUser(user);
     },
+    // A new session for a user who proved who they are another way (a password reset code).
+    async startSession(userid, ip) {
+      const user = await repository.findById(userid);
+      if (!user) throw new AuthError(401, 'unauthenticated');
+      return session(user, false, ip);
+    },
     async logout(token) {
       if (verifiedClaims(token)) await repository.deleteSession(tokenHash(token));
     },

@@ -7,8 +7,8 @@ every slice and its status. Done so far: authentication, voting
 ([notes](docs/votes-migration.md)), posting questions, answers and comments
 ([notes](docs/posts-migration.md)), and changing them: editing, selecting answers, closing,
 hiding, moderating, deleting and claiming ([notes](docs/post-changes-migration.md)),
-flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), and
-private messages and wall posts ([notes](docs/messages-migration.md)).
+flagging ([notes](docs/flags-migration.md)), favorites ([notes](docs/favorites-migration.md)), private messages and wall posts
+([notes](docs/messages-migration.md)), and account and profile changes ([notes](docs/account-migration.md)).
 For an annotated, file-by-file code walkthrough, see
 [the developer implementation guide](MIGRATION_IMPLEMENTATION.md).
 
@@ -33,6 +33,8 @@ For an annotated, file-by-file code walkthrough, see
 - Add and remove favorite questions, users, tags and categories through Node, from the
   favorite buttons (with or without JavaScript).
 - Send and delete private messages, and post on and delete from user walls, through Node.
+- Save your profile, change your password, upload an avatar, confirm your email address, reset a
+  forgotten password and unsubscribe from mailings through Node, with Node sending the emails.
 
 ## Start the demo
 
@@ -58,6 +60,7 @@ point to an accessible MySQL instance.
 | http://localhost:8081/?qa=register | Original registration form using Node authentication |
 | http://localhost:8080/?qa=login | Original PHP login |
 | http://localhost:8080/?qa=register | Original PHP registration |
+| http://localhost:8025 | Mailpit: every email both sites and the API send (confirmations, password resets) |
 | http://localhost:3000/health | Node API health |
 
 Seeded users: `alice`, `bob`, `carol` and `legacy` (legacy has an old salted-SHA-1 hash),
@@ -196,6 +199,14 @@ until it is installed under `.github/workflows/`.
 | `DELETE /api/v1/messages/:box/:id` | Delete a private message from your inbox or outbox |
 | `POST /api/v1/users/:handle/wall` | Post on a user's wall |
 | `DELETE /api/v1/wall-posts/:id` | Delete a wall post |
+| `PATCH /api/v1/account` | Save your profile |
+| `PUT /api/v1/account/password` | Change your password |
+| `PUT /api/v1/account/avatar` | Upload an avatar (the image is the body) |
+| `POST /api/v1/account/confirmation-email` | Email yourself a new confirmation link |
+| `POST /api/v1/account/confirm-email` | Confirm an email address with its code |
+| `POST /api/v1/account/password-reset` | Email a password reset code |
+| `POST /api/v1/account/password-reset/complete` | Set a new password with that code and sign in |
+| `POST /api/v1/account/unsubscribe` | Unsubscribe from mailings |
 
 Direct API POST requests require JSON and `X-Q2A-Request: 1`. The bridge supplies
 these after checking Q2A's existing CSRF token and stores the signed JWT
@@ -216,6 +227,8 @@ Use v2 only for breaking contract changes; compatible changes remain in v1.
 | `node-api/src/services/post-changes.js` | Editing, selecting, closing, status, deleting, claiming and flags |
 | `node-api/src/services/favorites.js`, `repositories/favorites.js`, `routes/v1/favorites.js` | Favorites and their update streams |
 | `node-api/src/services/messages.js`, `repositories/messages.js`, `routes/v1/messages.js` | Private messages and wall posts |
+| `node-api/src/services/account.js`, `repositories/account.js`, `routes/v1/account.js` | Profile, password, avatar, confirmation, reset and unsubscribe |
+| `node-api/src/q2a/mail.js`, `q2a/paths.js` | Q2A's email sending (through its SMTP options) and its links |
 | `node-api/src/services/post-common.js` | Shared posting input rules, page button rules and index/event helpers |
 | `node-api/src/repositories/shared.js` | Transactions and SQL shared by features (points, hotness, limits) |
 | `node-api/src/q2a/` | Shared ports of Q2A options, permissions/limits, points formulas and text/word splitting |

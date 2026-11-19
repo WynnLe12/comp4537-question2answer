@@ -24,6 +24,8 @@ $profile = array(
     'allow_login_email_only' => 0, 'block_bad_usernames' => 'anonymous',
     'max_rate_ip_registers' => 1000, 'max_rate_ip_logins' => 1000,
     'points_base' => 100, 'moderate_users' => 0,
+    // Both sites and the Node API send email through the local Mailpit catcher.
+    'smtp_active' => 1, 'smtp_address' => 'mailpit', 'smtp_port' => 1025, 'smtp_secure' => '', 'smtp_authenticate' => 0,
 );
 foreach ($profile as $name => $value) { qa_opt($name, $value); }
 foreach (array('alice', 'legacy', 'bob', 'carol') as $handle) {

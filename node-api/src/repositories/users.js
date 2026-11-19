@@ -7,6 +7,10 @@ function createUserRepository(pool) {
       const [rows] = await pool.execute(`SELECT * FROM qa_users WHERE ${field} = ?`, [value]);
       return rows;
     },
+    async findById(id) {
+      const [[user]] = await pool.execute('SELECT * FROM qa_users WHERE userid = ?', [id]);
+      return user;
+    },
     async upgradePassword(id, hash) {
       await pool.execute('UPDATE qa_users SET passhash=?, passsalt=NULL, passcheck=NULL WHERE userid=?', [hash, id]);
     },

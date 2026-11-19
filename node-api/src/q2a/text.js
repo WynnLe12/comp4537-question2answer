@@ -32,6 +32,33 @@ function stringToWords(input, { tolowercase = true, splitideographs = true, spli
   return string.split(separator).filter(word => word !== '');
 }
 
+// QA_PREG_BLOCK_WORD_SEPARATOR
+const BLOCK_SEPARATOR = String.raw`[\n\r\t !"\\'()+,./:;<=>?\[\\\]^${'`'}{|}~$&\-_#%@]`;
+const isCjk = c => new RegExp(CJK.source, 'u').test(c);
+
+// qa_block_words_to_preg() and qa_block_words_match_all(): whether $string contains any of the
+// words in a block list such as the block_bad_usernames option (* matches within a word).
+function blockWordsMatch(string, wordsOption) {
+  const words = String(wordsOption ?? '').split(new RegExp(`${BLOCK_SEPARATOR}+`)).filter(Boolean);
+  if (!words.length) return false;
+  const patterns = words.map(word => {
+    let pattern = word.toLowerCase().replace(/[.*+?^${}()|[\]\\/]/g, '\\$&').replace(/\\\*/g, '[^ ]*');
+    if (!isCjk([...word][0])) pattern = `(?<= )${pattern}`;
+    if (!isCjk([...word].at(-1))) pattern = `${pattern}(?= )`;
+    return pattern;
+  });
+  const cleaned = [...String(string).toLowerCase()].map(c => (punctuation[c] !== undefined ? ' ' : c)).join('').replace(new RegExp(BLOCK_SEPARATOR, 'g'), ' ');
+  return new RegExp(patterns.join('|'), 'u').test(` ${cleaned} `);
+}
+
+// qa_random_alphanum(): base-36 digits in groups of three.
+function randomAlphanum(length) {
+  const { randomInt } = require('node:crypto');
+  let string = '';
+  while (string.length < length) string += randomInt(0, 46656).toString(36).padStart(3, '0');
+  return string.slice(0, length);
+}
+
 const tagstringToTags = tagstring => (tagstring ? String(tagstring).split(',') : []);
 const tagsToTagstring = tags => tags.join(',');
 
@@ -68,4 +95,4 @@ const emailValidate = email => isEmail(String(email), { allow_utf8_local_part: f
 // qa_combine_notify_email()
 const combineNotifyEmail = (userid, notify, email) => (notify ? (email ? email : (userid !== null && userid !== undefined ? '@' : null)) : null);
 
-module.exports = { postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };
+module.exports = { blockWordsMatch, randomAlphanum, postText, removeUtf8mb4, strlen, stringToWords, tagstringToTags, tagsToTagstring, tagsFromInput, viewerText, emailValidate, combineNotifyEmail };

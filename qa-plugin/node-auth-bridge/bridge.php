@@ -124,6 +124,35 @@ function node_bridge_change_post($method, $path, $body)
     qa_fatal_error('Node could not change the post: ' . $code . ' ' . json_encode($result['data']['error']['fields'] ?? array()));
 }
 
+// Account changes: returns Node's response (status, data and any new session token).
+function node_bridge_account($method, $path, $body)
+{
+    header('X-Q2A-Account-Backend: node-api-v1');
+    return node_bridge_api($method, '/api/v1/account' . $path, $body);
+}
+
+// Sends an image file as the request body (the avatar upload), with the same headers as node_bridge_api().
+function node_bridge_upload($path, $file)
+{
+    header('X-Q2A-Account-Backend: node-api-v1');
+    $data = (string)@file_get_contents($file);
+    $info = @getimagesizefromstring($data);
+    $type = is_array($info) && !empty($info['mime']) ? $info['mime'] : 'image/unknown';
+    $token = $_COOKIE['q2a_node_bridge'] ?? '';
+    $headers = "Accept: application/json\r\nX-Q2A-Request: 1\r\nContent-Type: " . $type . "\r\n";
+    if (node_bridge_valid_token($token)) $headers .= 'Cookie: q2a_node_session=' . $token . "\r\n";
+    if (isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP)) $headers .= "X-Forwarded-For: " . $_SERVER['REMOTE_ADDR'] . "\r\n";
+    $context = stream_context_create(array('http' => array(
+        'method' => 'PUT', 'header' => $headers, 'content' => $data, 'ignore_errors' => true, 'timeout' => 15, 'follow_location' => 0,
+    )));
+    $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . $path, false, $context);
+    $status = 503;
+    foreach ($http_response_header ?? array() as $header) {
+        if (preg_match('/^HTTP\/\S+ (\d+)/', $header, $match)) $status = (int)$match[1];
+    }
+    return array('status' => $status, 'data' => json_decode($raw ?: '{}', true));
+}
+
 // Private messages and wall posts: returns Node's response data, or stops with its error code.
 function node_bridge_message($method, $path, $body)
 {
