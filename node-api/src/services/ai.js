@@ -1,4 +1,4 @@
-const { evaluateAnswer } = require('./aiProvider');
+const { AiProviderError, evaluateAnswer } = require('./aiProvider');
 const { createAiRepository } = require('../repositories/ai');
 const { ApiError } = require('../errors');
 const { MAX_POSTID } = require('../http/request');
@@ -86,24 +86,16 @@ function createAiService(pool, postRepository) {
                 // Call the OpenAI provider.
                 aiResult = await evaluateAnswer(question, answer);
             } catch (error) {
-                // Log an unsuccessful AI request.
-                const statusCode = 502;
-
-                try {
-                    await aiRepository.logFailedRequest(
-                        userId,
-                        statusCode
-                    );
-                } catch (logError) {
-                    console.error(
-                        'Failed to log AI API usage:',
-                        logError.message
-                    );
+                const failure = error instanceof AiProviderError
+                    ? error : new AiProviderError(502, 'ai_provider_unavailable');
+                if (failure.attempted) {
+                    try {
+                        await aiRepository.logFailedRequest(userId, failure.upstreamStatus ?? failure.status);
+                    } catch {
+                        console.error('Failed to record AI provider usage');
+                    }
                 }
-
-                const serviceError = new Error('AI evaluation is temporarily unavailable');
-                serviceError.statusCode = statusCode;
-                throw serviceError;
+                throw failure;
             }
 
             // Save the evaluation and usage data in MySQL.
@@ -134,9 +126,7 @@ function createAiService(pool, postRepository) {
         // Retrieve previous evaluations for a user.
         async getHistory(userId) {
             if (!Number.isSafeInteger(userId) || userId <= 0) {
-                const error = new Error('Authentication required');
-                error.statusCode = 401;
-                throw error;
+                throw new ApiError(401, 'unauthenticated');
             }
 
             return aiRepository.getEvaluationsByUser(userId);

@@ -3,6 +3,7 @@ const { FLAGS, LEVEL, PERMIT } = require('../../src/q2a/permissions');
 
 // Mock OpenAI so tests do not spend API credits.
 jest.mock('../../src/services/aiProvider', () => ({
+    ...jest.requireActual('../../src/services/aiProvider'),
     evaluateAnswer: jest.fn()
 }));
 
@@ -196,8 +197,9 @@ describe('AI answer evaluation service', () => {
         await expect(
             aiService.evaluate(input)
         ).rejects.toMatchObject({
-            statusCode: 502,
-            message: 'AI evaluation is temporarily unavailable'
+            status: 502,
+            code: 'ai_provider_unavailable',
+            message: 'ai_provider_unavailable'
         });
 
         expect(repository.logFailedRequest)

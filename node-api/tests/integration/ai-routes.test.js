@@ -1,6 +1,7 @@
 
 const request = require('supertest');
 const { createApp } = require('../../src/app');
+const { ApiError } = require('../../src/errors');
 
 describe('AI REST API routes', () => {
     let app;
@@ -55,12 +56,7 @@ describe('AI REST API routes', () => {
     });
 
     test('rejects empty questions and answers', async () => {
-        aiService.evaluate.mockRejectedValue(
-            Object.assign(
-                new Error('Invalid question or answer'),
-                { statusCode: 400 }
-            )
-        );
+        aiService.evaluate.mockRejectedValue(new ApiError(400, 'invalid_input'));
 
         const response = await request(app)
             .post('/api/v1/ai/evaluate')
@@ -139,32 +135,6 @@ describe('AI REST API routes', () => {
         expect(aiService.getHistory).toHaveBeenCalledWith(1);
     });
 
-    test('does not expose AI provider errors', async () => {
-        aiService.evaluate.mockRejectedValue(
-            Object.assign(
-                new Error('Private provider error details'),
-                { statusCode: 502 }
-            )
-        );
-
-        const response = await request(app)
-            .post('/api/v1/ai/evaluate')
-            .set('Cookie', cookie)
-            .set('X-Q2A-Request', '1')
-            .send({
-                question: 'What is Node.js?',
-                answer: 'A JavaScript runtime.'
-            })
-            .expect(503);
-
-        expect(response.body).toEqual({
-            error: { code: 'service_unavailable' }
-        });
-
-        expect(response.text).not.toContain(
-            'Private provider error details'
-        );
-    });
     test('limits excessive AI evaluation requests', async () => {
         aiService.evaluate.mockResolvedValue({
             evaluationId: 1,

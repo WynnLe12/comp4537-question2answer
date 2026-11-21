@@ -3,21 +3,28 @@ const { readToken, requireApiRequest } = require('../../http/cookies');
 const { clientIp } = require('../../http/request');
 const { ApiError } = require('../../errors');
 const { rateLimit } = require('express-rate-limit');
+const { AiProviderError } = require('../../services/aiProvider');
 
 function aiRoutes({ aiService, identify }) {
     const router = Router();
 
-    // Limit AI requests to protect paid API credits.
-    const aiLimiter = rateLimit({
+    // Each limiter uses a separate in-memory store.
+    const limiterOptions = {
         windowMs: 15 * 60 * 1000,
         limit: 10,
-        standardHeaders: 'draft-7',
+        standardHeaders: 'draft-8',
         legacyHeaders: false,
         message: {
             error: {
                 code: 'ai_rate_limit_exceeded'
             }
         }
+    };
+    const ipLimiter = rateLimit({ ...limiterOptions, identifier: 'ai-ip' });
+    const userLimiter = rateLimit({
+        ...limiterOptions,
+        identifier: 'ai-user',
+        keyGenerator: req => String(req.aiUser.id)
     });
 
     router.use(requireApiRequest);
@@ -40,7 +47,10 @@ function aiRoutes({ aiService, identify }) {
     });
 
     // POST /api/v1/ai/evaluate
-    router.post('/evaluate', aiLimiter, async (req, res, next) => {
+    router.post('/evaluate', (req, res, next) => {
+        res.append('Access-Control-Expose-Headers', 'Retry-After, RateLimit, RateLimit-Policy');
+        next();
+    }, ipLimiter, userLimiter, async (req, res) => {
         try {
             const { question, answer, questionId = null, answerId = null } = req.body || {};
 
@@ -55,43 +65,19 @@ function aiRoutes({ aiService, identify }) {
 
             res.status(200).json(result);
         } catch (error) {
-            next(normalizeAiError(error));
+            if (!(error instanceof AiProviderError)) throw error;
+            if (error.retryAfter !== undefined) res.set('Retry-After', error.retryAfter);
+            res.status(error.status).json({ error: { code: error.code } });
         }
     });
 
     // GET /api/v1/ai/evaluations
-    router.get('/evaluations', async (req, res, next) => {
-        try {
-            const evaluations = await aiService.getHistory(Number(req.aiUser.id));
-
-            res.json({ evaluations });
-        } catch (error) {
-            next(normalizeAiError(error));
-        }
+    router.get('/evaluations', async (req, res) => {
+        const evaluations = await aiService.getHistory(Number(req.aiUser.id));
+        res.json({ evaluations });
     });
 
     return router;
-}
-
-// Convert AI service errors to Balpreet's API error format.
-function normalizeAiError(error) {
-    if (error instanceof ApiError) {
-        return error;
-    }
-
-    if (error.statusCode === 400) {
-        return new ApiError(400, 'invalid_input');
-    }
-
-    if (error.statusCode === 401) {
-        return new ApiError(401, 'unauthenticated');
-    }
-
-    if (error.statusCode === 502) {
-        return new ApiError(502, 'ai_provider_unavailable');
-    }
-
-    return error;
 }
 
 module.exports = { aiRoutes };

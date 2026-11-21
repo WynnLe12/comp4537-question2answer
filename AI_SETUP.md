@@ -97,10 +97,31 @@ For browser requests:
 
 ## Rate Limiting
 
-The evaluation endpoint currently allows 10 requests
-per IP address every 15 minutes.
+The evaluation endpoint limits authenticated requests to 10 per IP and 10
+per Q2A account in a 15-minute window. Exceeding either limit returns
+`429 ai_rate_limit_exceeded` with a `Retry-After` header. These limits
+are per process. Counters reset on restart and each API instance tracks
+its own counters.
 
-Excessive requests return HTTP 429.
+## Provider Errors
+
+Evaluation sends one provider request with a 30-second timeout.
+The API returns errors as `{ "error": { "code": "..." } }`.
+
+| HTTP status | Error code | Cause |
+| --- | --- | --- |
+| 429 | `ai_provider_rate_limited` | OpenAI returned 429. The API forwards a valid upstream `Retry-After` header when provided. |
+| 502 | `ai_provider_unavailable` | Connection failure or an unexpected upstream HTTP error, such as 500 or 503. |
+| 502 | `ai_provider_invalid_response` | Missing, incomplete, or malformed evaluation output. |
+| 503 | `ai_provider_unavailable` | Missing OpenAI API key or upstream authentication or permission failure. |
+| 504 | `ai_provider_timeout` | The request or response body exceeded the provider deadline. |
+
+Successful evaluations record HTTP 200 and any reported total token count
+in `node_ai_usage`. Failed provider attempts record the upstream HTTP
+status when available for a non-success response, or the mapped API
+status for timeouts, network failures, and malformed success responses.
+Failed rows have no evaluation ID or token count. Local rejections and a
+missing API key skip provider usage logging.
 
 ## Testing
 
