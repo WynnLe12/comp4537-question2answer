@@ -10,20 +10,48 @@ const { userAdminRoutes } = require('./routes/v1/user-admin');
 const { siteAdminRoutes } = require('./routes/v1/site-admin');
 const { internalRoutes } = require('./routes/v1/internal');
 const { uploadRoutes } = require('./routes/v1/uploads');
+const { aiRoutes } = require('./routes/v1/ai');
 
-function createApp({ service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, uploadService, readPool, bridgeSecret, health = async () => {}, trustProxy = false, ...options }) {
+function createApp({ aiService, identify, service, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, uploadService, readPool, bridgeSecret, health = async () => { }, trustProxy = false, ...options }) {
   const app = express();
   app.disable('x-powered-by');
   // The PHP bridge forwards the browser's address in X-Forwarded-For so IP limits and
   // recorded IPs match PHP's REMOTE_ADDR. Only proxies matching TRUST_PROXY are believed.
   app.set('trust proxy', trustProxy);
   app.use(helmet());
+  const allowedOrigins = new Set(
+    (process.env.CLIENT_ORIGINS || 'http://localhost:8081')
+      .split(',')
+      .map(origin => origin.trim())
+      .filter(Boolean)
+  );
+
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+
+    if (origin && allowedOrigins.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Q2A-Request');
+    }
+
+    if (req.method === 'OPTIONS' && origin) {
+      return res.sendStatus(allowedOrigins.has(origin) ? 204 : 403);
+    }
+
+    next();
+  });
   // Posts may hold 12000 characters (up to 36 kB of UTF-8); everything else stays small.
   app.use('/api/v1/internal', express.json({ limit: '2mb', strict: true }));
   app.use(['/api/v1/questions', '/api/v1/posts', '/api/v1/users', '/api/v1/admin'], express.json({ limit: '64kb', strict: true }));
   app.use(express.json({ limit: '16kb', strict: true }));
   app.get('/health', async (req, res) => { await health(); res.json({ status: 'ok' }); });
   app.use('/api/v1/auth', authRoutes(service, options));
+  if (aiService) {
+    app.use('/api/v1/ai', aiRoutes({ aiService, identify }));
+  }
   if (voteService || postService || postChangeService) app.use('/api/v1/posts', postRoutes({ voteService, postService, postChangeService, secureCookies: options.secureCookies }));
   if (postService) app.use('/api/v1/questions', questionRoutes({ postService, postChangeService, secureCookies: options.secureCookies }));
   if (favoriteService) app.use('/api/v1/favorites', favoriteRoutes({ favoriteService }));

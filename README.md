@@ -1,6 +1,17 @@
 Question2Answer
 -----------------------------
 
+## AI Answer Evaluation
+
+This project includes an AI-powered answer evaluation service
+built with Node.js, OpenAI, and MySQL.
+
+The service evaluates Q2A answers, generates quality scores
+and feedback, and records API usage.
+
+For installation, configuration, database migration,
+and API testing instructions, see [AI_SETUP.md](AI_SETUP.md).
+
 This fork is migrating Q2A's backend to a Node.js API, one feature at a time.
 Authentication (signed JWT cookies, database-backed logout) and voting are done so far.
 See the [migration README](MIGRATION_README.md) for how to run it, demo it and test it.

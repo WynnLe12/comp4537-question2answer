@@ -67,6 +67,9 @@ services:
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Create .env from .env.example and set AUTH_JWT_SECRET}
       BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-10}
       BRIDGE_SECRET: ${BRIDGE_SECRET:?Create .env from .env.example and set BRIDGE_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY in .env}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      CLIENT_ORIGINS: ${CLIENT_ORIGINS:-http://localhost:8081}
       # Believe X-Forwarded-For only from private Docker addresses (the PHP bridge).
       TRUST_PROXY: uniquelocal
     ports: ["127.0.0.1:3000:3000"]
