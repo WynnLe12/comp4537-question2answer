@@ -21,4 +21,4 @@ function setVisitorCookie(res, cookieid, secure) {
   if (cookieid) res.cookie(visitorCookie, cookieid, { maxAge: 86400 * 365 * 1000, path: '/', httpOnly: true, secure: Boolean(secure), sameSite: 'lax' });
 }
 
-module.exports = { clientIp, postIdParam, readVisitorCookie, setVisitorCookie };
+module.exports = { MAX_POSTID, clientIp, postIdParam, readVisitorCookie, setVisitorCookie };

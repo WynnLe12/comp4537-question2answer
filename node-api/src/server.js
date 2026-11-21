@@ -48,7 +48,7 @@ async function start() {
     identify, startSession: (userid, ip) => service.startSession(userid, ip), saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 10),
   });
   const uploadService = createUploadService(createUploadRepository(pool), { identify });
-  const aiService = createAiService(pool);
+  const aiService = createAiService(pool, postRepository);
   const app = createApp({
     aiService, identify, service, uploadService, voteService, postService, postChangeService, favoriteService, messageService, accountService, feedbackService, userAdminService, siteAdminService, recalcService, readPool, bridgeSecret: process.env.BRIDGE_SECRET, health: () => pool.query('SELECT 1'),
     secureCookies: process.env.NODE_ENV === 'production',

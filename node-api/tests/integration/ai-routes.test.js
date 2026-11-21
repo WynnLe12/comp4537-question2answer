@@ -97,18 +97,22 @@ describe('AI REST API routes', () => {
             .set('X-Q2A-Request', '1')
             .send({
                 question: 'What is Node.js?',
-                answer: 'A JavaScript runtime.'
+                answer: 'A JavaScript runtime.',
+                questionId: 10,
+                answerId: 20,
+                userId: 999
             })
             .expect(200);
 
         expect(response.body).toEqual(evaluation);
 
         expect(aiService.evaluate).toHaveBeenCalledWith({
-            userId: 1,
+            identity: testUser,
+            ip: '127.0.0.1',
             question: 'What is Node.js?',
             answer: 'A JavaScript runtime.',
-            questionId: null,
-            answerId: null
+            questionId: 10,
+            answerId: 20
         });
     });
 

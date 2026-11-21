@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { readToken, requireApiRequest } = require('../../http/cookies');
+const { clientIp } = require('../../http/request');
 const { ApiError } = require('../../errors');
 const { rateLimit } = require('express-rate-limit');
 
@@ -44,7 +45,8 @@ function aiRoutes({ aiService, identify }) {
             const { question, answer, questionId = null, answerId = null } = req.body || {};
 
             const result = await aiService.evaluate({
-                userId: Number(req.aiUser.id),
+                identity: req.aiUser,
+                ip: clientIp(req.ip),
                 question,
                 answer,
                 questionId,
