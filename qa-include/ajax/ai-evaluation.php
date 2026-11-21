@@ -46,6 +46,11 @@ function qa_ajax_ai_evaluation()
 		'answer' => trim(qa_viewer_text($answer['content'], $answer['format'])),
 	), '', null, 40);
 
+	// Q2A AJAX errors keep HTTP 200 and carry their application error code in JSON.
+	if ($result['status'] === 429 && $result['retry_after'] !== null) {
+		header('Retry-After: ' . $result['retry_after']);
+	}
+
 	return $result['data'] ?? array('error' => array('code' => 'unavailable'));
 }
 

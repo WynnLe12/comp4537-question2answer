@@ -12,6 +12,18 @@ function node_bridge_request($action, $body = null)
     return node_bridge_api($body === null ? 'GET' : 'POST', '/api/v1/auth/' . $action, $body);
 }
 
+function node_bridge_retry_after($value)
+{
+    if (preg_match('/\A[0-9]+\z/', $value)) {
+        return (float)$value <= 9007199254740991 ? $value : null; // JavaScript safe integer
+    }
+    if (!preg_match('/\A[A-Z][a-z]{2}, [0-9]{2} [A-Z][a-z]{2} [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT\z/', $value)) {
+        return null;
+    }
+    $timestamp = strtotime($value);
+    return $timestamp !== false && gmdate('D, d M Y H:i:s \G\M\T', $timestamp) === $value ? $value : null;
+}
+
 // Calls the Node API server to server. The browser's address is forwarded so Node records
 // the same IP that PHP's qa_remote_ip_address() would (Node trusts it only from TRUST_PROXY).
 // $raw, when given, is sent as the body (application/octet-stream) instead of $body as JSON.
@@ -36,8 +48,14 @@ function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw 
     $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . $path, false, $context);
     $status = 503;
     $cookie = null;
+    $retryAfter = null;
     foreach ($http_response_header ?? array() as $header) {
-        if (preg_match('/^HTTP\/\S+ (\d+)/', $header, $match)) $status = (int)$match[1];
+        if (preg_match('/^HTTP\/\S+ (\d+)/', $header, $match)) {
+            $status = (int)$match[1];
+            $retryAfter = null;
+        } elseif (stripos($header, 'Retry-After:') === 0) {
+            $retryAfter = node_bridge_retry_after(trim(substr($header, strlen('Retry-After:')), " \t"));
+        }
         if (preg_match('/^Set-Cookie: q2a_node_session=([^;]+);/i', $header, $match) && node_bridge_valid_token($match[1])) $cookie = $match[1];
         // A visitor cookie Node created for an anonymous post is passed on to the browser, as qa_cookie_get_create() does.
         if (preg_match('/^Set-Cookie: qa_id=(\d{1,20});/i', $header, $match)) {
@@ -45,7 +63,7 @@ function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw 
             $_COOKIE['qa_id'] = $match[1];
         }
     }
-    return array('status' => $status, 'data' => json_decode($raw ?: '{}', true), 'token' => $cookie);
+    return array('status' => $status, 'data' => json_decode($raw ?: '{}', true), 'token' => $cookie, 'retry_after' => $retryAfter);
 }
 
 function node_bridge_cookie($token, $remember = false)

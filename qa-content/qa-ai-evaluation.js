@@ -6,8 +6,44 @@
 		expired_form: 'Reload this page and try again.',
 		invalid_input: 'The question or answer is empty or too long to evaluate.',
 		post_unavailable: 'This question or answer is no longer available for evaluation.',
-		ai_rate_limit_exceeded: 'Too many evaluations. Try again in a few minutes.',
 	};
+	const unavailable = 'AI evaluation is temporarily unavailable. Please try again.';
+	const rateLimitMessages = {
+		ai_rate_limit_exceeded: 'Too many AI evaluations.',
+		ai_provider_rate_limited: 'The AI provider is busy right now.',
+	};
+
+	function retrySeconds(value)
+	{
+		if (!value) {
+			return null;
+		}
+		if (/^\d+$/.test(value)) {
+			const seconds = Number(value);
+			return Number.isSafeInteger(seconds) ? seconds : null;
+		}
+		const date = new Date(value);
+		return Number.isFinite(date.getTime()) && date.toUTCString() === value
+			? Math.max(0, Math.ceil((date.getTime() - Date.now()) / 1000)) : null;
+	}
+
+	function evaluationError(code, retryAfter)
+	{
+		if (!Object.hasOwn(rateLimitMessages, code)) {
+			return Object.hasOwn(messages, code) ? messages[code] : unavailable;
+		}
+		const message = rateLimitMessages[code];
+		const seconds = retrySeconds(retryAfter);
+		if (seconds === null) {
+			return message + ' Try again later.';
+		}
+		if (seconds === 0) {
+			return message + ' You can try again now.';
+		}
+		const [divisor, unit] = seconds < 60 ? [1, 'second'] : seconds < 3600 ? [60, 'minute'] : [3600, 'hour'];
+		const wait = Math.ceil(seconds / divisor);
+		return message + ' Try again in ' + wait + ' ' + unit + (wait === 1 ? '.' : 's.');
+	}
 
 	function appendText(parent, tag, text)
 	{
@@ -67,7 +103,8 @@
 
 			const data = JSON.parse(text.slice(prefix.length));
 			if (data.error) {
-				throw new Error(data.error.code);
+				status.textContent = evaluationError(data.error.code, response.headers.get('Retry-After'));
+				return;
 			}
 
 			const content = document.createDocumentFragment();
@@ -78,10 +115,8 @@
 			results.hidden = false;
 			status.textContent = 'Evaluation saved.';
 			button.querySelector('.qa-ai-button-label').textContent = 'Evaluate again';
-		} catch (error) {
-			status.textContent = Object.hasOwn(messages, error.message)
-				? messages[error.message]
-				: 'AI evaluation is temporarily unavailable. Please try again.';
+		} catch {
+			status.textContent = unavailable;
 		} finally {
 			button.disabled = false;
 		}
