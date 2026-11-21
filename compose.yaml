@@ -44,7 +44,7 @@ services:
     environment:
       <<: *credentials
       DB_HOST: node-db
-    command: ["php", "docker/php/seed.php"]
+    command: ["php", "docker/php/seed.php", "--with-ai"]
     depends_on:
       node-db: {condition: service_healthy}
   php:

@@ -8,7 +8,7 @@
 const { createHash } = require('node:crypto');
 
 // Tables Node owns or that only cache derived data.
-const SKIP_TABLES = new Set(['node_auth_sessions', 'qa_cache']);
+const SKIP_TABLES = new Set(['node_auth_sessions', 'node_ai_evaluations', 'node_ai_usage', 'qa_cache']);
 // Columns that differ by design between two runs of the same operations.
 const MASK = {
   qa_users: ['passsalt', 'passcheck', 'passhash', 'sessioncode', 'sessionsource', 'emailcode'],

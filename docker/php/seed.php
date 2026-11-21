@@ -88,4 +88,24 @@ if (!qa_opt('demo_content_seeded')) {
     qa_opt('demo_content_seeded', 1);
     echo "Demo questions, answers, comments and votes created.\n";
 }
+
+if (in_array('--with-ai', $argv, true)) {
+    $migration = file_get_contents(__DIR__ . '/../../node-api/migrations/001_ai_tables.sql');
+    if ($migration === false) {
+        throw new RuntimeException('Could not read the AI schema migration.');
+    }
+
+    $database = qa_db_connection();
+    if (!$database->multi_query($migration)) {
+        throw new RuntimeException('AI schema migration failed (MySQL error ' . $database->errno . ').');
+    }
+    // mysqli reports errors in later statements only when advancing to them.
+    while ($database->more_results()) {
+        if (!$database->next_result()) {
+            throw new RuntimeException('AI schema migration failed (MySQL error ' . $database->errno . ').');
+        }
+    }
+    echo "AI schema ready.\n";
+}
+
 echo "Q2A schema and synthetic authentication fixtures ready.\n";

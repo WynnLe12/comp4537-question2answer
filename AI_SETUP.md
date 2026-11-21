@@ -15,9 +15,8 @@ in MySQL.
 ## Requirements
 
 - Docker Desktop
-- Node.js 24+
 - An OpenAI API key with available credits
-- Existing Q2A MySQL database
+- Node.js 24+ if running backend tests outside Docker
 
 ## Environment Configuration
 
@@ -35,31 +34,21 @@ Never commit `.env` or real API keys.
 
 ## Database Setup
 
-Start the project's Docker containers:
+From the repository root, start the Compose stack:
 
 ```powershell
-docker compose up -d --build
+docker compose up -d --build --wait
 ```
 
-Copy the migration file into the Node.js MySQL container:
+Compose waits for `node-db` to become healthy, then runs `seed-node`.
+The seed prepares the Q2A schema and authentication tables and applies
+[`001_ai_tables.sql`](node-api/migrations/001_ai_tables.sql) to create
+`node_ai_evaluations` and `node_ai_usage`. The API starts after the seed
+completes successfully.
 
-```powershell
-docker compose cp node-api/migrations/001_ai_tables.sql node-db:/tmp/001_ai_tables.sql
-```
-
-Execute the migration:
-
-```powershell
-docker compose exec -T node-db sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" < /tmp/001_ai_tables.sql'
-```
-
-This creates:
-
-- `node_ai_evaluations`
-- `node_ai_usage`
-
-The migration uses `CREATE TABLE IF NOT EXISTS`, so it
-can be rerun without recreating existing tables.
+Use the same command for a fresh setup or an existing Compose volume.
+The migration uses `CREATE TABLE IF NOT EXISTS` and preserves existing
+tables and rows. If initialization fails, inspect `docker compose logs seed-node`.
 
 ## REST API Endpoints
 
@@ -129,31 +118,7 @@ consume OpenAI API credits.
 - AI scores are estimates of answer quality, not
   guaranteed probabilities of correctness.
 - The backend stores evaluations and API usage separately.
-- The frontend and API must be deployed on different origins.
 - Production cross-site cookie and CSRF configuration
   must be reviewed before public deployment.
 - A third-party AI provider must be approved by the
   instructor or TA.
-```
-
-### 3. Save and stage the documentation
-
-Run:
-
-```powershell
-git add node-api/AI_SETUP.md
-```
-
-Then verify:
-
-```powershell
-git diff --cached --check
-```
-
-If there's no output, the documentation is staged without whitespace errors.
-
-### What remains before pushing?
-
-Your implementation and tests are in good shape. We still need to inspect the staged code for secrets, confirm the SQL migration and application wiring are safe, and review deployment authentication settings.
-
-**For now, create `AI_SETUP.md` and stage it.** Send me **"next"** when finished, and we'll review the staged changes before committing your work.
