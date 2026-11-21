@@ -133,10 +133,8 @@ blockquote {
 	margin: 0 0 0 10px;
 }
 
-.qa-nav-user-updates:before {
-	margin: 0 0 0 10px;
-}
-
+.qa-nav-user-updates:before,
+.qa-nav-user-ai-evaluation-history:before,
 .qa-nav-user-logout:before {
 	margin: 0 0 0 10px;
 }

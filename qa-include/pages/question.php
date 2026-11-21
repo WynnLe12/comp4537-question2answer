@@ -261,6 +261,32 @@ if ($formtype == 'q_edit') { // ...in edit mode
 	))); // as far as I know, META keywords have zero effect on search rankings or listings, but many people have asked for this
 }
 
+if ($userid && function_exists('node_bridge_api')) {
+	$qa_content['script_rel'][] = 'qa-content/qa-ai-evaluation.js?' . filemtime(QA_INCLUDE_DIR . '../qa-content/qa-ai-evaluation.js');
+	$qa_content['head_lines'][] = '<style>
+		.qa-body-js-off .qa-ai-evaluation { display: none; }
+		.qa-ai-evaluation { margin-block: 0.75em; }
+		.qa-ai-evaluation .qa-ai-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.45em;
+			padding: 0.45em 0.75em;
+			border: 1px solid #659aba;
+			border-radius: 4px;
+			background: #eef7fc;
+			color: #164665;
+			font: inherit;
+			line-height: 1.25;
+			cursor: pointer;
+		}
+		.qa-ai-evaluation .qa-ai-button:hover { background: #dceef9; }
+		.qa-ai-evaluation .qa-ai-button:focus-visible { outline: 2px solid #164665; outline-offset: 2px; }
+		.qa-ai-evaluation .qa-ai-button:disabled { opacity: 0.65; cursor: wait; }
+		.qa-ai-evaluation [role="status"]:empty { margin: 0; }
+		.qa-ai-results { overflow-wrap: anywhere; }
+	</style>';
+}
+
 $microdata = qa_opt('use_microdata');
 if ($microdata) {
 	$qa_content['head_lines'][] = '<meta itemprop="name" content="' . qa_html($qa_content['q_view']['raw']['title']) . '">';

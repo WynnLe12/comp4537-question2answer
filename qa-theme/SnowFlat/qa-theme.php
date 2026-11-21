@@ -64,6 +64,14 @@ class qa_html_theme extends qa_html_theme_base
 	}
 
 	/**
+	 * Refresh the browser's stylesheet cache when the theme stylesheet changes.
+	 */
+	public function css_name()
+	{
+		return 'qa-styles.css?' . filemtime(__DIR__ . '/qa-styles.css');
+	}
+
+	/**
 	 * Adding theme stylesheets
 	 *
 	 * @since Snow 1.4
@@ -72,7 +80,7 @@ class qa_html_theme extends qa_html_theme_base
 	{
 		// add RTL CSS file
 		if ($this->isRTL)
-			$this->content['css_src'][] = $this->rooturl . 'qa-styles-rtl.css?' . QA_VERSION;
+			$this->content['css_src'][] = $this->rooturl . 'qa-styles-rtl.css?' . filemtime(__DIR__ . '/qa-styles-rtl.css');
 
 		if ($this->localfonts) {
 			// add Ubuntu font locally (inlined for speed)

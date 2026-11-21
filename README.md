@@ -9,6 +9,12 @@ built with Node.js, OpenAI, and MySQL.
 The service evaluates Q2A answers, generates quality scores
 and feedback, and records API usage.
 
+On the migrated site (http://localhost:8081 in Docker Compose),
+sign in and open a question. Use **Evaluate with AI** on a published
+answer to send its text and the question to OpenAI and see the score,
+feedback, and suggestions. **AI Evaluation History** in the account menu lists your
+saved evaluations.
+
 For installation, configuration, database migration,
 and API testing instructions, see [AI_SETUP.md](AI_SETUP.md).
 

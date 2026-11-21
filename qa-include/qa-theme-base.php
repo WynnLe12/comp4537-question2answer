@@ -2365,6 +2365,26 @@ class qa_html_theme_base
 		$this->output('<div class="qa-a-item-content qa-post-content">');
 		$this->output_raw($a_item['content']);
 		$this->output('</div>');
+
+		if (isset($a_item['ai_evaluation'])) {
+			$this->ai_evaluation_control($a_item['ai_evaluation']['code'], $a_item['ai_evaluation']['answerid']);
+		}
+	}
+
+	/**
+	 * Display an evaluation request with its own status and results.
+	 */
+	public function ai_evaluation_control($code, $answerid)
+	{
+		$this->output(
+			'<div class="qa-ai-evaluation" data-code="' . qa_html($code) . '" data-answer-id="' . qa_html($answerid) . '"'
+				. ' data-history-url="' . qa_path_html('ai-evaluation-history') . '">',
+			'<button type="button" class="qa-ai-button"><span aria-hidden="true">✦</span>'
+				. '<span class="qa-ai-button-label">Evaluate with AI</span></button>',
+			'<p role="status"></p>',
+			'<div class="qa-ai-results" hidden></div>',
+			'</div>'
+		);
 	}
 
 	public function a_item_buttons($a_item)

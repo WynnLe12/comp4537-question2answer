@@ -396,6 +396,7 @@ function qa_page_routing()
 
 	return array(
 		'account' => 'pages/account.php',
+		'ai-evaluation-history' => 'pages/ai-evaluation-history.php',
 		'activity/' => 'pages/activity.php',
 		'admin/' => 'pages/admin/admin-default.php',
 		'admin/approve' => 'pages/admin/admin-approve.php',
@@ -726,6 +727,13 @@ function qa_content_prepare($voting = false, $categoryids = array())
 			'url' => qa_path_html('updates'),
 			'label' => qa_lang_html('main/nav_updates'),
 		);
+
+		if (function_exists('node_bridge_api')) {
+			$qa_content['navigation']['user']['ai-evaluation-history'] = array(
+				'url' => qa_path_html('ai-evaluation-history'),
+				'label' => 'AI Evaluation History',
+			);
+		}
 
 		if (!empty($userlinks['logout'])) {
 			$qa_content['navigation']['user']['logout'] = array(

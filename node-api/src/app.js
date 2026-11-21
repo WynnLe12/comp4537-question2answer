@@ -46,6 +46,8 @@ function createApp({ aiService, identify, service, voteService, postService, pos
   // Posts may hold 12000 characters (up to 36 kB of UTF-8); everything else stays small.
   app.use('/api/v1/internal', express.json({ limit: '2mb', strict: true }));
   app.use(['/api/v1/questions', '/api/v1/posts', '/api/v1/users', '/api/v1/admin'], express.json({ limit: '64kb', strict: true }));
+  // Allow the AI service's text limits even when JSON escaping expands the request.
+  app.use('/api/v1/ai/evaluate', express.json({ limit: '96kb', strict: true }));
   app.use(express.json({ limit: '16kb', strict: true }));
   app.get('/health', async (req, res) => { await health(); res.json({ status: 'ok' }); });
   app.use('/api/v1/auth', authRoutes(service, options));

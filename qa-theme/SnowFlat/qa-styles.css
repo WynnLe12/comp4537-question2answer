@@ -782,8 +782,9 @@ blockquote p {
 	display: inline-block;
 }
 
-.qa-nav-user-updates:before {
-	content: '\e812';
+.qa-nav-user-updates:before,
+.qa-nav-user-ai-evaluation-history:before,
+.qa-nav-user-logout:before {
 	font-family: "fontello";
 	display: inline-block;
 	width: 1em;
@@ -795,17 +796,16 @@ blockquote p {
 	border-radius: 1em;
 }
 
+.qa-nav-user-updates:before {
+	content: '\e812';
+}
+
+.qa-nav-user-ai-evaluation-history:before {
+	content: '\e80c';
+}
+
 .qa-nav-user-logout:before {
 	content: '\e824';
-	font-family: "fontello";
-	display: inline-block;
-	width: 1em;
-	background-color: #2c3e50;
-	padding: 5px;
-	margin: 0 10px 0 0;
-	text-align: center;
-	line-height: normal;
-	border-radius: 1em;
 }
 
 .qa-logged-in:hover, .qam-logged-in-points:hover, .qa-nav-user-item:hover {

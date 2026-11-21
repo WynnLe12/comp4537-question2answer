@@ -66,6 +66,7 @@ $routing = array(
 	'category' => 'category.php',
 	'asktitle' => 'asktitle.php',
 	'answer' => 'answer.php',
+	'ai_evaluation' => 'ai-evaluation.php',
 	'comment' => 'comment.php',
 	'click_a' => 'click-answer.php',
 	'click_c' => 'click-comment.php',

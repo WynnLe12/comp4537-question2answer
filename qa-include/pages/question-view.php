@@ -509,6 +509,13 @@ function qa_page_q_answer_view($question, $answer, $isselected, $usershtml, $for
 	if ($answer['queued'])
 		$a_view['error'] = $answer['isbyuser'] ? qa_lang_html('question/a_your_waiting_approval') : qa_lang_html('question/a_waiting_your_approval');
 
+	if ($userid && function_exists('node_bridge_api') && $question['type'] === 'Q' && $answer['type'] === 'A') {
+		$a_view['ai_evaluation'] = array(
+			'answerid' => $answerid,
+			'code' => qa_get_form_security_code('ai-evaluation'),
+		);
+	}
+
 	$a_view['main_form_tags'] = 'method="post" action="' . qa_self_html() . '"';
 	$a_view['voting_form_hidden'] = array('code' => qa_get_form_security_code('vote'));
 	$a_view['buttons_form_hidden'] = array('code' => qa_get_form_security_code('buttons-' . $answerid), 'qa_click' => '');

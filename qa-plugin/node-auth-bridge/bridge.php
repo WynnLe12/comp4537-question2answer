@@ -15,7 +15,7 @@ function node_bridge_request($action, $body = null)
 // Calls the Node API server to server. The browser's address is forwarded so Node records
 // the same IP that PHP's qa_remote_ip_address() would (Node trusts it only from TRUST_PROXY).
 // $raw, when given, is sent as the body (application/octet-stream) instead of $body as JSON.
-function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw = null)
+function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw = null, $timeout = null)
 {
     $token = $_COOKIE['q2a_node_bridge'] ?? '';
     $headers = "Accept: application/json\r\n";
@@ -31,7 +31,7 @@ function node_bridge_api($method, $path, $body = null, $extraheaders = '', $raw 
     $context = stream_context_create(array('http' => array(
         'method' => $method, 'header' => $headers,
         'content' => $raw !== null ? $raw : ($body === null ? '' : json_encode($body)),
-        'ignore_errors' => true, 'timeout' => $raw !== null ? 30 : 5, 'follow_location' => 0,
+        'ignore_errors' => true, 'timeout' => $timeout ?? ($raw !== null ? 30 : 5), 'follow_location' => 0,
     )));
     $raw = @file_get_contents(rtrim(getenv('NODE_AUTH_API'), '/') . $path, false, $context);
     $status = 503;
