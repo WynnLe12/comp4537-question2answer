@@ -85,14 +85,51 @@ Successful response:
 Returns up to 50 saved evaluations belonging to the
 authenticated user.
 
+### GET /api/v1/admin/ai/usage
+
+Requires a Q2A session for a global administrator or super administrator.
+A missing or invalid session returns `401 unauthenticated`. Other roles
+and blocked administrators receive `403 no_privileges`.
+
+Example response:
+
+```json
+{
+  "totalRecordedRequests": 3,
+  "successfulEvaluations": 2,
+  "failedProviderAttempts": 1,
+  "totalRecordedTokens": 610,
+  "byDate": [
+    { "date": "2026-11-20", "requests": 1 },
+    { "date": "2026-11-21", "requests": 2 }
+  ],
+  "byStatus": [
+    { "statusCode": 200, "requests": 2 },
+    { "statusCode": 429, "requests": 1 }
+  ]
+}
+```
+
+All counts cover recorded rows for `/api/v1/ai/evaluate` across the
+available history. HTTP 200 rows count as successful evaluations, even
+when their evaluation link has been cleared. Other rows count as failed
+provider attempts. The token total sums recorded values and skips nulls.
+Date buckets use the calendar date stored in MySQL, with no timezone
+conversion. Only dates and status codes with recorded requests appear.
+An empty table produces zero totals and empty breakdowns.
+
+Local rate-limit and validation rejections, missing API configuration,
+and provider attempts whose usage row could not be saved are outside these
+metrics. The endpoint returns aggregates without request content or user data.
+
 ## Authentication
 
-Both endpoints require a valid Q2A API session.
+All AI endpoints require a valid Q2A API session.
 
 For browser requests:
 
 - Include credentials.
-- Use the `X-Q2A-Request: 1` header.
+- Use the `X-Q2A-Request: 1` header for evaluation requests.
 - Configure the frontend origin in `CLIENT_ORIGINS`.
 
 ## Rate Limiting

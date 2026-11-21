@@ -1,6 +1,7 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app');
 const { createSiteAdminService } = require('../../src/services/site-admin');
+const { FLAGS, LEVEL } = require('../../src/q2a/permissions');
 
 describe('admin option rules (admin-default.php, qa_default_option())', () => {
   const { normalize, defaultOption } = createSiteAdminService({}, { identify: async () => null });
@@ -47,5 +48,52 @@ describe('site administration routes (service replaced)', () => {
     await send('put', '/api/v1/admin/plugins', { directories: [] });
     expect(calls.map(([name]) => name)).toEqual(['saveOptions', 'resetOptions', 'saveCategory', 'saveCategory', 'deleteCategory', 'savePage', 'deleteWidget', 'saveUserTitle', 'saveUserField', 'perform', 'mailingStep', 'setEnabledPlugins']);
     expect(calls[3][1].body.categoryid).toBe(4);
+  });
+});
+
+describe('admin AI usage route', () => {
+  const users = {
+    admin: { id: 1, level: LEVEL.ADMIN, flags: 0, email: 'private@example.test' },
+    super: { id: 2, level: LEVEL.SUPER, flags: 0 },
+    regular: { id: 3, level: LEVEL.BASIC, flags: 0 },
+    moderator: { id: 4, level: LEVEL.MODERATOR, flags: 0 },
+    blocked: { id: 5, level: LEVEL.ADMIN, flags: FLAGS.USER_BLOCKED },
+  };
+  const stats = {
+    totalRecordedRequests: 2,
+    successfulEvaluations: 1,
+    failedProviderAttempts: 1,
+    totalRecordedTokens: 42,
+    byDate: [{ date: '2026-11-20', requests: 2 }],
+    byStatus: [{ statusCode: 200, requests: 1 }, { statusCode: 502, requests: 1 }],
+  };
+  const getUsageStatistics = jest.fn().mockResolvedValue(stats);
+  const app = createApp({
+    service: {},
+    siteAdminService: createSiteAdminService({}, {
+      identify: async token => Object.hasOwn(users, token) ? users[token] : null,
+      aiRepository: { getUsageStatistics },
+    }),
+  });
+  const getUsage = () => request(app).get('/api/v1/admin/ai/usage');
+
+  beforeEach(() => getUsageStatistics.mockClear());
+
+  test.each(['admin', 'super'])('returns aggregate statistics with no-store for %s', async token => {
+    const response = await getUsage().set('Cookie', `q2a_node_session=${token}`)
+      .expect(200).expect('Cache-Control', 'no-store');
+    expect(response.body).toEqual(stats);
+    expect(getUsageStatistics).toHaveBeenCalledTimes(1);
+  });
+
+  test.each(['regular', 'moderator', 'blocked'])('rejects %s before querying the usage table', async token => {
+    const response = await getUsage().set('Cookie', `q2a_node_session=${token}`).expect(403);
+    expect(response.body).toEqual({ error: { code: 'no_privileges' } });
+    expect(getUsageStatistics).not.toHaveBeenCalled();
+  });
+
+  test('requires an authenticated session', async () => {
+    await getUsage().expect(401, { error: { code: 'unauthenticated' } });
+    expect(getUsageStatistics).not.toHaveBeenCalled();
   });
 });

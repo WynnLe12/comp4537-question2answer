@@ -21,6 +21,7 @@ const { createRecalcRepository } = require('./repositories/recalc');
 const { createRecalcService } = require('./services/recalc');
 const { createUploadRepository } = require('./repositories/uploads');
 const { createUploadService } = require('./services/uploads');
+const { createAiRepository } = require('./repositories/ai');
 const { createAiService } = require('./services/ai');
 const { createApp } = require('./app');
 
@@ -41,7 +42,9 @@ async function start() {
   const favoriteService = createFavoriteService(createFavoriteRepository(pool), { identify });
   const messageService = createMessageService(createMessageRepository(pool), { identify });
   const userAdminService = createUserAdminService(createUserAdminRepository(pool), { identify, postChangeService });
-  const siteAdminService = createSiteAdminService(createSiteAdminRepository(pool), { identify });
+  const siteAdminService = createSiteAdminService(createSiteAdminRepository(pool), {
+    identify, aiRepository: createAiRepository(pool),
+  });
   const recalcService = createRecalcService(createRecalcRepository(pool), { identify, postChangeService });
   const feedbackService = createFeedbackService(createMessageRepository(pool), { identify });
   const accountService = createAccountService(createAccountRepository(pool), {

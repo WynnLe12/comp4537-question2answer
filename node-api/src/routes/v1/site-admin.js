@@ -17,6 +17,7 @@ function siteAdminRoutes({ siteAdminService, recalcService }) {
   const call = method => async (req, res) => {
     res.json(await siteAdminService[method]({ token: readToken(req), ip: clientIp(req.ip), host: req.get('Host'), params: req.params, body: req.body }));
   };
+  router.get('/ai/usage', call('getAiUsage'));
   router.put('/options', call('saveOptions'));
   router.post('/options/reset', call('resetOptions'));
   // The recalculation tools: { state } (or an operation such as "dorecountposts") and { seconds }.

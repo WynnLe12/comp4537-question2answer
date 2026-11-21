@@ -1,3 +1,5 @@
+const EVALUATION_ENDPOINT = '/api/v1/ai/evaluate';
+
 function createAiRepository(pool) {
     return {
         // Save a successful AI evaluation and usage record.
@@ -47,7 +49,7 @@ function createAiRepository(pool) {
                     [
                         userId,
                         evaluationId,
-                        '/api/v1/ai/evaluate',
+                        EVALUATION_ENDPOINT,
                         200,
                         tokensUsed ?? null
                     ]
@@ -87,6 +89,43 @@ function createAiRepository(pool) {
             }));
         },
 
+        async getUsageStatistics() {
+            const [rows] = await pool.execute(
+                `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS usageDate, status_code AS statusCode,
+                        COUNT(*) AS requestCount, COALESCE(SUM(tokens_used), 0) AS tokenCount
+                 FROM node_ai_usage
+                 WHERE endpoint = ?
+                 GROUP BY usageDate, status_code
+                 ORDER BY usageDate, status_code`,
+                [EVALUATION_ENDPOINT]
+            );
+
+            let totalRecordedRequests = 0;
+            let successfulEvaluations = 0;
+            let totalRecordedTokens = 0;
+            const byDate = new Map();
+            const byStatus = new Map();
+            for (const { usageDate, statusCode, requestCount, tokenCount } of rows) {
+                const requests = Number(requestCount);
+                totalRecordedRequests += requests;
+                totalRecordedTokens += Number(tokenCount);
+                // The outcome survives deletion of an evaluation and its foreign-key link.
+                if (statusCode === 200) successfulEvaluations += requests;
+                byDate.set(usageDate, (byDate.get(usageDate) ?? 0) + requests);
+                byStatus.set(statusCode, (byStatus.get(statusCode) ?? 0) + requests);
+            }
+
+            return {
+                totalRecordedRequests,
+                successfulEvaluations,
+                failedProviderAttempts: totalRecordedRequests - successfulEvaluations,
+                totalRecordedTokens,
+                byDate: Array.from(byDate, ([date, requests]) => ({ date, requests })),
+                byStatus: Array.from(byStatus, ([statusCode, requests]) => ({ statusCode, requests }))
+                    .sort((a, b) => a.statusCode - b.statusCode)
+            };
+        },
+
         // Record AI requests that failed.
         async logFailedRequest(userId, statusCode) {
             await pool.execute(
@@ -96,7 +135,7 @@ function createAiRepository(pool) {
                 VALUES (?, NULL, ?, ?, NULL)`,
                 [
                     userId,
-                    '/api/v1/ai/evaluate',
+                    EVALUATION_ENDPOINT,
                     statusCode
                 ]
             );

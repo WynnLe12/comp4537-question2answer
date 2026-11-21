@@ -4,7 +4,7 @@
 const sharp = require('sharp');
 const { ApiError } = require('../errors');
 const { phpBool, phpInt, phpNum } = require('../q2a/php');
-const { LEVEL, PERMIT } = require('../q2a/permissions');
+const { LEVEL, PERMIT, permitValueError } = require('../q2a/permissions');
 const text = require('../q2a/text');
 const optionData = require('../data/admin-options.json');
 const fixedDefaults = require('../data/option-defaults.json');
@@ -24,7 +24,7 @@ const MAX_TITLE = 800; // QA_DB_MAX_TITLE_LENGTH
 const MAX_PROFILE_TITLE = 40; // QA_DB_MAX_PROFILE_TITLE_LENGTH
 const HOT_WEIGHTS = ['hot_weight_views', 'hot_weight_answers', 'hot_weight_votes', 'hot_weight_q_age', 'hot_weight_a_age'];
 
-function createSiteAdminService(repository, { identify }) {
+function createSiteAdminService(repository, { identify, aiRepository }) {
   async function transaction(request, work) {
     const identity = await identify(request.token);
     if (!identity) throw new ApiError(401, 'unauthenticated');
@@ -34,6 +34,15 @@ function createSiteAdminService(repository, { identify }) {
       if (Number(actor.level) < LEVEL.ADMIN) throw new ApiError(403, 'no_privileges');
       return work({ q, actor, options: await q.loadOptions(), ip: request.ip });
     });
+  }
+
+  async function getAiUsage({ token }) {
+    const actor = await identify(token);
+    if (!actor) throw new ApiError(401, 'unauthenticated');
+    if (!Number.isInteger(Number(actor.level)) || permitValueError(PERMIT.ADMINS, actor, actor.level)) {
+      throw new ApiError(403, 'no_privileges');
+    }
+    return aiRepository.getUsageStatistics();
   }
 
   // admin-default.php's save loop: the posted text, made a number for number and checkbox options
@@ -557,6 +566,7 @@ function createSiteAdminService(repository, { identify }) {
   }
 
   return {
+    getAiUsage,
     mailingTest, mailingStart, mailingStop, mailingStep, setEnabledPlugins,
     saveOptions, resetOptions, uploadDefaultAvatar, saveCategory, deleteCategory, reassignCategory,
     savePage, deletePage, saveWidget, deleteWidget, saveUserTitle, saveUserField, deleteUserField, normalize, defaultOption,
