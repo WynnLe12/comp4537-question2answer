@@ -53,6 +53,20 @@ describe('PHP ↔ Node authentication parity (real HTTP and isolated MySQL datab
   beforeAll(() => { pools = [createPool({ host: process.env.PHP_DB_HOST || 'php-db' }), createPool()]; });
   afterAll(async () => { await Promise.all(pools.map(pool => pool.end())); });
 
+  const api = () => request(process.env.API_URL || 'http://localhost:3000');
+  async function signIn(handle, remember = false) {
+    const response = await api().post('/api/v1/auth/login').set('X-Q2A-Request', '1')
+      .send({ emailhandle: handle, password: 'Password123!', remember }).expect(200);
+    const cookieHeader = response.headers['set-cookie'][0];
+    const cookie = cookieHeader.split(';')[0];
+    const tokenHash = createHash('sha256').update(cookie.split('=')[1]).digest('hex');
+    expect(response.body.user.handle).toBe(handle);
+    return { user: response.body.user, cookieHeader, cookie, tokenHash };
+  }
+  const me = session => api().get('/api/v1/auth/me').set('Cookie', session.cookie);
+  const logout = session => api().post('/api/v1/auth/logout').set('X-Q2A-Request', '1')
+    .set('Cookie', session.cookie).send({}).expect(204);
+
   test('registers the same account and initializes equivalent user/points records', async () => {
     const outcomes = [];
     for (const make of [phpClient, nodeClient]) {
@@ -161,15 +175,60 @@ describe('PHP ↔ Node authentication parity (real HTTP and isolated MySQL datab
     expect(n).toBe(0);
   });
 
-  test('Node rejects expired sessions and remembered sessions set a persistent cookie', async () => {
-    const client = request.agent(process.env.API_URL || 'http://localhost:3000');
-    const response = await client.post('/api/v1/auth/login').set('X-Q2A-Request', '1')
-      .send({ emailhandle: 'alice', password: 'Password123!', remember: true }).expect(200);
-    const cookie = response.headers['set-cookie'][0];
-    expect(cookie).toContain('Max-Age=2592000');
-    const token = cookie.split(';')[0].split('=')[1];
-    const digest = createHash('sha256').update(token).digest('hex');
-    await pools[1].execute('UPDATE node_auth_sessions SET expires_at=TIMESTAMPADD(SECOND,-1,UTC_TIMESTAMP()) WHERE token_hash=?', [digest]);
-    await client.get('/api/v1/auth/me').expect(401);
+  test('Node keeps sequential sessions independent when one logs out', async () => {
+    const first = await signIn('alice');
+    const second = await signIn('alice');
+    try {
+      expect(first.tokenHash).not.toBe(second.tokenHash);
+      await me(first).expect(200, { user: first.user });
+      await me(second).expect(200, { user: second.user });
+      await logout(first);
+      await me(first).expect(401);
+      await me(second).expect(200, { user: second.user });
+      const [rows] = await pools[1].execute('SELECT token_hash FROM node_auth_sessions WHERE token_hash=?', [first.tokenHash]);
+      expect(rows).toEqual([]);
+    } finally {
+      await logout(second);
+    }
+  });
+
+  test.each([
+    ['the same user', ['alice', 'alice', 'alice', 'alice']],
+    ['different users', ['alice', 'bob', 'carol', 'legacy']],
+  ])('Node creates four concurrent sessions for %s', async (_group, handles) => {
+    for (let round = 0; round < 6; round++) {
+      const sessions = await Promise.all(handles.map(handle => signIn(handle)));
+      try {
+        const hashes = sessions.map(session => session.tokenHash);
+        expect(new Set(hashes).size).toBe(handles.length);
+        const [rows] = await pools[1].query(
+          'SELECT token_hash, userid, expires_at > UTC_TIMESTAMP() AS isCurrent FROM node_auth_sessions WHERE token_hash IN (?)',
+          [hashes],
+        );
+        expect(rows).toHaveLength(handles.length);
+        expect(rows).toEqual(expect.arrayContaining(sessions.map(session => ({
+          token_hash: session.tokenHash, userid: session.user.id, isCurrent: 1,
+        }))));
+        await Promise.all(sessions.map(session => me(session).expect(200, { user: session.user })));
+      } finally {
+        await Promise.all(sessions.map(logout));
+      }
+    }
+  });
+
+  test('Node rejects expired sessions and cleans them up on the next sign-in', async () => {
+    const expired = await signIn('alice', true);
+    expect(expired.cookieHeader).toContain('Max-Age=2592000');
+    await pools[1].execute('UPDATE node_auth_sessions SET expires_at=TIMESTAMPADD(SECOND,-1,UTC_TIMESTAMP()) WHERE token_hash=?', [expired.tokenHash]);
+    await me(expired).expect(401);
+
+    const replacement = await signIn('alice');
+    try {
+      const [rows] = await pools[1].execute('SELECT token_hash FROM node_auth_sessions WHERE token_hash=?', [expired.tokenHash]);
+      expect(rows).toEqual([]);
+      await me(replacement).expect(200, { user: replacement.user });
+    } finally {
+      await logout(replacement);
+    }
   });
 });

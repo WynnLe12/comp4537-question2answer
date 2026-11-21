@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createHash } = require('node:crypto');
 const { createApp } = require('../../src/app');
+const { createUserRepository } = require('../../src/repositories/users');
 const { createAuthService, registrationInput, verifyPassword } = require('../../src/services/auth');
 const jwtSecret = 'test-only-q2a-jwt-signing-secret-not-for-production';
 
@@ -102,6 +103,27 @@ describe('API authentication contract (repository replaced in these tests)', () 
     await request(app).post('/api/auth/login').send({}).expect(404);
     await request(app).post('/api/v2/auth/login').send({}).expect(404);
   });
+});
+
+test('session creation waits for cleanup before opening the write transaction', async () => {
+  const cleanup = Promise.withResolvers();
+  const connection = {
+    beginTransaction: jest.fn(), execute: jest.fn(), commit: jest.fn(), release: jest.fn(),
+  };
+  const pool = {
+    execute: jest.fn().mockReturnValue(cleanup.promise),
+    getConnection: jest.fn().mockResolvedValue(connection),
+  };
+  const session = createUserRepository(pool).createSession(1, 'session-hash', 86400, '127.0.0.1');
+  expect(pool.execute).toHaveBeenCalledWith('DELETE FROM node_auth_sessions WHERE expires_at <= UTC_TIMESTAMP()');
+  expect(pool.getConnection).not.toHaveBeenCalled();
+
+  cleanup.resolve();
+  await session;
+  expect(connection.beginTransaction).toHaveBeenCalledTimes(1);
+  expect(connection.execute).toHaveBeenNthCalledWith(1, expect.stringContaining('INSERT INTO node_auth_sessions'), ['session-hash', 1, 86400]);
+  expect(connection.execute).toHaveBeenNthCalledWith(2, expect.stringContaining('UPDATE qa_users'), ['127.0.0.1', 1]);
+  expect(connection.commit).toHaveBeenCalledTimes(1);
 });
 
 describe('Q2A password and input compatibility', () => {

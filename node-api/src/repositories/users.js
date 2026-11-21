@@ -85,10 +85,11 @@ function createUserRepository(pool) {
       }
     },
     async createSession(id, hash, ttl, ip) {
+      // Release the expiry-index gap locks before starting the session write transaction.
+      await pool.execute('DELETE FROM node_auth_sessions WHERE expires_at <= UTC_TIMESTAMP()');
       const connection = await pool.getConnection();
       try {
         await connection.beginTransaction();
-        await connection.execute('DELETE FROM node_auth_sessions WHERE expires_at <= UTC_TIMESTAMP()');
         await connection.execute('INSERT INTO node_auth_sessions (token_hash,userid,expires_at) VALUES (?,?,TIMESTAMPADD(SECOND,?,UTC_TIMESTAMP()))', [hash, id, ttl]);
         await connection.execute('UPDATE qa_users SET loggedin=UTC_TIMESTAMP(),loginip=INET6_ATON(?) WHERE userid=?', [ip, id]);
         await connection.commit();
