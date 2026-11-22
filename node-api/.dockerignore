@@ -3,3 +3,5 @@ coverage
 .env
 .env.*
 test-results
+.stryker-tmp
+reports

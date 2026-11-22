@@ -23,3 +23,7 @@ test-results/
 !.env.example
 !.env.demo.example
 work/
+
+# Mutation testing (Stryker)
+.stryker-tmp/
+reports/

@@ -3,7 +3,7 @@
 // qa_default_option() (app/options.php). Only admins may use them (qa_admin_check_privileges()).
 const sharp = require('sharp');
 const { ApiError } = require('../errors');
-const { phpBool, phpInt, phpNum } = require('../q2a/php');
+const { phpBool, phpInt, phpIsNumeric, phpNum } = require('../q2a/php');
 const { LEVEL, PERMIT, permitValueError } = require('../q2a/permissions');
 const text = require('../q2a/text');
 const optionData = require('../data/admin-options.json');
@@ -94,7 +94,7 @@ function createSiteAdminService(repository, { identify, aiRepository }) {
       case 'site_theme_mobile': return o('site_theme');
       case 'from_email': {
         const parts = String(site.host ?? '').split('.');
-        if (parts.length > 2 && parts[0].length < 5 && !/^\d+$/.test(parts[0])) parts.shift();
+        if (parts.length > 2 && parts[0].length < 5 && !phpIsNumeric(parts[0])) parts.shift();
         return `no-reply@${parts.length > 1 ? parts.join('.') : 'example.com'}`;
       }
       case 'email_privacy': return optionData.lang.default_privacy;
@@ -102,9 +102,10 @@ function createSiteAdminService(repository, { identify, aiRepository }) {
       case 'show_custom_header': return o('custom_header').length > 0 ? 1 : '';
       case 'show_custom_footer': return o('custom_footer').length > 0 ? 1 : '';
       case 'show_custom_in_head': return o('custom_in_head').length > 0 ? 1 : '';
-      case 'register_terms': return optionData.lang.default_terms.split('^').join(escapeHtml(o('site_title')));
+      // qa_lang_html_sub(): the language string is escaped too, then the escaped title goes in.
+      case 'register_terms': return escapeHtml(optionData.lang.default_terms).split('^').join(escapeHtml(o('site_title')));
       case 'block_bad_usernames': return strings['main/anonymous'];
-      case 'custom_sidebar': return optionData.lang.default_sidebar.split('^').join(escapeHtml(o('site_title')));
+      case 'custom_sidebar': return escapeHtml(optionData.lang.default_sidebar).split('^').join(escapeHtml(o('site_title')));
       case 'editor_for_qs': case 'editor_for_as': return site.htmlEditor ?? '-';
       case 'permit_post_q': return phpBool(o('ask_needs_login')) ? PERMIT.USERS : PERMIT.ALL;
       case 'permit_post_a': return phpBool(o('answer_needs_login')) ? PERMIT.USERS : PERMIT.ALL;
@@ -573,8 +574,9 @@ function createSiteAdminService(repository, { identify, aiRepository }) {
   };
 }
 
-const numericOr = (value, fallback) => (value !== '' && !Number.isNaN(Number(value)) ? value : fallback);
-const escapeHtml = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const numericOr = (value, fallback) => (phpIsNumeric(value) ? value : fallback); // is_numeric($oldvalue)
+// qa_html(): PHP 8's htmlspecialchars(), which escapes single quotes too.
+const escapeHtml = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 // qa_default_site_title(): the longest part of the host name, capitalised, then "Q&A"
 function defaultSiteTitle(host) {
   let longest = '';

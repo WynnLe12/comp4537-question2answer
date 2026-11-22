@@ -238,7 +238,7 @@ function createPostHelpers({ identify }) {
     const flag = pe('permit_flag');
     const userflag = Boolean(Number(post.userflag ?? 0));
     r.flagbutton = o('flagging_of_posts') && !r.isbyuser && !hidden && !queued && !userflag && !buttonErrors.includes(flag);
-    r.flagtohide = r.flagbutton && !flag && Number(post.flagcount) + 1 >= Number(options.get('flagging_hide_after'));
+    // PHP's 'flagtohide' is left out: it only picks the button label, which the PHP page computes itself.
     r.unflaggable = userflag && !hidden;
     r.clearflaggable = Number(post.flagcount) >= (userflag ? 2 : 1) && !hideShow;
     const notclosedbyother = !(r.closed && post.closedbyid !== null && !r.authorlast);
