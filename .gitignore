@@ -19,4 +19,7 @@ node_modules/
 coverage/
 test-results/
 .env
+.env.*
+!.env.example
+!.env.demo.example
 work/

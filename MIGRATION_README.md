@@ -110,6 +110,9 @@ Open **AI Usage** in the Administration Center (`/?qa=admin/ai-usage`) for
 recorded requests, outcomes, and tokens. The page uses the existing
 `GET /api/v1/admin/ai/usage` endpoint through the PHP bridge.
 
+See [Milestone 1 HTTPS deployment](MILESTONE_DEPLOYMENT.md) for the two-origin
+demo configuration and direct browser-to-API verification steps.
+
 Both sites use the same frontend files from `qa-theme/`, `qa-content/`, and Q2A's
 existing page controllers. There is no separate demo design or duplicated frontend.
 On port 8081, a small PHP bridge forwards authentication to the Node REST API;

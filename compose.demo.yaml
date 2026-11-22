@@ -1,0 +1,127 @@
+name: q2a-milestone-demo
+
+x-db-client: &db-client
+  DB_HOST: db
+  DB_NAME: q2a
+  DB_USER: q2a
+  DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.demo}
+
+x-php-image: &php-image
+  image: q2a-milestone-php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: q2a
+      MYSQL_USER: q2a
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.demo}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env.demo}
+    volumes: [demo-db:/var/lib/mysql]
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u $$MYSQL_USER $$MYSQL_DATABASE -e 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    restart: unless-stopped
+    networks: [data]
+
+  seed:
+    <<: *php-image
+    command: ["php", "docker/php/seed.php", "--with-ai"]
+    environment:
+      <<: *db-client
+      Q2A_SITE_URL: https://${DEMO_UI_HOST:?Set DEMO_UI_HOST in .env.demo}
+      Q2A_MILESTONE_DEMO_ACCOUNTS: ${Q2A_MILESTONE_DEMO_ACCOUNTS:-0}
+    networks: [data]
+    depends_on:
+      db: {condition: service_healthy}
+
+  api:
+    build: ./node-api
+    restart: unless-stopped
+    environment:
+      <<: *db-client
+      NODE_ENV: production
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET in .env.demo}
+      BRIDGE_SECRET: ${BRIDGE_SECRET:?Set BRIDGE_SECRET in .env.demo}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY in .env.demo}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      CLIENT_ORIGINS: https://${DEMO_UI_HOST:?Set DEMO_UI_HOST in .env.demo}
+      # Trust only the Caddy and PHP addresses on the application network.
+      TRUST_PROXY: 172.31.249.2,172.31.249.3
+    networks:
+      app:
+        ipv4_address: 172.31.249.4
+        aliases: [api-bridge]
+      data:
+    depends_on:
+      seed: {condition: service_completed_successfully}
+      mailpit: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ui:
+    <<: *php-image
+    restart: unless-stopped
+    environment:
+      <<: *db-client
+      NODE_AUTH_API: http://api-bridge:3000
+      BRIDGE_SECRET: ${BRIDGE_SECRET:?Set BRIDGE_SECRET in .env.demo}
+    volumes:
+      - ./docker/php/demo-https.conf:/etc/apache2/conf-enabled/demo-https.conf:ro
+    networks:
+      app:
+        ipv4_address: 172.31.249.3
+      data:
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(file_get_contents('http://localhost/?qa=login') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    environment:
+      DEMO_UI_HOST: ${DEMO_UI_HOST:?Set DEMO_UI_HOST in .env.demo}
+      DEMO_API_HOST: ${DEMO_API_HOST:?Set DEMO_API_HOST in .env.demo}
+      DEMO_ACME_EMAIL: ${DEMO_ACME_EMAIL:?Set DEMO_ACME_EMAIL in .env.demo}
+      DEMO_ALLOWED_IPS: ${DEMO_ALLOWED_IPS:?Set DEMO_ALLOWED_IPS in .env.demo}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./docker/demo/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      app:
+        ipv4_address: 172.31.249.2
+    depends_on:
+      ui: {condition: service_healthy}
+      api: {condition: service_healthy}
+
+networks:
+  app:
+    ipam:
+      config:
+        - subnet: 172.31.249.0/24
+  data:
+    internal: true
+
+volumes:
+  demo-db:
+  caddy-data:
+  caddy-config:

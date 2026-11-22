@@ -1,0 +1,45 @@
+{
+	admin off
+	email {$DEMO_ACME_EMAIL}
+}
+
+(demo_audience) {
+	@outside not remote_ip {$DEMO_ALLOWED_IPS}
+	header X-Content-Type-Options nosniff
+	respond @outside 403
+}
+
+{$DEMO_UI_HOST} {
+	@entry path / /index.php /favicon.ico
+	@assets path_regexp assets (?i)^/(qa-content|qa-theme|qa-plugin)/(?:[a-z0-9_-]+/)*[a-z0-9_.-]+\.(css|js|png|gif|jpe?g|webp|svg|ico|woff2?|ttf|eot)$
+	route {
+		import demo_audience
+		handle @entry {
+			reverse_proxy ui:80 {
+				header_up -X-Forwarded-SSL
+			}
+		}
+		handle @assets {
+			reverse_proxy ui:80
+		}
+		handle {
+			respond 404
+		}
+	}
+}
+
+{$DEMO_API_HOST} {
+	# List public route groups so bridge routes and the local-only /demo redirect stay private.
+	@public path /health /api/v1/auth/* /api/v1/ai/* /api/v1/admin/* /api/v1/questions /api/v1/questions/* /api/v1/posts/* /api/v1/users/* /api/v1/wall-posts/* /api/v1/messages/* /api/v1/account/* /api/v1/feedback /api/v1/uploads/*
+	route {
+		import demo_audience
+		handle @public {
+			reverse_proxy api:3000 {
+				header_up -X-Q2A-Bridge-Key
+			}
+		}
+		handle {
+			respond 404
+		}
+	}
+}
