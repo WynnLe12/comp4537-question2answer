@@ -1,224 +1,953 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1280" viewBox="0 0 1800 1280">
-  <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
-    </marker>
-    <marker id="arrow-dashed" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9a83c7"/>
-    </marker>
-    <style>
-      text { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #182235; }
-      .title { font-size: 34px; font-weight: 750; letter-spacing: -0.5px; }
-      .subtitle { font-size: 15px; fill: #59677c; }
-      .section { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; fill: #68768b; }
-      .card { fill: #fff; stroke: #cbd5e1; stroke-width: 1.5; }
-      .head { fill: #edf3fa; }
-      .table-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 18px; font-weight: 750; }
-      .table-kind { font-size: 11px; fill: #607087; }
-      .field { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; fill: #27364c; }
-      .key { font-weight: 750; fill: #2363a6; }
-      .note { font-size: 12px; fill: #65748a; }
-      .sample-head { font-size: 11px; font-weight: 750; letter-spacing: 0.6px; fill: #48566b; }
-      .sample { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; fill: #39475b; }
-      .edge { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrow); }
-      .logical { fill: none; stroke: #9a83c7; stroke-width: 2; stroke-dasharray: 7 6; marker-end: url(#arrow-dashed); }
-      .edge-label { font-size: 11px; font-weight: 650; fill: #526178; paint-order: stroke; stroke: #f5f7fb; stroke-width: 5px; stroke-linejoin: round; }
-      .pill { fill: #e8f1fb; }
-      .pill-text { font-size: 11px; font-weight: 700; fill: #285d91; }
-      .legend { font-size: 12px; fill: #46556a; }
-    </style>
-  </defs>
-
-  <rect width="1800" height="1280" fill="#f5f7fb"/>
-  <text x="50" y="58" class="title">Question2Answer — Core Database ERD</text>
-  <text x="52" y="88" class="subtitle">MySQL schema defined by Q2A installer + Node auth session table · local Docker demo seed records</text>
-  <rect x="1515" y="38" width="235" height="36" rx="18" class="pill"/>
-  <text x="1632" y="61" class="pill-text" text-anchor="middle">CORE TABLES · SCHEMA VIEW</text>
-  <text x="50" y="124" class="section">IDENTITY &amp; CONTENT</text>
-  <text x="1080" y="124" class="section">LOOKUP, MESSAGING &amp; SUPPORT</text>
-
-  <!-- Relationships are behind the tables. Solid lines are declared database FKs. -->
-  <path class="edge" d="M470 245 H540"/>
-  <text x="475" y="232" class="edge-label">userid</text>
-  <path class="edge" d="M1000 220 H1080"/>
-  <text x="1008" y="207" class="edge-label">categoryid</text>
-  <path class="edge" d="M770 610 V670"/>
-  <text x="782" y="646" class="edge-label">postid</text>
-  <path class="edge" d="M1625 370 V430"/>
-  <text x="1637" y="405" class="edge-label">wordid</text>
-  <path class="edge" d="M1000 560 H1040 V790 H1450 V525 H1480"/>
-  <text x="1175" y="782" class="edge-label">posts.postid → posttags.postid</text>
-  <path class="edge" d="M470 408 H505 V785 H540"/>
-  <text x="474" y="770" class="edge-label">userid</text>
-  <path class="edge" d="M470 445 H510 V640 H1045 V635 H1080"/>
-  <text x="770" y="632" class="edge-label">fromuserid / touserid</text>
-  <path class="logical" d="M260 480 V570"/>
-  <text x="271" y="535" class="edge-label">userid</text>
-  <path class="logical" d="M50 445 V820"/>
-  <text x="58" y="795" class="edge-label">userid</text>
-  <path class="edge" d="M50 460 V930 H520 V1040 H540"/>
-  <text x="286" y="922" class="edge-label">userid</text>
-  <path class="logical" d="M470 380 H500 V930 H1060 V940 H1080"/>
-  <text x="815" y="922" class="edge-label">userid</text>
-
-  <!-- users -->
-  <g>
-    <rect x="50" y="150" width="420" height="330" rx="12" class="card"/>
-    <path d="M62 150 H458 Q470 150 470 162 V198 H50 V162 Q50 150 62 150" class="head"/>
-    <text x="70" y="181" class="table-name">qa_users</text>
-    <text x="450" y="180" text-anchor="end" class="table-kind">ACCOUNT</text>
-    <text x="70" y="224" class="field"><tspan class="key">PK</tspan> userid INT UNSIGNED</text>
-    <text x="70" y="248" class="field">handle VARCHAR(20) · email VARCHAR(80)</text>
-    <text x="70" y="272" class="field">level TINYINT · flags SMALLINT</text>
-    <text x="70" y="296" class="field">passhash / passsalt / passcheck</text>
-    <text x="70" y="320" class="field">avatarblobid BIGINT UNSIGNED</text>
-    <text x="70" y="344" class="field">created DATETIME · loggedin DATETIME</text>
-    <line x1="70" y1="360" x2="450" y2="360" stroke="#e2e8f0"/>
-    <text x="70" y="382" class="sample-head">SEEDED DEMO RECORDS (docker/php/seed.php)</text>
-    <text x="70" y="405" class="sample">1  alice  · alice@example.test</text>
-    <text x="70" y="425" class="sample">2  legacy · legacy@example.test</text>
-    <text x="70" y="445" class="sample">3  bob    · bob@example.test</text>
-    <text x="70" y="465" class="sample">4  carol  · carol@example.test</text>
-  </g>
-
-  <!-- posts -->
-  <g>
-    <rect x="540" y="150" width="460" height="460" rx="12" class="card"/>
-    <path d="M552 150 H988 Q1000 150 1000 162 V198 H540 V162 Q540 150 552 150" class="head"/>
-    <text x="560" y="181" class="table-name">qa_posts</text>
-    <text x="980" y="180" text-anchor="end" class="table-kind">QUESTIONS · ANSWERS · COMMENTS</text>
-    <text x="560" y="224" class="field"><tspan class="key">PK</tspan> postid INT UNSIGNED</text>
-    <text x="560" y="248" class="field">type ENUM(Q, A, C, hidden, queued...)</text>
-    <text x="560" y="272" class="field"><tspan class="key">FK</tspan> parentid → qa_posts.postid</text>
-    <text x="560" y="296" class="field"><tspan class="key">FK</tspan> categoryid → qa_categories.categoryid</text>
-    <text x="560" y="320" class="field"><tspan class="key">FK</tspan> userid → qa_users.userid (nullable)</text>
-    <text x="560" y="344" class="field">title · content · tags · created</text>
-    <text x="560" y="368" class="field">acount · selchildid · upvotes · downvotes</text>
-    <text x="560" y="392" class="field">netvotes · views · hotness · flagcount</text>
-    <line x1="560" y1="408" x2="980" y2="408" stroke="#e2e8f0"/>
-    <text x="560" y="430" class="sample-head">SEEDED SAMPLE (parentid links answers/comments)</text>
-    <text x="560" y="453" class="sample">1 Q  — Where should a JWT be stored in the browser?</text>
-    <text x="560" y="473" class="sample">2 A  — Use an HttpOnly, Secure, SameSite cookie.</text>
-    <text x="560" y="493" class="sample">3 A  — localStorage is simpler for mobile APIs...</text>
-    <text x="560" y="523" class="sample">4 C  — Do I still need CSRF protection?</text>
-    <text x="560" y="543" class="sample">   (answer/comment rows point to their parent post)</text>
-    <rect x="558" y="560" width="424" height="32" rx="6" fill="#f3f6fa"/>
-    <text x="570" y="581" class="note">Self-reference: one question has many child posts.</text>
-  </g>
-
-  <!-- categories -->
-  <g>
-    <rect x="1080" y="150" width="340" height="220" rx="12" class="card"/>
-    <path d="M1092 150 H1408 Q1420 150 1420 162 V198 H1080 V162 Q1080 150 1092 150" class="head"/>
-    <text x="1100" y="181" class="table-name">qa_categories</text>
-    <text x="1100" y="224" class="field"><tspan class="key">PK</tspan> categoryid INT UNSIGNED</text>
-    <text x="1100" y="248" class="field">parentid INT (logical tree; nullable)</text>
-    <text x="1100" y="272" class="field">title · tags · content</text>
-    <text x="1100" y="296" class="field">qcount · position · backpath</text>
-    <text x="1100" y="335" class="note">A category can contain many questions.</text>
-  </g>
-
-  <!-- words -->
-  <g>
-    <rect x="1480" y="150" width="270" height="220" rx="12" class="card"/>
-    <path d="M1492 150 H1738 Q1750 150 1750 162 V198 H1480 V162 Q1480 150 1492 150" class="head"/>
-    <text x="1500" y="181" class="table-name">qa_words</text>
-    <text x="1500" y="224" class="field"><tspan class="key">PK</tspan> wordid INT UNSIGNED</text>
-    <text x="1500" y="248" class="field">word VARCHAR</text>
-    <text x="1500" y="272" class="field">titlecount · contentcount</text>
-    <text x="1500" y="296" class="field">tagwordcount · tagcount</text>
-    <text x="1500" y="335" class="note">Search and tag dictionary.</text>
-  </g>
-
-  <!-- userpoints -->
-  <g>
-    <rect x="50" y="570" width="420" height="180" rx="12" class="card"/>
-    <path d="M62 570 H458 Q470 570 470 582 V618 H50 V582 Q50 570 62 570" class="head"/>
-    <text x="70" y="601" class="table-name">qa_userpoints</text>
-    <text x="70" y="644" class="field"><tspan class="key">PK</tspan> userid INT (logical link to users)</text>
-    <text x="70" y="668" class="field">points · bonus</text>
-    <text x="70" y="692" class="field">qposts · aposts · cposts · aselects</text>
-    <text x="70" y="722" class="note">Reputation and activity counters.</text>
-  </g>
-
-  <!-- votes -->
-  <g>
-    <rect x="540" y="670" width="460" height="220" rx="12" class="card"/>
-    <path d="M552 670 H988 Q1000 670 1000 682 V718 H540 V682 Q540 670 552 670" class="head"/>
-    <text x="560" y="701" class="table-name">qa_uservotes</text>
-    <text x="560" y="744" class="field"><tspan class="key">FK</tspan> postid → qa_posts.postid</text>
-    <text x="560" y="768" class="field"><tspan class="key">FK</tspan> userid → qa_users.userid</text>
-    <text x="560" y="792" class="field">vote TINYINT (-1 / 0 / 1) · flag TINYINT</text>
-    <text x="560" y="816" class="field">UNIQUE (userid, postid) · votecreated</text>
-    <line x1="560" y1="832" x2="980" y2="832" stroke="#e2e8f0"/>
-    <text x="560" y="856" class="sample-head">SEEDED SAMPLE</text>
-    <text x="675" y="856" class="sample">post 1 · bob (user 3) · upvote (+1)</text>
-  </g>
-
-  <!-- messages -->
-  <g>
-    <rect x="1080" y="520" width="350" height="220" rx="12" class="card"/>
-    <path d="M1092 520 H1418 Q1430 520 1430 532 V568 H1080 V532 Q1080 520 1092 520" class="head"/>
-    <text x="1100" y="551" class="table-name">qa_messages</text>
-    <text x="1100" y="594" class="field"><tspan class="key">PK</tspan> messageid INT UNSIGNED</text>
-    <text x="1100" y="618" class="field"><tspan class="key">FK</tspan> fromuserid → users.userid</text>
-    <text x="1100" y="642" class="field"><tspan class="key">FK</tspan> touserid → users.userid</text>
-    <text x="1100" y="666" class="field">type PUBLIC / PRIVATE · content</text>
-    <text x="1100" y="690" class="field">format · created · hidden flags</text>
-    <text x="1100" y="719" class="note">Sender and recipient are separate user roles.</text>
-  </g>
-
-  <!-- post tags bridge -->
-  <g>
-    <rect x="1480" y="430" width="270" height="190" rx="12" class="card"/>
-    <path d="M1492 430 H1738 Q1750 430 1750 442 V478 H1480 V442 Q1480 430 1492 430" class="head"/>
-    <text x="1500" y="461" class="table-name">qa_posttags</text>
-    <text x="1500" y="504" class="field"><tspan class="key">FK</tspan> postid → qa_posts.postid</text>
-    <text x="1500" y="528" class="field"><tspan class="key">FK</tspan> wordid → qa_words.wordid</text>
-    <text x="1500" y="552" class="field">postcreated DATETIME</text>
-    <text x="1500" y="588" class="note">Many-to-many post/tag index.</text>
-  </g>
-
-  <!-- blobs -->
-  <g>
-    <rect x="50" y="820" width="420" height="180" rx="12" class="card"/>
-    <path d="M62 820 H458 Q470 820 470 832 V868 H50 V832 Q50 820 62 820" class="head"/>
-    <text x="70" y="851" class="table-name">qa_blobs</text>
-    <text x="70" y="894" class="field"><tspan class="key">PK</tspan> blobid BIGINT UNSIGNED</text>
-    <text x="70" y="918" class="field">format · content MEDIUMBLOB · filename</text>
-    <text x="70" y="942" class="field">userid · cookieid · created</text>
-    <text x="70" y="974" class="note">Avatars and uploaded/editor media.</text>
-  </g>
-
-  <!-- favorites -->
-  <g>
-    <rect x="540" y="960" width="460" height="190" rx="12" class="card"/>
-    <path d="M552 960 H988 Q1000 960 1000 972 V1008 H540 V972 Q540 960 552 960" class="head"/>
-    <text x="560" y="991" class="table-name">qa_userfavorites</text>
-    <text x="560" y="1034" class="field"><tspan class="key">FK</tspan> userid → qa_users.userid</text>
-    <text x="560" y="1058" class="field">entitytype CHAR(1) · entityid INT</text>
-    <text x="560" y="1082" class="field">nouserevents · PK (userid, entitytype, entityid)</text>
-    <text x="560" y="1120" class="note">entityid is polymorphic (post / user / tag / category).</text>
-  </g>
-
-  <!-- sessions -->
-  <g>
-    <rect x="1080" y="850" width="350" height="190" rx="12" class="card"/>
-    <path d="M1092 850 H1418 Q1430 850 1430 862 V898 H1080 V862 Q1080 850 1092 850" class="head"/>
-    <text x="1100" y="881" class="table-name">node_auth_sessions</text>
-    <text x="1100" y="924" class="field"><tspan class="key">PK</tspan> token_hash CHAR(64)</text>
-    <text x="1100" y="948" class="field">userid INT UNSIGNED</text>
-    <text x="1100" y="972" class="field">expires_at DATETIME</text>
-    <text x="1100" y="1014" class="note">Added by docker/php/seed.php for Node auth.</text>
-  </g>
-
-  <!-- Footer / notation -->
-  <line x1="50" y1="1180" x2="1750" y2="1180" stroke="#d7dee8"/>
-  <text x="50" y="1210" class="section">RELATIONSHIP NOTATION</text>
-  <path class="edge" d="M260 1206 H335"/>
-  <text x="350" y="1211" class="legend">Solid = declared foreign key in Q2A schema</text>
-  <path class="logical" d="M680 1206 H755"/>
-  <text x="770" y="1211" class="legend">Dashed = logical relationship (no declared FK)</text>
-  <text x="50" y="1248" class="note">Scope: selected core tables, not every Q2A configuration, event, cache, limits, and metadata table.</text>
-  <text x="1750" y="1248" text-anchor="end" class="note">Source: qa-include/db/install.php · docker/php/seed.php</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="3820" height="3296" viewBox="0 0 3820 3296">
+<rect x="0" y="0" width="3820" height="3296" fill="#f0f5f8"/>
+<text x="50" y="63" font-family="Helvetica, monospace" font-weight="bold" font-size="45" fill="#183047">Question2Answer  /  Database ERD</text>
+<text x="51" y="102" font-family="Helvetica, monospace" font-weight="normal" font-size="22" fill="#34576d">35 table definitions · MySQL Docker schema · Q2A installer, Node authentication, AI migration, and optional event logger</text>
+<text x="51" y="136" font-family="Helvetica, monospace" font-weight="normal" font-size="20" fill="#34576d">PK  primary key     NN  NOT NULL     FK  foreign key     |     Arrows connect each foreign key to the referenced column. Gaps at crossings mark separate lines.</text>
+<rect x="50" y="159" width="3720" height="108" fill="#dcebf1"/>
+<text x="66" y="190" font-family="Helvetica, monospace" font-weight="bold" font-size="18" fill="#126c76">DOCKER DEMO SEED</text>
+<text x="66" y="222" font-family="Menlo, monospace" font-weight="normal" font-size="18" fill="#183047">qa_users   alice  ·  legacy  ·  bob  ·  carol</text>
+<text x="66" y="248" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qa_posts   Q: Where should a JWT be stored in the browser?   A (Bob): Use an HttpOnly, Secure, SameSite cookie.   qa_uservotes   Bob → JWT question: +1</text>
+<text x="1740" y="190" font-family="Helvetica, monospace" font-weight="bold" font-size="18" fill="#126c76">ILLUSTRATIVE AI RECORDS</text>
+<text x="1740" y="222" font-family="Menlo, monospace" font-weight="normal" font-size="18" fill="#183047">node_ai_evaluations   evaluation_id=101  ·  score=85</text>
+<text x="1740" y="248" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">node_ai_usage   evaluation_id=101  ·  status_code=200  ·  /api/v1/ai/evaluate</text>
+<text x="50" y="301" font-family="Helvetica, monospace" font-weight="bold" font-size="17" fill="#34576d">FK TARGET</text>
+<rect x="165" y="288" width="18" height="12" fill="#174b9a"/>
+<text x="191" y="300" font-family="Menlo, monospace" font-weight="bold" font-size="16" fill="#174b9a">qa_users</text>
+<rect x="315" y="288" width="18" height="12" fill="#a4382c"/>
+<text x="341" y="300" font-family="Menlo, monospace" font-weight="bold" font-size="16" fill="#a4382c">qa_posts</text>
+<rect x="465" y="288" width="18" height="12" fill="#176442"/>
+<text x="491" y="300" font-family="Menlo, monospace" font-weight="bold" font-size="16" fill="#176442">qa_categories</text>
+<rect x="675" y="288" width="18" height="12" fill="#805400"/>
+<text x="701" y="300" font-family="Menlo, monospace" font-weight="bold" font-size="16" fill="#805400">qa_words</text>
+<rect x="835" y="288" width="18" height="12" fill="#70218e"/>
+<text x="861" y="300" font-family="Menlo, monospace" font-weight="bold" font-size="16" fill="#70218e">node_ai_evaluations</text>
+<text x="225" y="357" font-family="Helvetica, monospace" font-weight="bold" font-size="21" fill="#34576d">AI EVALUATIONS · ACCOUNTS</text>
+<rect x="225" y="373" width="680" height="341" fill="#ffffff"/>
+<rect x="225" y="373" width="680" height="46" fill="#cbeeea"/>
+<text x="241" y="403" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">node_ai_evaluations</text>
+<text x="241" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">evaluation_id</text>
+<text x="520" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="824" y="439" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK</text>
+<text x="241" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="464" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">question_id</text>
+<text x="520" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED NULL</text>
+<text x="824" y="489" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="514" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">answer_id</text>
+<text x="520" y="514" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED NULL</text>
+<text x="824" y="514" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">question_text</text>
+<text x="520" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TEXT</text>
+<text x="824" y="539" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">answer_text</text>
+<text x="520" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TEXT</text>
+<text x="824" y="564" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="589" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">score</text>
+<text x="520" y="589" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="824" y="589" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="614" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">feedback</text>
+<text x="520" y="614" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TEXT</text>
+<text x="824" y="614" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="639" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">suggestions</text>
+<text x="520" y="639" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">JSON NULL</text>
+<text x="824" y="639" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="664" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">model_name</text>
+<text x="520" y="664" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(100)</text>
+<text x="824" y="664" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="689" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created_at</text>
+<text x="520" y="689" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="824" y="689" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="730" width="680" height="591" fill="#ffffff"/>
+<rect x="225" y="730" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="760" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_users</text>
+<text x="241" y="796" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="796" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="796" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="241" y="821" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="520" y="821" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="824" y="821" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="846" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">createip</text>
+<text x="520" y="846" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="824" y="846" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="871" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">email</text>
+<text x="520" y="871" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="824" y="871" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="896" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">handle</text>
+<text x="520" y="896" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="824" y="896" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="921" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">avatarblobid</text>
+<text x="520" y="921" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="824" y="921" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="946" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">avatarwidth</text>
+<text x="520" y="946" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="946" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="971" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">avatarheight</text>
+<text x="520" y="971" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="971" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="996" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">passsalt</text>
+<text x="520" y="996" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BINARY(16)</text>
+<text x="824" y="996" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1021" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">passcheck</text>
+<text x="520" y="1021" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BINARY(20)</text>
+<text x="824" y="1021" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1046" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">passhash</text>
+<text x="520" y="1046" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(255)</text>
+<text x="824" y="1046" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1071" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">level</text>
+<text x="520" y="1071" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="824" y="1071" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1096" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">loggedin</text>
+<text x="520" y="1096" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="824" y="1096" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1121" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">loginip</text>
+<text x="520" y="1121" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="824" y="1121" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1146" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">written</text>
+<text x="520" y="1146" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="824" y="1146" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1171" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">writeip</text>
+<text x="520" y="1171" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="824" y="1171" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1196" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">emailcode</text>
+<text x="520" y="1196" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(8)</text>
+<text x="824" y="1196" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1221" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">sessioncode</text>
+<text x="520" y="1221" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(8)</text>
+<text x="824" y="1221" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1246" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">sessionsource</text>
+<text x="520" y="1246" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR (16)</text>
+<text x="824" y="1246" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1271" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">flags</text>
+<text x="520" y="1271" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="1271" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1296" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wallposts</text>
+<text x="520" y="1296" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="1296" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="1337" width="680" height="191" fill="#ffffff"/>
+<rect x="225" y="1337" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="1367" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userlogins</text>
+<text x="241" y="1403" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="1403" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="1403" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="241" y="1428" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="241" y="1453" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">source</text>
+<text x="520" y="1453" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR (16)</text>
+<text x="824" y="1453" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1478" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">identifier</text>
+<text x="520" y="1478" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY (1024)</text>
+<text x="824" y="1478" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1503" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">identifiermd5</text>
+<text x="520" y="1503" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BINARY (16)</text>
+<text x="824" y="1503" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="1544" width="680" height="166" fill="#ffffff"/>
+<rect x="225" y="1544" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="1574" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userprofile</text>
+<text x="241" y="1610" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="1610" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="1610" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="241" y="1635" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="241" y="1660" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="520" y="1660" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="824" y="1660" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1685" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="520" y="1685" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(8000)</text>
+<text x="824" y="1685" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="1726" width="680" height="216" fill="#ffffff"/>
+<rect x="225" y="1726" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="1756" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userfields</text>
+<text x="241" y="1792" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">fieldid</text>
+<text x="520" y="1792" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="1792" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="241" y="1817" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="520" y="1817" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="824" y="1817" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1842" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="520" y="1842" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="824" y="1842" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="241" y="1867" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">position</text>
+<text x="520" y="1867" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="1867" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1892" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">flags</text>
+<text x="520" y="1892" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="824" y="1892" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="1917" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">permit</text>
+<text x="520" y="1917" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="824" y="1917" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="225" y="1958" width="680" height="541" fill="#ffffff"/>
+<rect x="225" y="1958" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="1988" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userpoints</text>
+<text x="241" y="2024" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="2024" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2024" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="241" y="2049" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">points</text>
+<text x="520" y="2049" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2049" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2074" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qposts</text>
+<text x="520" y="2074" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2074" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2099" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">aposts</text>
+<text x="520" y="2099" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2099" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2124" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cposts</text>
+<text x="520" y="2124" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2124" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2149" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">aselects</text>
+<text x="520" y="2149" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2149" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2174" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">aselecteds</text>
+<text x="520" y="2174" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2174" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2199" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qupvotes</text>
+<text x="520" y="2199" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2199" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2224" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qdownvotes</text>
+<text x="520" y="2224" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2224" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2249" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">aupvotes</text>
+<text x="520" y="2249" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2249" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2274" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">adownvotes</text>
+<text x="520" y="2274" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2274" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2299" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cupvotes</text>
+<text x="520" y="2299" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2299" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2324" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cdownvotes</text>
+<text x="520" y="2324" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMINT</text>
+<text x="824" y="2324" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2349" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qvoteds</text>
+<text x="520" y="2349" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2349" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2374" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">avoteds</text>
+<text x="520" y="2374" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2374" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2399" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cvoteds</text>
+<text x="520" y="2399" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2399" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2424" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">upvoteds</text>
+<text x="520" y="2424" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2424" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2449" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">downvoteds</text>
+<text x="520" y="2449" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2449" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2474" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">bonus</text>
+<text x="520" y="2474" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT</text>
+<text x="824" y="2474" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="2515" width="680" height="191" fill="#ffffff"/>
+<rect x="225" y="2515" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="2545" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userlevels</text>
+<text x="241" y="2581" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="2581" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2581" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="241" y="2606" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="241" y="2631" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entitytype</text>
+<text x="520" y="2631" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="824" y="2631" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2656" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entityid</text>
+<text x="520" y="2656" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2656" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2681" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">level</text>
+<text x="520" y="2681" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="824" y="2681" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="225" y="2722" width="680" height="191" fill="#ffffff"/>
+<rect x="225" y="2722" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="2752" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userlimits</text>
+<text x="241" y="2788" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="2788" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2788" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="241" y="2813" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="241" y="2838" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">action</text>
+<text x="520" y="2838" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="824" y="2838" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2863" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">period</text>
+<text x="520" y="2863" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2863" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="241" y="2888" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">count</text>
+<text x="520" y="2888" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="824" y="2888" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="225" y="2929" width="680" height="166" fill="#ffffff"/>
+<rect x="225" y="2929" width="680" height="46" fill="#e0edf4"/>
+<text x="241" y="2959" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_usermetas</text>
+<text x="241" y="2995" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="520" y="2995" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="824" y="2995" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN FK</text>
+<text x="241" y="3020" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="241" y="3045" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="520" y="3045" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="824" y="3045" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="241" y="3070" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="520" y="3070" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(8000)</text>
+<text x="824" y="3070" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1120" y="357" font-family="Helvetica, monospace" font-weight="bold" font-size="21" fill="#34576d">AI USAGE · POSTS &amp; CATEGORIES</text>
+<rect x="1120" y="373" width="680" height="266" fill="#ffffff"/>
+<rect x="1120" y="373" width="680" height="46" fill="#cbeeea"/>
+<text x="1136" y="403" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">node_ai_usage</text>
+<text x="1136" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">usage_id</text>
+<text x="1415" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="1719" y="439" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK</text>
+<text x="1136" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="1415" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="464" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">evaluation_id</text>
+<text x="1415" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED NULL</text>
+<text x="1719" y="489" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="1136" y="514" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ node_ai_evaluations.evaluation_id  /  DELETE SET NULL</text>
+<text x="1136" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">endpoint</text>
+<text x="1415" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(150)</text>
+<text x="1719" y="539" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">status_code</text>
+<text x="1415" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="564" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="589" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tokens_used</text>
+<text x="1415" y="589" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED NULL</text>
+<text x="1719" y="589" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="614" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created_at</text>
+<text x="1415" y="614" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="1719" y="614" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="1120" y="655" width="680" height="966" fill="#ffffff"/>
+<rect x="1120" y="655" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="685" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_posts</text>
+<text x="1136" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="1415" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="721" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="746" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">type</text>
+<text x="1415" y="746" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">ENUM</text>
+<text x="1719" y="746" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="771" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">parentid</text>
+<text x="1415" y="771" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="771" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="1136" y="796" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid</text>
+<text x="1136" y="821" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">categoryid</text>
+<text x="1415" y="821" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="821" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="1136" y="846" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_categories.categoryid  /  DELETE SET NULL</text>
+<text x="1136" y="871" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">catidpath1</text>
+<text x="1415" y="871" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="871" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="896" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">catidpath2</text>
+<text x="1415" y="896" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="896" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="921" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">catidpath3</text>
+<text x="1415" y="921" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="921" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="946" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">acount</text>
+<text x="1415" y="946" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="946" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="971" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">amaxvote</text>
+<text x="1415" y="971" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="971" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="996" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">selchildid</text>
+<text x="1415" y="996" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="996" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1021" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">closedbyid</text>
+<text x="1415" y="1021" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1021" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="1136" y="1046" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid</text>
+<text x="1136" y="1071" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="1415" y="1071" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1071" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="1136" y="1096" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE SET NULL</text>
+<text x="1136" y="1121" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cookieid</text>
+<text x="1415" y="1121" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="1719" y="1121" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1146" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">createip</text>
+<text x="1415" y="1146" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="1719" y="1146" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1171" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastuserid</text>
+<text x="1415" y="1171" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1171" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1196" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastip</text>
+<text x="1415" y="1196" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="1719" y="1196" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1221" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">upvotes</text>
+<text x="1415" y="1221" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="1221" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1246" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">downvotes</text>
+<text x="1415" y="1246" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="1246" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1271" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">netvotes</text>
+<text x="1415" y="1271" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT</text>
+<text x="1719" y="1271" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1296" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastviewip</text>
+<text x="1415" y="1296" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="1719" y="1296" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1321" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">views</text>
+<text x="1415" y="1321" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1321" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1346" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">hotness</text>
+<text x="1415" y="1346" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">FLOAT</text>
+<text x="1719" y="1346" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1371" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">flagcount</text>
+<text x="1415" y="1371" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="1719" y="1371" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1396" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">format</text>
+<text x="1415" y="1396" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="1719" y="1396" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1421" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="1415" y="1421" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="1719" y="1421" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1446" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updated</text>
+<text x="1415" y="1446" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="1719" y="1446" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1471" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updatetype</text>
+<text x="1415" y="1471" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="1719" y="1471" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1496" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="1415" y="1496" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(800)</text>
+<text x="1719" y="1496" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1521" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="1521" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(12000)</text>
+<text x="1719" y="1521" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1546" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tags</text>
+<text x="1415" y="1546" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(800)</text>
+<text x="1719" y="1546" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1571" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">name</text>
+<text x="1415" y="1571" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="1719" y="1571" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1596" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">notify</text>
+<text x="1415" y="1596" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="1719" y="1596" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="1120" y="1637" width="680" height="266" fill="#ffffff"/>
+<rect x="1120" y="1637" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="1667" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_categories</text>
+<text x="1136" y="1703" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">categoryid</text>
+<text x="1415" y="1703" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1703" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="1728" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">parentid</text>
+<text x="1415" y="1728" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1728" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="1753" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="1415" y="1753" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="1719" y="1753" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1778" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tags</text>
+<text x="1415" y="1778" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(200)</text>
+<text x="1719" y="1778" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1803" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="1803" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(800)</text>
+<text x="1719" y="1803" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1828" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">qcount</text>
+<text x="1415" y="1828" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1828" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1853" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">position</text>
+<text x="1415" y="1853" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="1853" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="1878" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">backpath</text>
+<text x="1415" y="1878" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(804)</text>
+<text x="1719" y="1878" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="1120" y="1919" width="680" height="166" fill="#ffffff"/>
+<rect x="1120" y="1919" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="1949" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_postmetas</text>
+<text x="1136" y="1985" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="1415" y="1985" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="1985" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN FK</text>
+<text x="1136" y="2010" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="1136" y="2035" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="1415" y="2035" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="1719" y="2035" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="2060" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="2060" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(8000)</text>
+<text x="1719" y="2060" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="1120" y="2101" width="680" height="166" fill="#ffffff"/>
+<rect x="1120" y="2101" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="2131" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_categorymetas</text>
+<text x="1136" y="2167" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">categoryid</text>
+<text x="1415" y="2167" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="2167" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN FK</text>
+<text x="1136" y="2192" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_categories.categoryid  /  DELETE CASCADE</text>
+<text x="1136" y="2217" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="1415" y="2217" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="1719" y="2217" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="2242" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="2242" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(8000)</text>
+<text x="1719" y="2242" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="1120" y="2283" width="680" height="266" fill="#ffffff"/>
+<rect x="1120" y="2283" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="2313" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_blobs</text>
+<text x="1136" y="2349" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">blobid</text>
+<text x="1415" y="2349" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="1719" y="2349" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="2374" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">format</text>
+<text x="1415" y="2374" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="1719" y="2374" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2399" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="2399" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMBLOB</text>
+<text x="1719" y="2399" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2424" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">filename</text>
+<text x="1415" y="2424" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(255)</text>
+<text x="1719" y="2424" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2449" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="1415" y="2449" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="1719" y="2449" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2474" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cookieid</text>
+<text x="1415" y="2474" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="1719" y="2474" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2499" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">createip</text>
+<text x="1415" y="2499" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="1719" y="2499" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2524" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="1415" y="2524" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="1719" y="2524" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="1120" y="2565" width="680" height="291" fill="#ffffff"/>
+<rect x="1120" y="2565" width="680" height="46" fill="#e0edf4"/>
+<text x="1136" y="2595" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_pages</text>
+<text x="1136" y="2631" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">pageid</text>
+<text x="1415" y="2631" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="2631" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="1136" y="2656" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="1415" y="2656" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="1719" y="2656" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2681" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">nav</text>
+<text x="1415" y="2681" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="1719" y="2681" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2706" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">position</text>
+<text x="1415" y="2706" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="1719" y="2706" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2731" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">flags</text>
+<text x="1415" y="2731" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="1719" y="2731" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2756" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">permit</text>
+<text x="1415" y="2756" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="1719" y="2756" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2781" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tags</text>
+<text x="1415" y="2781" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(200)</text>
+<text x="1719" y="2781" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="1136" y="2806" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">heading</text>
+<text x="1415" y="2806" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(800)</text>
+<text x="1719" y="2806" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="1136" y="2831" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="1415" y="2831" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMTEXT</text>
+<text x="1719" y="2831" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2015" y="357" font-family="Helvetica, monospace" font-weight="bold" font-size="21" fill="#34576d">SESSIONS · INTERACTIONS</text>
+<rect x="2015" y="373" width="680" height="141" fill="#ffffff"/>
+<rect x="2015" y="373" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="403" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">node_auth_sessions</text>
+<text x="2031" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">token_hash</text>
+<text x="2310" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(64)</text>
+<text x="2614" y="439" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK</text>
+<text x="2031" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="464" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">expires_at</text>
+<text x="2310" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="489" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="530" width="680" height="266" fill="#ffffff"/>
+<rect x="2015" y="530" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="560" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_uservotes</text>
+<text x="2031" y="596" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="2310" y="596" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="596" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2031" y="621" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="2031" y="646" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="646" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="646" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2031" y="671" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="2031" y="696" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">vote</text>
+<text x="2310" y="696" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT</text>
+<text x="2614" y="696" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">flag</text>
+<text x="2310" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT</text>
+<text x="2614" y="721" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="746" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">votecreated</text>
+<text x="2310" y="746" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="746" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="771" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">voteupdated</text>
+<text x="2310" y="771" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="771" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="2015" y="812" width="680" height="191" fill="#ffffff"/>
+<rect x="2015" y="812" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="842" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userfavorites</text>
+<text x="2031" y="878" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="878" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="878" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN FK</text>
+<text x="2031" y="903" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="2031" y="928" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entitytype</text>
+<text x="2310" y="928" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="2614" y="928" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2031" y="953" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entityid</text>
+<text x="2310" y="953" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="953" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2031" y="978" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">nouserevents</text>
+<text x="2310" y="978" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="2614" y="978" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="1019" width="680" height="341" fill="#ffffff"/>
+<rect x="2015" y="1019" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="1049" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_messages</text>
+<text x="2031" y="1085" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">messageid</text>
+<text x="2310" y="1085" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1085" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2031" y="1110" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">type</text>
+<text x="2310" y="1110" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">ENUM(&#x27;PUBLIC&#x27;, &#x27;PRIVATE&#x27;)</text>
+<text x="2614" y="1110" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1135" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">fromuserid</text>
+<text x="2310" y="1135" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1135" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="2031" y="1160" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE SET NULL</text>
+<text x="2031" y="1185" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">touserid</text>
+<text x="2310" y="1185" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1185" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">FK</text>
+<text x="2031" y="1210" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE SET NULL</text>
+<text x="2031" y="1235" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">fromhidden</text>
+<text x="2310" y="1235" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT(1) UNSIGNED</text>
+<text x="2614" y="1235" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1260" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tohidden</text>
+<text x="2310" y="1260" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT(1) UNSIGNED</text>
+<text x="2614" y="1260" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1285" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="2310" y="1285" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(12000)</text>
+<text x="2614" y="1285" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1310" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">format</text>
+<text x="2310" y="1310" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="2614" y="1310" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1335" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="2310" y="1335" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="1335" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="1376" width="680" height="241" fill="#ffffff"/>
+<rect x="2015" y="1376" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="1406" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_usernotices</text>
+<text x="2031" y="1442" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">noticeid</text>
+<text x="2310" y="1442" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1442" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2031" y="1467" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="1467" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1467" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2031" y="1492" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="2031" y="1517" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="2310" y="1517" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(12000)</text>
+<text x="2614" y="1517" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1542" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">format</text>
+<text x="2310" y="1542" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="2614" y="1542" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1567" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tags</text>
+<text x="2310" y="1567" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(200)</text>
+<text x="2614" y="1567" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="1592" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="2310" y="1592" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="1592" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="1633" width="680" height="291" fill="#ffffff"/>
+<rect x="2015" y="1633" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="1663" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_userevents</text>
+<text x="2031" y="1699" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="1699" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1699" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2031" y="1724" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_users.userid  /  DELETE CASCADE</text>
+<text x="2031" y="1749" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entitytype</text>
+<text x="2310" y="1749" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="2614" y="1749" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1774" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entityid</text>
+<text x="2310" y="1774" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1774" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1799" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">questionid</text>
+<text x="2310" y="1799" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1799" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1824" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastpostid</text>
+<text x="2310" y="1824" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1824" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="1849" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updatetype</text>
+<text x="2310" y="1849" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="2614" y="1849" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="1874" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastuserid</text>
+<text x="2310" y="1874" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="1874" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="1899" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updated</text>
+<text x="2310" y="1899" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="1899" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="1940" width="680" height="241" fill="#ffffff"/>
+<rect x="2015" y="1940" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="1970" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_sharedevents</text>
+<text x="2031" y="2006" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entitytype</text>
+<text x="2310" y="2006" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="2614" y="2006" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2031" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">entityid</text>
+<text x="2310" y="2031" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="2031" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2056" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">questionid</text>
+<text x="2310" y="2056" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="2056" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2081" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastpostid</text>
+<text x="2310" y="2081" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="2081" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2106" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updatetype</text>
+<text x="2310" y="2106" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="2614" y="2106" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2131" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastuserid</text>
+<text x="2310" y="2131" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="2131" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2156" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">updated</text>
+<text x="2310" y="2156" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="2156" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2015" y="2197" width="680" height="191" fill="#ffffff"/>
+<rect x="2015" y="2197" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="2227" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_cookies</text>
+<text x="2031" y="2263" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cookieid</text>
+<text x="2310" y="2263" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="2614" y="2263" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2031" y="2288" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="2310" y="2288" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="2288" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2313" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">createip</text>
+<text x="2310" y="2313" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="2614" y="2313" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2338" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">written</text>
+<text x="2310" y="2338" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="2338" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2363" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">writeip</text>
+<text x="2310" y="2363" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="2614" y="2363" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<rect x="2015" y="2404" width="680" height="241" fill="#ffffff"/>
+<rect x="2015" y="2404" width="680" height="46" fill="#e0edf4"/>
+<text x="2031" y="2434" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_eventlog  (optional)</text>
+<text x="2031" y="2470" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">datetime</text>
+<text x="2310" y="2470" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="2614" y="2470" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2495" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">ipaddress</text>
+<text x="2310" y="2495" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR (45)</text>
+<text x="2614" y="2495" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2520" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">userid</text>
+<text x="2310" y="2520" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="2614" y="2520" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2545" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">handle</text>
+<text x="2310" y="2545" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(20)</text>
+<text x="2614" y="2545" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2570" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cookieid</text>
+<text x="2310" y="2570" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="2614" y="2570" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76"></text>
+<text x="2031" y="2595" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">event</text>
+<text x="2310" y="2595" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR (20)</text>
+<text x="2614" y="2595" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2031" y="2620" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">params</text>
+<text x="2310" y="2620" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR (800)</text>
+<text x="2614" y="2620" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2910" y="357" font-family="Helvetica, monospace" font-weight="bold" font-size="21" fill="#34576d">SEARCH · SITE CONFIGURATION</text>
+<rect x="2910" y="373" width="680" height="216" fill="#ffffff"/>
+<rect x="2910" y="373" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="403" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_words</text>
+<text x="2926" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wordid</text>
+<text x="3205" y="439" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="439" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">word</text>
+<text x="3205" y="464" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="3509" y="464" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">titlecount</text>
+<text x="3205" y="489" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="489" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="514" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">contentcount</text>
+<text x="3205" y="514" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="514" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tagwordcount</text>
+<text x="3205" y="539" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="539" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tagcount</text>
+<text x="3205" y="564" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="564" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="605" width="680" height="166" fill="#ffffff"/>
+<rect x="2910" y="605" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="635" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_titlewords</text>
+<text x="2926" y="671" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="3205" y="671" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="671" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="696" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="2926" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wordid</text>
+<text x="3205" y="721" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="721" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="746" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_words.wordid</text>
+<rect x="2910" y="787" width="680" height="241" fill="#ffffff"/>
+<rect x="2910" y="787" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="817" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_contentwords</text>
+<text x="2926" y="853" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="3205" y="853" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="853" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="878" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="2926" y="903" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wordid</text>
+<text x="3205" y="903" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="903" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="928" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_words.wordid</text>
+<text x="2926" y="953" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">count</text>
+<text x="3205" y="953" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">TINYINT UNSIGNED</text>
+<text x="3509" y="953" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="978" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">type</text>
+<text x="3205" y="978" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">ENUM(&#x27;Q&#x27;, &#x27;A&#x27;, &#x27;C&#x27;, &#x27;NOTE&#x27;)</text>
+<text x="3509" y="978" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1003" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">questionid</text>
+<text x="3205" y="1003" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1003" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="1044" width="680" height="166" fill="#ffffff"/>
+<rect x="2910" y="1044" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="1074" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_tagwords</text>
+<text x="2926" y="1110" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="3205" y="1110" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1110" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="1135" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="2926" y="1160" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wordid</text>
+<text x="3205" y="1160" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1160" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="1185" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_words.wordid</text>
+<rect x="2910" y="1226" width="680" height="191" fill="#ffffff"/>
+<rect x="2910" y="1226" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="1256" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_posttags</text>
+<text x="2926" y="1292" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postid</text>
+<text x="3205" y="1292" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1292" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="1317" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_posts.postid  /  DELETE CASCADE</text>
+<text x="2926" y="1342" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">wordid</text>
+<text x="3205" y="1342" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1342" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN FK</text>
+<text x="2926" y="1367" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#126c76">→ qa_words.wordid</text>
+<text x="2926" y="1392" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">postcreated</text>
+<text x="3205" y="1392" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="3509" y="1392" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="1433" width="680" height="141" fill="#ffffff"/>
+<rect x="2910" y="1433" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="1463" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_tagmetas</text>
+<text x="2926" y="1499" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tag</text>
+<text x="3205" y="1499" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="3509" y="1499" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="1524" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="3205" y="1524" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="3509" y="1524" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="1549" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="3205" y="1549" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(8000)</text>
+<text x="3509" y="1549" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="1590" width="680" height="166" fill="#ffffff"/>
+<rect x="2910" y="1590" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="1620" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_iplimits</text>
+<text x="2926" y="1656" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">ip</text>
+<text x="3205" y="1656" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARBINARY(16)</text>
+<text x="3509" y="1656" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1681" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">action</text>
+<text x="3205" y="1681" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(1)</text>
+<text x="3509" y="1681" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1706" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">period</text>
+<text x="3205" y="1706" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">INT UNSIGNED</text>
+<text x="3509" y="1706" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1731" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">count</text>
+<text x="3205" y="1731" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="3509" y="1731" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="1772" width="680" height="191" fill="#ffffff"/>
+<rect x="2910" y="1772" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="1802" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_cache</text>
+<text x="2926" y="1838" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">type</text>
+<text x="3205" y="1838" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(8)</text>
+<text x="3509" y="1838" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="1863" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">cacheid</text>
+<text x="3205" y="1863" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">BIGINT UNSIGNED</text>
+<text x="3509" y="1863" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK</text>
+<text x="2926" y="1888" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="3205" y="1888" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">MEDIUMBLOB</text>
+<text x="3509" y="1888" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1913" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">created</text>
+<text x="3205" y="1913" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="3509" y="1913" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="1938" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">lastread</text>
+<text x="3205" y="1938" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">DATETIME</text>
+<text x="3509" y="1938" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="1979" width="680" height="116" fill="#ffffff"/>
+<rect x="2910" y="1979" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="2009" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_options</text>
+<text x="2926" y="2045" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="3205" y="2045" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(40)</text>
+<text x="3509" y="2045" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="2070" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">content</text>
+<text x="3205" y="2070" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(12000)</text>
+<text x="3509" y="2070" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<rect x="2910" y="2111" width="680" height="191" fill="#ffffff"/>
+<rect x="2910" y="2111" width="680" height="46" fill="#e0edf4"/>
+<text x="2926" y="2141" font-family="Menlo, monospace" font-weight="bold" font-size="23" fill="#183047">qa_widgets</text>
+<text x="2926" y="2177" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">widgetid</text>
+<text x="3205" y="2177" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="3509" y="2177" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">PK NN</text>
+<text x="2926" y="2202" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">place</text>
+<text x="3205" y="2202" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">CHAR(2)</text>
+<text x="3509" y="2202" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="2227" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">position</text>
+<text x="3205" y="2227" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">SMALLINT UNSIGNED</text>
+<text x="3509" y="2227" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="2252" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">tags</text>
+<text x="3205" y="2252" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(800)</text>
+<text x="3509" y="2252" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<text x="2926" y="2277" font-family="Menlo, monospace" font-weight="normal" font-size="17" fill="#183047">title</text>
+<text x="3205" y="2277" font-family="Menlo, monospace" font-weight="normal" font-size="16" fill="#183047">VARCHAR(80)</text>
+<text x="3509" y="2277" font-family="Helvetica, monospace" font-weight="bold" font-size="15" fill="#126c76">NN</text>
+<polyline points="1120,483 937,483 937,433 927,433 913,433" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1120,483 937,483 937,433 927,433 913,433" fill="none" stroke="#70218e" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1800,2161 1832,2161 1832,1697 1822,1697 1808,1697" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1800,2161 1832,2161 1832,1697 1822,1697 1808,1697" fill="none" stroke="#176442" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2910,847 2727,847 2727,3123 1840,3123 1840,715 1822,715 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2910,847 2727,847 2727,3123 1840,3123 1840,715 1822,715 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="3590,897 3622,897 3622,433 3612,433 3598,433" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="3590,897 3622,897 3622,433 3612,433 3598,433" fill="none" stroke="#805400" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,1129 1848,1129 1848,3135 945,3135 945,790 927,790 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,1129 1848,1129 1848,3135 945,3135 945,790 927,790 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,1179 1856,1179 1856,3147 953,3147 953,794 927,794 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,1179 1856,1179 1856,3147 953,3147 953,794 927,794 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1800,1979 1864,1979 1864,719 1822,719 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1800,1979 1864,1979 1864,719 1822,719 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1800,815 1872,815 1872,1701 1822,1701 1808,1697" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1800,815 1872,815 1872,1701 1822,1701 1808,1697" fill="none" stroke="#176442" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1800,1015 1880,1015 1880,711 1822,711 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1800,1015 1880,1015 1880,711 1822,711 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1800,765 1888,765 1888,723 1822,723 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1800,765 1888,765 1888,723 1822,723 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1120,1065 961,1065 961,786 927,786 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="1120,1065 961,1065 961,786 927,786 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2910,1286 2735,1286 2735,3159 1896,3159 1896,707 1822,707 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2910,1286 2735,1286 2735,3159 1896,3159 1896,707 1822,707 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="3590,1336 3630,1336 3630,437 3612,437 3598,433" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="3590,1336 3630,1336 3630,437 3612,437 3598,433" fill="none" stroke="#805400" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2910,1104 2743,1104 2743,3171 1904,3171 1904,727 1822,727 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2910,1104 2743,1104 2743,3171 1904,3171 1904,727 1822,727 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="3590,1154 3638,1154 3638,429 3612,429 3598,433" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="3590,1154 3638,1154 3638,429 3612,429 3598,433" fill="none" stroke="#805400" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2910,665 2751,665 2751,3183 1912,3183 1912,703 1822,703 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2910,665 2751,665 2751,3183 1912,3183 1912,703 1822,703 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="3590,715 3646,715 3646,441 3612,441 3598,433" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="3590,715 3646,715 3646,441 3612,441 3598,433" fill="none" stroke="#805400" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,1693 1920,1693 1920,3195 969,3195 969,798 927,798 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,1693 1920,1693 1920,3195 969,3195 969,798 927,798 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,872 1928,872 1928,3207 977,3207 977,782 927,782 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,872 1928,872 1928,3207 977,3207 977,782 927,782 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="905,2575 985,2575 985,802 927,802 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="905,2575 985,2575 985,802 927,802 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="905,2782 993,2782 993,778 927,778 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="905,2782 993,2782 993,778 927,778 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="905,1397 1001,1397 1001,806 927,806 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="905,1397 1001,1397 1001,806 927,806 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="905,2989 1009,2989 1009,774 927,774 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="905,2989 1009,2989 1009,774 927,774 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,1461 1936,1461 1936,3219 1017,3219 1017,810 927,810 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,1461 1936,1461 1936,3219 1017,3219 1017,810 927,810 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="905,1604 1025,1604 1025,770 927,770 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="905,1604 1025,1604 1025,770 927,770 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,590 1944,590 1944,731 1822,731 1808,715" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,590 1944,590 1944,731 1822,731 1808,715" fill="none" stroke="#a4382c" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="2015,640 1952,640 1952,3231 1033,3231 1033,814 927,814 913,790" fill="none" stroke="#f0f5f8" stroke-width="9" stroke-linejoin="round"/>
+<polyline points="2015,640 1952,640 1952,3231 1033,3231 1033,814 927,814 913,790" fill="none" stroke="#174b9a" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="905,433 914,427 914,439" fill="#70218e"/>
+<polygon points="1800,1697 1809,1691 1809,1703" fill="#176442"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="3590,433 3599,427 3599,439" fill="#805400"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="1800,1697 1809,1691 1809,1703" fill="#176442"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="3590,433 3599,427 3599,439" fill="#805400"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="3590,433 3599,427 3599,439" fill="#805400"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="3590,433 3599,427 3599,439" fill="#805400"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<polygon points="1800,715 1809,709 1809,721" fill="#a4382c"/>
+<polygon points="905,790 914,784 914,796" fill="#174b9a"/>
+<text x="50" y="3262" font-family="Helvetica, monospace" font-weight="normal" font-size="19" fill="#34576d">Schema sources: qa-include/db/install.php · docker/php/seed.php · node-api/migrations/001_ai_tables.sql · qa-plugin/event-logger/qa-event-logger.php</text>
 </svg>
