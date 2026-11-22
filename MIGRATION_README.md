@@ -106,8 +106,9 @@ Disabling the flag leaves previously created accounts in the demo database.
 Open `/?qa=account` to show the signed-in user's email, open a question to
 evaluate an answer, and open **AI Evaluation History** to view the saved result.
 Use `/?qa=admin` and `/?qa=users` to show Q2A administration and the user directory.
-AI usage totals are available through the protected
-`GET /api/v1/admin/ai/usage` endpoint after signing in at the API origin.
+Open **AI Usage** in the Administration Center (`/?qa=admin/ai-usage`) for
+recorded requests, outcomes, and tokens. The page uses the existing
+`GET /api/v1/admin/ai/usage` endpoint through the PHP bridge.
 
 Both sites use the same frontend files from `qa-theme/`, `qa-content/`, and Q2A's
 existing page controllers. There is no separate demo design or duplicated frontend.

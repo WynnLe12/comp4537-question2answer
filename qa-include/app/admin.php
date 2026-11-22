@@ -361,6 +361,12 @@ function qa_admin_sub_navigation()
 			'url' => qa_path_html('admin/stats'),
 		);
 
+		if (function_exists('node_bridge_api') && !(qa_get_logged_in_flags() & QA_USER_FLAGS_USER_BLOCKED))
+			$navigation['admin/ai-usage'] = array(
+				'label' => 'AI Usage',
+				'url' => qa_path_html('admin/ai-usage'),
+			);
+
 		if (!QA_FINAL_EXTERNAL_USERS)
 			$navigation['admin/mailing'] = array(
 				'label' => qa_lang_html('admin/mailing_title'),

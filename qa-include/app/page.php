@@ -399,6 +399,7 @@ function qa_page_routing()
 		'ai-evaluation-history' => 'pages/ai-evaluation-history.php',
 		'activity/' => 'pages/activity.php',
 		'admin/' => 'pages/admin/admin-default.php',
+		'admin/ai-usage' => 'pages/admin/admin-ai-usage.php',
 		'admin/approve' => 'pages/admin/admin-approve.php',
 		'admin/categories' => 'pages/admin/admin-categories.php',
 		'admin/flagged' => 'pages/admin/admin-flagged.php',
