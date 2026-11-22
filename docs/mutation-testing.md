@@ -236,6 +236,24 @@ in-process tests at all.
 | `site-admin.js` | 8% | 26% (93% of what the tests reach) | 25 | 932 |
 | **All services** | 11% | **77%** (91% of what the tests reach) | 538 | 985 |
 
+### Final full run
+
+Stryker over all of `src/`, after every round of tests (52 minutes, 12,416 mutants):
+
+| | Score first run | Score now | Survived first run | Survived now | No coverage first run | No coverage now |
+| --- | --- | --- | --- | --- | --- | --- |
+| `src/http` | 72% | 98% | 24 | 2 | 2 | 0 |
+| `src/q2a` | 46% | 91% | 437 | 116 | 359 | 16 |
+| `src/reads` | 0% | 87% | 34 | 147 | 1,954 | 114 |
+| `src/repositories` | 2% | 76% | 7 | 161 | 1,361 | 169 |
+| `src/routes` | 45% | 81% | 82 | 61 | 182 | 28 |
+| `src/services` | 11% | 89% | 365 | 650 | 5,632 | 97 |
+| **All of `src/`** | **14.6%** | **87.3%** | 1,019 | 1,144 | 9,511 | 424 |
+
+On the code the tests reach, the score is 90.4% (it was 63.8%). "Survived" grew in `reads`,
+`repositories` and `services` because thousands of mutants that no in-process test reached before are
+now tested; most are killed, and the ones that survive are counted where before they were "no coverage".
+
 ### Write-log and SQL snapshots
 
 The code whose correctness is a long sequence of writes or a piece of SQL is pinned by Jest snapshots.
