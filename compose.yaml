@@ -45,6 +45,12 @@ services:
       <<: *credentials
       DB_HOST: node-db
       Q2A_MILESTONE_DEMO_ACCOUNTS: ${Q2A_MILESTONE_DEMO_ACCOUNTS:-0}
+      # Applied on every start (see seed.php): links in emails point to the shared UI, new users must
+      # verify their email, and email goes through SMTP_USERNAME's account, or Mailpit when it is empty.
+      Q2A_SITE_URL: ${Q2A_NODE_SITE_URL:-http://localhost:8081/}
+      Q2A_CONFIRM_EMAILS: ${Q2A_CONFIRM_EMAILS:-1}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     command: ["php", "docker/php/seed.php", "--with-ai"]
     depends_on:
       node-db: {condition: service_healthy}

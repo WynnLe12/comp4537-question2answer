@@ -33,6 +33,34 @@ foreach ($profile as $name => $value) {
         qa_opt($name, $value);
     }
 }
+// Settings the environment owns. Each one is applied on every run when its variable is passed, so
+// .env stays the source of truth; Compose passes them to the Node site's seed only.
+$forced = array();
+if (getenv('Q2A_SITE_URL')) {
+    $forced['site_url'] = $profile['site_url'];
+}
+$confirm = getenv('Q2A_CONFIRM_EMAILS');
+if ($confirm !== false && $confirm !== '') {
+    // New users get a verification link and cannot post until they click it.
+    $forced['confirm_user_emails'] = $forced['confirm_user_required'] = $confirm === '1' ? 1 : 0;
+}
+$smtpUser = getenv('SMTP_USERNAME');
+if ($smtpUser !== false) {
+    // With a username, email goes out through that account (Gmail by default); without one, back to Mailpit.
+    $forced += $smtpUser === '' ? array(
+        'smtp_address' => 'mailpit', 'smtp_port' => 1025, 'smtp_secure' => '', 'smtp_authenticate' => 0,
+        'smtp_username' => '', 'smtp_password' => '', 'from_email' => 'no-reply@example.com',
+    ) : array(
+        'smtp_address' => getenv('SMTP_HOST') ?: 'smtp.gmail.com', 'smtp_port' => (int)(getenv('SMTP_PORT') ?: 587),
+        'smtp_secure' => getenv('SMTP_SECURE') ?: 'tls', 'smtp_authenticate' => 1,
+        'smtp_username' => $smtpUser, 'smtp_password' => str_replace(' ', '', (string)getenv('SMTP_PASSWORD')),
+        'from_email' => getenv('SMTP_FROM') ?: $smtpUser,
+    );
+    $forced['smtp_active'] = 1;
+}
+foreach ($forced as $name => $value) {
+    qa_opt($name, $value);
+}
 foreach (array('alice', 'legacy', 'bob', 'carol') as $handle) {
     if (!count(qa_db_user_find_by_handle($handle))) {
         $id = qa_create_new_user($handle . '@example.test', 'Password123!', $handle);
