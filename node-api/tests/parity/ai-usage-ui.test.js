@@ -92,15 +92,23 @@ test('denies a blocked administrator at both the page and relay', async () => {
   }
 });
 
-test('shows only the signed-in user’s usage on their account page', async () => {
+test('shows only the signed-in user’s usage on a separate account tab', async () => {
   const [[user]] = await pool.execute('SELECT userid FROM qa_users WHERE handle=?', [`usageu${suffix}`]);
-  const accountPath = '/?qa=account';
+  const account = cheerio.load((await regular._client.get('/?qa=account').expect(200)).text);
+  const tab = account('.qa-nav-sub a').filter((_i, element) => account(element).text().trim() === 'AI Usage');
+  expect(tab).toHaveLength(1);
+  expect(account('.qa-main').text()).not.toContain('Recorded tokens');
+
+  const usagePath = new URL(tab.attr('href'), UI_URL);
+  const target = usagePath.pathname + usagePath.search;
+  await request(UI_URL).get(target).expect(302).expect('Location', /login/);
+
   const readUsage = async () => {
-    const response = await regular._client.get(accountPath).expect(200).expect('Cache-Control', /no-store/);
+    const response = await regular._client.get(target).expect(200).expect('Cache-Control', /no-store/);
     const $ = cheerio.load(response.text);
-    const heading = $('h2').filter((_i, element) => $(element).text().trim() === 'My AI API Usage');
-    expect(heading).toHaveLength(1);
-    return heading.next('table').find('.qa-form-wide-static').map((_i, element) => $(element).text()).get();
+    expect($('h1').text().trim()).toBe('My AI API Usage');
+    expect($('.qa-nav-sub .qa-nav-sub-selected').text().trim()).toBe('AI Usage');
+    return $('.qa-main .qa-form-wide-static').map((_i, element) => $(element).text()).get();
   };
 
   const fixtureIds = [];

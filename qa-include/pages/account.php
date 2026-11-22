@@ -431,33 +431,6 @@ if (!$haspassword && !$haspasswordold) {
 if (qa_get_state() == 'password-changed')
 	$qa_content['form_profile']['ok'] = qa_lang_html('users/password_changed');
 
-if (function_exists('node_bridge_api')) {
-	header('Cache-Control: private, no-store');
-	$usage = node_bridge_api('GET', '/api/v1/ai/usage');
-	$usagefields = array();
-	if ($usage['status'] === 200 && is_array($usage['data'])) {
-		$usagelabels = array(
-			'totalRecordedRequests' => 'Recorded requests',
-			'successfulEvaluations' => 'Successful evaluations',
-			'failedProviderAttempts' => 'Failed provider attempts',
-			'totalRecordedTokens' => 'Recorded tokens',
-		);
-		foreach ($usagelabels as $key => $label) {
-			$usagefields[] = array(
-				'type' => 'static',
-				'label' => $label,
-				'value' => number_format($usage['data'][$key]),
-			);
-		}
-	} else {
-		$usagefields[] = array('type' => 'static', 'value' => 'AI API usage is temporarily unavailable.');
-	}
-	$qa_content['form_ai_usage'] = array(
-		'style' => 'wide',
-		'title' => 'My AI API Usage',
-		'fields' => $usagefields,
-	);
-}
 
 $qa_content['navigation']['sub'] = qa_user_sub_navigation($useraccount['handle'], 'account', true);
 

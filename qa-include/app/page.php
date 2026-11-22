@@ -397,6 +397,7 @@ function qa_page_routing()
 	return array(
 		'account' => 'pages/account.php',
 		'ai-evaluation-history' => 'pages/ai-evaluation-history.php',
+		'ai-usage' => 'pages/ai-usage.php',
 		'activity/' => 'pages/activity.php',
 		'admin/' => 'pages/admin/admin-default.php',
 		'admin/ai-usage' => 'pages/admin/admin-ai-usage.php',

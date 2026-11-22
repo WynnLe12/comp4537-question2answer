@@ -1489,6 +1489,11 @@ function qa_user_sub_navigation($handle, $selected, $ismyuser = false)
 			'url' => qa_path_html('account'),
 		),
 
+		'ai-usage' => array(
+			'label' => 'AI Usage',
+			'url' => qa_path_html('ai-usage'),
+		),
+
 		'favorites' => array(
 			'label' => qa_lang_html('misc/nav_my_favorites'),
 			'url' => qa_path_html('favorites'),
@@ -1528,6 +1533,9 @@ function qa_user_sub_navigation($handle, $selected, $ismyuser = false)
 
 	if (QA_FINAL_EXTERNAL_USERS || !$ismyuser)
 		unset($navigation['account']);
+
+	if (QA_FINAL_EXTERNAL_USERS || !$ismyuser || !function_exists('node_bridge_api'))
+		unset($navigation['ai-usage']);
 
 	if (!$ismyuser)
 		unset($navigation['favorites']);
