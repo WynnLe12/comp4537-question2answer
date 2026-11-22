@@ -232,15 +232,19 @@ in-process tests at all.
 | `recalc.js` | 0% | 87% | 56 | 3 |
 | `feedback.js` | 0% | 87% | 12 | 1 |
 | `posts.js` | 0% | 77% | 89 | 3 |
-| `post-changes.js` | 0% | 36% | 729 | 272 |
+| `post-changes.js` | 0% | 87% | 170 | 29 |
 | `site-admin.js` | 8% | 26% (93% of what the tests reach) | 25 | 932 |
-| **All services** | 11% | **66%** (80% of what the tests reach) | 1,097 | 1,228 |
+| **All services** | 11% | **77%** (91% of what the tests reach) | 538 | 985 |
 
 What is left, and why:
-- `post-changes.js` has tests for every operation's decisions (who may do what, which error) and its key
-  writes. The many survivors are in the remaining bookkeeping each change makes: which index rows,
-  counts and update events, in which order. The post-change parity suite compares every one of those
-  writes with PHP's, and its canaries show it notices when one goes wrong.
+- `post-changes.js` also has write-log tests (`tests/integration/post-changes-writes.test.js`): 112
+  scenarios (edits, status changes, conversions, deletions, closings, flags, and the refused ones),
+  each recording every repository call in order with its arguments, plus every email sent, as a Jest
+  snapshot. The post-change parity suite compares these same writes with PHP's, so a snapshot records
+  behaviour that matches PHP, and any change to a write shows up as a diff. Update the snapshots
+  (`npx jest -u tests/integration/post-changes-writes.test.js`) only for a change the parity suite
+  also accepts. The 170 survivors left are mostly changes nothing can observe, or states narrower than
+  the scenarios.
 - `site-admin.js`: the categories, pages, widgets, user titles and user fields admin has no in-process
   tests (the "no coverage" mutants). The admin parity suites cover it.
 - `reads/` and `repositories/` are SQL. Fake-database tests would only check the SQL text, so they are
