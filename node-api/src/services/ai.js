@@ -123,6 +123,14 @@ function createAiService(pool, postRepository) {
             };
         },
 
+        async getUsage(userId) {
+            if (!Number.isSafeInteger(userId) || userId <= 0) {
+                throw new ApiError(401, 'unauthenticated');
+            }
+
+            return aiRepository.getUserUsage(userId);
+        },
+
         // Retrieve previous evaluations for a user.
         async getHistory(userId) {
             if (!Number.isSafeInteger(userId) || userId <= 0) {

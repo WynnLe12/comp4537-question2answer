@@ -91,3 +91,31 @@ test('denies a blocked administrator at both the page and relay', async () => {
     await pool.execute('UPDATE qa_users SET flags=flags&~2 WHERE userid=?', [adminId]);
   }
 });
+
+test('shows only the signed-in user’s usage on their account page', async () => {
+  const [[user]] = await pool.execute('SELECT userid FROM qa_users WHERE handle=?', [`usageu${suffix}`]);
+  const accountPath = '/?qa=account';
+  const readUsage = async () => {
+    const response = await regular._client.get(accountPath).expect(200).expect('Cache-Control', /no-store/);
+    const $ = cheerio.load(response.text);
+    const heading = $('h2').filter((_i, element) => $(element).text().trim() === 'My AI API Usage');
+    expect(heading).toHaveLength(1);
+    return heading.next('table').find('.qa-form-wide-static').map((_i, element) => $(element).text()).get();
+  };
+
+  const fixtureIds = [];
+  try {
+    for (const [userid, status, tokens] of [[adminId, 200, 900], [user.userid, 200, 42], [user.userid, 502, null]]) {
+      const [fixture] = await pool.execute(
+        'INSERT INTO node_ai_usage (userid, endpoint, status_code, tokens_used) VALUES (?, ?, ?, ?)',
+        [userid, '/api/v1/ai/evaluate', status, tokens],
+      );
+      fixtureIds.push(fixture.insertId);
+      if (userid === adminId) expect(await readUsage()).toEqual(['0', '0', '0', '0']);
+    }
+    expect(await readUsage()).toEqual(['2', '1', '1', '42']);
+  } finally {
+    for (const id of fixtureIds)
+      await pool.execute('DELETE FROM node_ai_usage WHERE usage_id=?', [id]);
+  }
+});

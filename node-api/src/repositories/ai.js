@@ -89,6 +89,26 @@ function createAiRepository(pool) {
             }));
         },
 
+        async getUserUsage(userId) {
+            const [[usage]] = await pool.execute(
+                `SELECT COUNT(*) AS totalRecordedRequests,
+                        COALESCE(SUM(status_code = 200), 0) AS successfulEvaluations,
+                        COALESCE(SUM(tokens_used), 0) AS totalRecordedTokens
+                 FROM node_ai_usage
+                 WHERE userid = ? AND endpoint = ?`,
+                [userId, EVALUATION_ENDPOINT]
+            );
+            const totalRecordedRequests = Number(usage.totalRecordedRequests);
+            const successfulEvaluations = Number(usage.successfulEvaluations);
+
+            return {
+                totalRecordedRequests,
+                successfulEvaluations,
+                failedProviderAttempts: totalRecordedRequests - successfulEvaluations,
+                totalRecordedTokens: Number(usage.totalRecordedTokens)
+            };
+        },
+
         async getUsageStatistics() {
             const [rows] = await pool.execute(
                 `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS usageDate, status_code AS statusCode,

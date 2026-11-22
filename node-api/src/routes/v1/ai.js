@@ -77,6 +77,10 @@ function aiRoutes({ aiService, identify }) {
         res.json({ evaluations });
     });
 
+    router.get('/usage', async (req, res) => {
+        res.json(await aiService.getUsage(Number(req.aiUser.id)));
+    });
+
     return router;
 }
 
