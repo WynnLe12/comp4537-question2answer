@@ -35,7 +35,9 @@ function createPostChangeService(repository, { identify }) {
     // qa_page_q_load_c_follows(): comments and follow-on questions on the question and its answers.
     const commentsfollows = [...children, ...achildren].filter(child => ['Q', 'C'].includes(child.basetype));
     const closepost = question.closedbyid !== null ? await q.findPost(question.closedbyid) : null;
-    return { question, parent, children, answers, achildren, commentsfollows, closepost };
+    // pages/question.php gives the question's rules its children and its duplicates ($childposts + $duplicateposts).
+    const qchildren = [...children, ...await q.findDuplicates(question.postid)];
+    return { question, parent, children, qchildren, answers, achildren, commentsfollows, closepost };
   }
 
   // qa_private_question_basic_cache_recalc()
@@ -252,7 +254,7 @@ function createPostChangeService(repository, { identify }) {
   async function editQuestion(ctx, page, body) {
     const { q, options } = ctx;
     const question = page.question;
-    const rules = postRules(ctx, question, null, null, page.children);
+    const rules = postRules(ctx, question, null, null, page.qchildren);
     if (!rules.editbutton && !rules.retagcatbutton) throw new ApiError(403, 'edit_not_allowed');
     permitEdit(ctx, question, rules, 'permit_edit_q', 'permit_retag_cat');
 
@@ -321,7 +323,7 @@ function createPostChangeService(repository, { identify }) {
     const format = input.format ?? answer.format;
     const values = { content, format, text: input.content !== undefined ? input.text : text.viewerText(content, format), notify: setNotify(answer, rules, input), name: input.name ?? null };
     const target = commenton === null ? null
-      : Number(commenton) === Number(page.question.postid) ? postRules(ctx, page.question, null, null, page.children)
+      : Number(commenton) === Number(page.question.postid) ? postRules(ctx, page.question, null, null, page.qchildren)
         : Number(commenton) !== Number(answer.postid) && page.answers.find(a => Number(a.postid) === commenton)
           ? postRules(ctx, page.answers.find(a => Number(a.postid) === commenton), page.question, page.answers, page.achildren) : null;
     if (target?.commentable) {
@@ -639,7 +641,7 @@ function createPostChangeService(repository, { identify }) {
     post.userflag = ctx.userid !== null ? await q.userFlag(post.postid, ctx.userid) : null;
     const page = await questionPage(ctx, post);
     let rules;
-    if (post.basetype === 'Q') rules = postRules(ctx, post, null, null, page.children);
+    if (post.basetype === 'Q') rules = postRules(ctx, post, null, null, page.qchildren);
     else if (post.basetype === 'A') rules = postRules(ctx, post, page.question, page.answers, page.achildren);
     else rules = postRules(ctx, post, page.parent, page.commentsfollows, null);
     return { post, page, rules };

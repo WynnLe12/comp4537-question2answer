@@ -50,6 +50,11 @@ function createPostRepository(pool) {
         const [rows] = await db.execute(`SELECT ${POST_COLUMNS} FROM qa_posts WHERE parentid=? ORDER BY postid`, [parentid]);
         return rows;
       },
+      // qa_db_post_duplicates_selectspec(): the questions closed as duplicates of this one.
+      async findDuplicates(questionid) {
+        const [rows] = await db.execute(`SELECT ${POST_COLUMNS} FROM qa_posts WHERE closedbyid=? ORDER BY postid`, [questionid]);
+        return rows;
+      },
       // qa_db_qs_selectspec(null, 'created', 0, null, null, false, true, 5): the newest visible questions.
       async recentQuestions(count) {
         const [rows] = await db.query("SELECT title, content FROM qa_posts WHERE type='Q' ORDER BY created DESC LIMIT ?", [count]);

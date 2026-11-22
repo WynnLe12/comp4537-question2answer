@@ -13,8 +13,9 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+# The tests container runs the suites as they are here, not the copy baked into its image.
 suite() {
-  docker compose run --rm -e RELIABILITY=1 -e FUZZ_SEED -e FUZZ_STEPS -e FUZZ_DIFF_EVERY -e FUZZ_READS tests \
+  docker compose run --rm -e RELIABILITY=1 -e FUZZ_SEED -e FUZZ_STEPS -e FUZZ_DIFF_EVERY -e FUZZ_READS -v "$PWD/node-api/tests:/app/tests:ro" tests \
     npx jest --runInBand "tests/reliability/.*($1)"
 }
 

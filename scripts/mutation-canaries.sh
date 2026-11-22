@@ -28,6 +28,7 @@ answers-count-double|src/repositories/posts.js|'UPDATE qa_posts SET acount = ? +
 flag-hide-off-by-one|src/services/post-changes.js|if (flagcount >= Number(options.get('flagging_hide_after'))) {|if (flagcount > Number(options.get('flagging_hide_after'))) {|tests/parity/flags|a post is hidden one flag later than the hide threshold
 favorite-shared-events|src/repositories/favorites.js|nouserevents) VALUES (?, ?, ?, 0)|nouserevents) VALUES (?, ?, ?, 1)|tests/parity/favorites|new favorites are stored as using the shared event stream
 read-no-escaping|src/reads/execute.js|  return escape(text);|  return `'${text}'`;|tests/reliability/read-fuzz|string SQL arguments are quoted without escaping (quotes and backslashes reach MySQL raw)
+delete-duplicate-target|src/services/post-common.js|if (child.closedbyid !== null && child.closedbyid !== undefined && String(child.closedbyid) === String(post.postid)) r.deleteable = false;|void 0;|tests/parity/post-changes|a question others are closed as duplicates of can be deleted
 EOF
 
 if [ "${1:-}" = "--list" ]; then
@@ -64,8 +65,9 @@ restart_api() {
   return 1
 }
 
+# The tests container runs the suites as they are here, not the copy baked into its image.
 suite() {
-  docker compose run --rm -T -e RELIABILITY=1 tests npx jest --runInBand "$1" </dev/null >"$2" 2>&1
+  docker compose run --rm -T -e RELIABILITY=1 -v "$PWD/node-api/tests:/app/tests:ro" tests npx jest --runInBand "$1" </dev/null >"$2" 2>&1
 }
 
 # 1. Every suite the selected canaries rely on must pass without any bug planted.

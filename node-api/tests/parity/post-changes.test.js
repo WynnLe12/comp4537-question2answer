@@ -222,6 +222,19 @@ describe('PHP ↔ Node post-change parity (original pages, shared UI bridge and 
         expect(php.state.posts.ax).toBeUndefined();
         expect(php.state.points.actor).toBeTruthy();
       });
+      // pages/question.php gives the question's rules its duplicates too ($childposts + $duplicateposts).
+      test('a hidden question that another question is closed as a duplicate of cannot be deleted', async () => {
+        for (const b of backends) {
+          b.ids.qd = (await b.actor.ask({ title: `Original ${b.token} question about sorting`, content: 'How do I sort a list in place?', tags: 'sort' })).id;
+          b.ids.qdup = (await b.actor.ask({ title: `Duplicate ${b.token} question on sorting lists`, content: 'Is there a way to sort lists?', tags: 'sort' })).id;
+          const closed = await b.actor.close(b.ids.qdup, `http://localhost/index.php?qa=${b.ids.qd}`);
+          if (!closed.accepted) throw new Error(`${b.tag}: could not close the duplicate`);
+        }
+        await runEverywhere(b => b.other.act(b.ids.qd, b.ids.qd, 'Q', 'hide'));
+        const { php, api } = await runEverywhere(b => b.other.act(b.ids.qd, b.ids.qd, 'Q', 'delete'));
+        expect(php.outcome.accepted).toBe(false);
+        expect(api.outcome).toMatchObject({ status: 403, code: 'delete_not_allowed' });
+      });
       test("a moderator hides someone's comment", async () => {
         const { php } = await runEverywhere(b => b.other.act(b.ids.qa, b.ids.cx, 'C', 'hide'));
         expect(php.state.posts.cx).toMatchObject({ type: 'C_HIDDEN', lastuserid: 'other' });

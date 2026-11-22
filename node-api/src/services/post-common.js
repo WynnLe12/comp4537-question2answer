@@ -259,12 +259,15 @@ function createPostHelpers({ identify }) {
       }
     }
     for (const child of childposts ?? []) {
-      if (String(child.parentid) !== String(post.postid)) continue;
-      r.deleteable = false;
-      if (child.basetype === 'A' && postIsByUser(child, userid, cookieid)) {
-        if (!o('allow_multi_answers')) r.answerbutton = false;
-        if (!o('allow_self_answer')) r.claimable = false;
+      if (String(child.parentid) === String(post.postid)) {
+        r.deleteable = false; // the post has answers or comments
+        if (child.basetype === 'A' && postIsByUser(child, userid, cookieid)) {
+          if (!o('allow_multi_answers')) r.answerbutton = false;
+          if (!o('allow_self_answer')) r.claimable = false;
+        }
       }
+      // other questions are closed as duplicates of this one
+      if (child.closedbyid !== null && child.closedbyid !== undefined && String(child.closedbyid) === String(post.postid)) r.deleteable = false;
     }
     r.userlevel = userlevel;
     return r;

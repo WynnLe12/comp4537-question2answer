@@ -50,6 +50,8 @@ container's file out, makes one exact text change, copies it back and restarts t
 suite that ought to notice the bug, and the canary passes only if that suite fails. The original file is
 put back after every canary, and again on exit, even after Ctrl-C.
 
+The suites run from this checkout's `node-api/tests` (mounted into the tests container), not from the copy baked into its image, so a new test counts at once.
+
 Before planting anything, every suite the canaries use runs once unchanged and must pass. Otherwise a
 failure later would prove nothing.
 
@@ -60,6 +62,7 @@ failure later would prove nothing.
 | `flag-hide-off-by-one` | a post is hidden one flag after the hide threshold | `parity/flags` |
 | `favorite-shared-events` | new favorites are stored as using the shared event stream | `parity/favorites` |
 | `read-no-escaping` | string SQL arguments are quoted without escaping (quotes and backslashes reach MySQL raw) | `reliability/read-fuzz` |
+| `delete-duplicate-target` | a question others are closed as duplicates of can be deleted | `parity/post-changes` |
 
 To add a canary, add a line to the list at the top of `scripts/mutation-canaries.sh`:
 `name|file|exact text|replacement|suite|description`. The text must appear exactly once in the file, or
@@ -96,6 +99,7 @@ If PHP prints a warning or error into the output, the script refuses to write th
 | Generator | PHP functions | Node test |
 | --- | --- | --- |
 | `php-permissions.php` | `qa_permit_value_error`, `qa_permit_error`, `qa_limits_calc_remaining`, `qa_block_ip_match`, `qa_is_ip_blocked`, `qa_user_permit_error`, the category-level functions, `qa_user_moderation_reason`, `qa_post_is_by_user` (about 15,000 cases) | `tests/integration/permissions.test.js` |
+| `php-post-rules.php` | `qa_page_q_post_rules()` (which buttons each viewer gets on a post: 1,200 cases over posts, viewers and options) and `qa_filter_basic`'s question, answer and comment checks (892 cases) | `tests/integration/post-common.test.js` |
 | `php-helpers.php` | PHP's number and boolean conversions, `qa_db_points_calculations` and the points statement, `qa_default_option`, `qa_path`, `qa_q_request`, `qa_q_path`, the text helpers (`qa_string_to_words`, block words, `qa_slugify`, tags, `qa_email_validate` with 921 addresses), `qa_combine_notify_email`, `strtr`; `qa_default_option` for every option an admin can reset (225 options, 18 site and option combinations) | `tests/integration/q2a-helpers.test.js`, `tests/integration/site-admin-defaults.test.js` |
 
 Each Node test checks one function's whole table of cases and lists every case where Node differs.
@@ -134,6 +138,14 @@ Places where Node did not match PHP. All were fixed, and the parity suites still
   - Single quotes in the site title were not escaped, while PHP 8's `htmlspecialchars()` escapes them.
   - The default `from_email` dropped a first host part such as `1e3`, which PHP's `is_numeric()` counts
     as a number and keeps. The same check in `options.js` is fixed too.
+- **Deleting a question others are closed as duplicates of** (`services/post-common.js`,
+  `services/post-changes.js`). PHP's question page builds the question's rules from its children
+  *and its duplicates*, and a duplicate pointing at the question means it cannot be deleted. Node loaded
+  no duplicates. So when a moderator deleted such a hidden question, Node tried the delete and the
+  database's foreign key on `closedbyid` refused it: the user got a 503 instead of PHP's refusal. Node
+  now loads the duplicates (`findDuplicates()`, a port of `qa_db_post_duplicates_selectspec()`) and
+  applies PHP's rule. A new parity test in `tests/parity/post-changes.test.js` failed (503) before the
+  fix and passes after it.
 - **Dead code.** `flagtohide` in `services/post-common.js` was computed but never read (found by a
   canary; removed).
 
@@ -201,21 +213,36 @@ Nothing can kill those.
 
 ### The services
 
-Stryker over the services that have in-process tests, before and after the service tests:
+Stryker over every service, after the service tests (7 minutes). "Before" is the first full run, when
+only `auth`, `votes`, `favorites`, `messages`, `user-admin`, `site-admin` and the AI services had any
+in-process tests at all.
 
-| | Survived before | Survived after | Score on code the tests reach, after |
-| --- | --- | --- | --- |
-| `auth.js` | 56 | 14 | 94% |
-| `votes.js` | 50 | 4 | 98% |
-| `favorites.js` | 9 | 0 | 100% |
-| `messages.js` | 31 | 6 | 97% |
-| `user-admin.js` | 31 | 11 | 97% |
-| `site-admin.js` | 72 | 25 | 93% |
-| `ai.js` | 26 | 4 | 97% |
-| `aiProvider.js` | 65 | 4 | 98% |
-| `post-common.js` | 21 | 21 | 62% |
-| **Together** | **361** | **89** | **95%** (68% before) |
+| | Score before | Score after | Survived after | No coverage after |
+| --- | --- | --- | --- | --- |
+| `favorites.js` | 71% | 100% | 0 | 0 |
+| `votes.js` | 41% | 98% | 4 | 0 |
+| `aiProvider.js` | 67% | 98% | 4 | 0 |
+| `messages.js` | 19% | 97% | 6 | 1 |
+| `ai.js` | 79% | 96% | 4 | 1 |
+| `user-admin.js` | 15% | 96% | 11 | 5 |
+| `auth.js` | 71% | 94% | 14 | 0 |
+| `post-common.js` | 4% | 91% | 80 | 1 |
+| `account.js` | 0% | 90% | 46 | 7 |
+| `uploads.js` | 0% | 88% | 17 | 2 |
+| `recalc.js` | 0% | 87% | 56 | 3 |
+| `feedback.js` | 0% | 87% | 12 | 1 |
+| `posts.js` | 0% | 77% | 89 | 3 |
+| `post-changes.js` | 0% | 36% | 729 | 272 |
+| `site-admin.js` | 8% | 26% (93% of what the tests reach) | 25 | 932 |
+| **All services** | 11% | **66%** (80% of what the tests reach) | 1,097 | 1,228 |
 
-Not done: `post-common.js`. Its survivors are constants (the field limits and the event codes) used by
-the post services, which only the parity suites exercise. The categories, pages, widgets and user-fields
-parts of `site-admin.js` are also left to the parity suites (the "no coverage" mutants).
+What is left, and why:
+- `post-changes.js` has tests for every operation's decisions (who may do what, which error) and its key
+  writes. The many survivors are in the remaining bookkeeping each change makes: which index rows,
+  counts and update events, in which order. The post-change parity suite compares every one of those
+  writes with PHP's, and its canaries show it notices when one goes wrong.
+- `site-admin.js`: the categories, pages, widgets, user titles and user fields admin has no in-process
+  tests (the "no coverage" mutants). The admin parity suites cover it.
+- `reads/` and `repositories/` are SQL. Fake-database tests would only check the SQL text, so they are
+  left to the parity and reliability suites (and the read fuzzer), which run them against MySQL and
+  compare with PHP.
