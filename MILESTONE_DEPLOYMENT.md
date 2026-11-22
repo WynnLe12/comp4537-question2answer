@@ -1,9 +1,9 @@
 # Milestone 1 HTTPS demo
 
-Run one Docker Compose project on an isolated demo VM. Use sibling hosts under
-the same registered domain, such as `https://qa.example.com` for the PHP client
-and `https://api.example.com` for the Node REST API. They are separate origins
-and remain on the same site for the existing `SameSite=Strict` cookies.
+Run one Docker Compose project on an isolated demo VM. The EC2 demo uses
+`https://comp4537-q2a.duckdns.org` for the PHP client and
+`https://comp4537-api.duckdns.org` for the Node REST API. Both are publicly
+reachable during the demo window.
 
 Caddy terminates HTTPS for both names. Only Caddy publishes ports. PHP talks to
 Node over the private Docker application network, and PHP and Node share a
@@ -13,11 +13,13 @@ routes only the public API groups and health check, and strips the bridge key
 header. The PHP bridge reaches internal routes directly over Docker, using its
 server-side secret.
 
-The existing Q2A pages still send same-origin requests to PHP. PHP relays them
-to Node, including AI evaluation and the AI Usage dashboard. Show the direct
-browser calls below as a separate step to demonstrate client-to-API traffic
-across origins. The PHP session cookie belongs to the UI hostname. Logging in
-from the browser to the API creates a separate, host-only API session cookie.
+The existing Q2A pages send same-origin requests to PHP. PHP relays them to
+Node, including AI evaluation and the AI Usage dashboard. The PHP session
+cookie belongs to the UI hostname. API login creates a separate, host-only API
+session cookie. The two DuckDNS names are cross-site because
+[`duckdns.org` is on the Public Suffix List](https://publicsuffix.org/list/public_suffix_list.dat).
+CORS allows the frontend to read public API responses, and the API's
+`SameSite=Strict` cookie is used on the API site.
 
 ## Prepare the environment
 
@@ -34,23 +36,47 @@ from the browser to the API creates a separate, host-only API session cookie.
 
 | Variable | Value |
 | --- | --- |
-| `DEMO_UI_HOST`, `DEMO_API_HOST` | Distinct sibling hostnames without scheme, port, or trailing slash |
+| `DEMO_UI_HOST`, `DEMO_API_HOST` | Distinct hostnames without scheme, port, or trailing slash |
 | `DEMO_ACME_EMAIL` | Operator email for certificate management |
-| `DEMO_ALLOWED_IPS` | Space-separated source IP addresses or CIDRs for the demo audience, including the presenter and grader |
 | `DB_PASSWORD`, `DB_ROOT_PASSWORD` | Independent MySQL credentials. Only MySQL receives the root password. |
 | `AUTH_JWT_SECRET`, `BRIDGE_SECRET` | Independent private signing and bridge secrets |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Server-side key and optional model override. The key is passed only to Node. |
 | `Q2A_MILESTONE_DEMO_ACCOUNTS` | Set to `1` for the two assignment accounts |
 
-CORS is derived from `DEMO_UI_HOST` and allows exactly its HTTPS origin. Keep
-the IP list narrow because the demo uses shared passwords. Caddy checks the
-connection source IP before serving either site. Review the attendee list if
-someone connects through a VPN or shared network. The application network
+CORS is derived from `DEMO_UI_HOST` and allows exactly its HTTPS origin.
+Existing `.env.demo` files may keep the obsolete `DEMO_ALLOWED_IPS` setting.
+The application network
 uses `172.31.249.0/24`. If it overlaps a host network, update the addresses in
 `compose.demo.yaml` and Apache's trusted proxy in
 `docker/php/demo-https.conf` together.
 
-## Start and verify when approved
+The required administrator credentials are publicly known. During the public
+window, anyone who uses them can administer the demo application, change demo
+content or settings, and incur OpenAI costs. Keep the deployment isolated
+from production and use only synthetic data. Open it just before instructor
+testing and close it as soon as grading is complete. Keep the EC2 security
+group limited to ports 80 and 443 for public web traffic and restrict SSH to
+operators. MySQL, Mailpit, Apache, and Node should have no host port bindings.
+
+## Update the existing EC2 deployment
+
+Run these commands from the existing EC2 checkout on `wynn/ai-backend` once
+the reviewed revision is present. Keep the existing `.env.demo`, project
+name, and volumes. If the deployment was started with an explicit Compose
+project name, use the same `-p` value in each command. Only Caddy is recreated,
+so expect a brief interruption at both HTTPS origins.
+
+```sh
+git status --short --branch
+docker compose --env-file .env.demo -f compose.demo.yaml config --quiet &&
+docker compose --env-file .env.demo -f compose.demo.yaml exec -T caddy \
+  caddy validate --config - --adapter caddyfile < docker/demo/Caddyfile &&
+docker compose --env-file .env.demo -f compose.demo.yaml up -d \
+  --no-deps --force-recreate --wait caddy &&
+docker compose --env-file .env.demo -f compose.demo.yaml ps
+```
+
+## Start a fresh demo when approved
 
 ```sh
 docker compose --env-file .env.demo -f compose.demo.yaml config --quiet
@@ -65,44 +91,58 @@ Seeding preserves stored options and accounts on subsequent starts. If a
 reused demo database has the wrong Site URL, correct it in Q2A administration.
 Keep Q2A's default query-string URL structure for this profile.
 
-Check the redirects, health endpoint, private route, and exact CORS response
-from an allowlisted network. Use your actual hostnames in these commands.
+## Verify the public origins
+
+Check the redirects, public routes, authorization, and exact CORS response
+from a network outside EC2.
 
 ```sh
-curl -I 'http://qa.example.com/?qa=login'
-curl -I 'http://api.example.com/health'
-curl -fsS 'https://api.example.com/health'
-curl -i 'https://api.example.com/api/v1/internal/reads'
-curl -i -X OPTIONS 'https://api.example.com/api/v1/auth/login' \
-  -H 'Origin: https://qa.example.com' \
+curl -I 'http://comp4537-q2a.duckdns.org/?qa=login'
+curl -I 'http://comp4537-api.duckdns.org/health'
+curl -fsS -o /dev/null 'https://comp4537-q2a.duckdns.org/?qa=login'
+curl -fsS 'https://comp4537-api.duckdns.org/health'
+curl -i 'https://comp4537-api.duckdns.org/api/v1/admin/ai/usage'
+curl -i 'https://comp4537-api.duckdns.org/api/v1/internal/reads'
+curl -i -X OPTIONS 'https://comp4537-api.duckdns.org/api/v1/auth/login' \
+  -H 'Origin: https://comp4537-q2a.duckdns.org' \
   -H 'Access-Control-Request-Method: POST' \
   -H 'Access-Control-Request-Headers: content-type,x-q2a-request'
 ```
 
-Expect HTTP-to-HTTPS redirects, a healthy API response, a 404 for the internal
-route, and a 204 for preflight with the exact UI origin and
+Expect HTTP-to-HTTPS redirects, 200 for the login page and health, 401 for
+anonymous admin usage, 404 for the internal route, and 204 for preflight with the exact UI origin and
 `Access-Control-Allow-Credentials: true`. Repeat preflight with an unrelated
-origin and expect 403 without an allow-origin header. From outside the audience
-allowlist, confirm that both HTTPS sites return 403.
+origin and expect 403 without an allow-origin header. Confirm in `docker
+compose ps` that only Caddy has host port bindings.
+
+To run the edge smoke tests with Node 24, set `DEMO_TEST_UI_ORIGIN` and
+`DEMO_TEST_API_ORIGIN` to the two HTTPS URLs, then run
+`node --test docker/demo/smoke-test.cjs`. To include the regular-user login
+test against a disposable demo database, also supply `DEMO_TEST_USER_EMAIL`
+and `DEMO_TEST_USER_PASSWORD` through the environment.
 
 ## Demonstrate Q2A and the direct API
 
-- Open `https://qa.example.com/?qa=login`. Sign in as `john@john.com` with
-  password `123`. Evaluate an answer on a seeded question and open **AI
+- Open `https://comp4537-q2a.duckdns.org/?qa=login`. Sign in as `john@john.com`
+  with the assigned milestone password. Evaluate an answer on a seeded question and open **AI
   Evaluation History** to show the saved result. The deployed evaluation uses
   the configured OpenAI account and incurs usage.
-- Sign out and sign in as `admin@admin.com` with password `111`. Open
+- Sign out and sign in as `admin@admin.com` with the assigned milestone password. Open
   `/?qa=admin/ai-usage` to show totals and the date and status breakdowns.
   The John account should be denied access. The admin role applies to Q2A
   application administration only.
-- From the HTTPS Q2A tab, open the browser developer console. Run this example
-  with the actual API hostname and use the administrator's demo credentials at
-  the prompts. Use the Network panel to show the cross-origin login and usage
-  request, then the logout. The existing dashboard continues to use PHP.
+- From the HTTPS Q2A tab, run
+  `await fetch('https://comp4537-api.duckdns.org/health').then(r => r.json())`
+  in DevTools to show a direct cross-origin browser request.
+- For authenticated direct API requests, open
+  `https://comp4537-api.duckdns.org/health` in its own browser tab. Run this
+  example in that tab's DevTools and enter the administrator's demo
+  credentials at the prompts. Use the Network panel to show login, authorized
+  usage, and logout.
 
 ```js
 {
-  const api = 'https://api.example.com/api/v1';
+  const api = '/api/v1';
   const headers = { 'Content-Type': 'application/json', 'X-Q2A-Request': '1' };
   const login = await fetch(api + '/auth/login', {
     method: 'POST', headers, credentials: 'include',
@@ -128,7 +168,9 @@ returns 403. In DevTools, the UI bridge cookie and the API session cookie
 should both be Secure and HttpOnly, belong to their respective hosts, and have
 `SameSite=Strict`.
 
-After the milestone, shut down the isolated demo with
+After grading, close public access by running
+`docker compose --env-file .env.demo -f compose.demo.yaml stop caddy`.
+To shut down the full isolated demo, use
 `docker compose --env-file .env.demo -f compose.demo.yaml down`, which preserves
 the MySQL and certificate volumes. Setting the demo seed flag to zero alone
 leaves accounts previously seeded on that volume.

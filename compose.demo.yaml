@@ -100,7 +100,6 @@ services:
       DEMO_UI_HOST: ${DEMO_UI_HOST:?Set DEMO_UI_HOST in .env.demo}
       DEMO_API_HOST: ${DEMO_API_HOST:?Set DEMO_API_HOST in .env.demo}
       DEMO_ACME_EMAIL: ${DEMO_ACME_EMAIL:?Set DEMO_ACME_EMAIL in .env.demo}
-      DEMO_ALLOWED_IPS: ${DEMO_ALLOWED_IPS:?Set DEMO_ALLOWED_IPS in .env.demo}
     ports: ["80:80", "443:443"]
     volumes:
       - ./docker/demo/Caddyfile:/etc/caddy/Caddyfile:ro
