@@ -44,6 +44,7 @@ services:
     environment:
       <<: *credentials
       DB_HOST: node-db
+      Q2A_MILESTONE_DEMO_ACCOUNTS: ${Q2A_MILESTONE_DEMO_ACCOUNTS:-0}
     command: ["php", "docker/php/seed.php", "--with-ai"]
     depends_on:
       node-db: {condition: service_healthy}

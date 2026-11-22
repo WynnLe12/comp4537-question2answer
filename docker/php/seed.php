@@ -27,7 +27,12 @@ $profile = array(
     // Both sites and the Node API send email through the local Mailpit catcher.
     'smtp_active' => 1, 'smtp_address' => 'mailpit', 'smtp_port' => 1025, 'smtp_secure' => '', 'smtp_authenticate' => 0,
 );
-foreach ($profile as $name => $value) { qa_opt($name, $value); }
+$storedOptions = qa_db_read_all_values(qa_db_query_sub('SELECT title FROM ^options WHERE title IN ($)', array_keys($profile)));
+foreach ($profile as $name => $value) {
+    if (!in_array($name, $storedOptions, true)) {
+        qa_opt($name, $value);
+    }
+}
 foreach (array('alice', 'legacy', 'bob', 'carol') as $handle) {
     if (!count(qa_db_user_find_by_handle($handle))) {
         $id = qa_create_new_user($handle . '@example.test', 'Password123!', $handle);
@@ -106,6 +111,38 @@ if (in_array('--with-ai', $argv, true)) {
         }
     }
     echo "AI schema ready.\n";
+
+    if (getenv('Q2A_MILESTONE_DEMO_ACCOUNTS') === '1') {
+        $fixtures = array(
+            array('john@john.com', '123', 'milestone-john', QA_USER_LEVEL_BASIC),
+            array('admin@admin.com', '111', 'milestone-admin', QA_USER_LEVEL_ADMIN),
+        );
+        // Use the same lock as the Node registration path to protect the non-unique Q2A indexes.
+        if ((int)qa_db_read_one_value(qa_db_query_raw("SELECT GET_LOCK('node_auth_register', 10)")) !== 1) {
+            throw new RuntimeException('Could not acquire the Milestone account seed lock.');
+        }
+        try {
+            $missing = array();
+            foreach ($fixtures as $fixture) {
+                list($email, , $handle) = $fixture;
+                $emailIds = qa_db_user_find_by_email($email);
+                $handleIds = qa_db_user_find_by_handle($handle);
+                if (count($emailIds) === 1 && $emailIds === $handleIds) {
+                    continue;
+                }
+                if ($emailIds || $handleIds) {
+                    throw new RuntimeException('Milestone account conflicts with an existing email or handle: ' . $handle);
+                }
+                $missing[] = $fixture;
+            }
+            foreach ($missing as $fixture) {
+                qa_create_new_user(...$fixture);
+            }
+        } finally {
+            qa_db_query_raw("SELECT RELEASE_LOCK('node_auth_register')");
+        }
+        echo "Milestone 1 demo accounts ready.\n";
+    }
 }
 
 echo "Q2A schema and synthetic authentication fixtures ready.\n";

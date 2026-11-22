@@ -84,6 +84,31 @@ all with password `Password123!`, in either application. Log in with the usernam
 Both have separately seeded MySQL databases. Registering a new user in one does
 **not** create that user in the other. Their sessions are independent too.
 
+### Milestone 1 demo accounts
+
+In the isolated demo stack, set `Q2A_MILESTONE_DEMO_ACCOUNTS=1` in the
+root `.env`, then run `docker compose up --build -d --wait`. Sign in on
+the migrated site at port 8081:
+
+| Role | Email | Demo password |
+| --- | --- | --- |
+| User | `john@john.com` | `123` |
+| Administrator | `admin@admin.com` | `111` |
+
+The default seed keeps the existing development fixtures. The opt-in seed
+creates the two milestone accounts on `node-db` with bcrypt password hashes.
+It preserves existing account settings and credentials on reruns. If either
+email or handle conflicts with another account, use a separate demo database
+to demonstrate the supplied credentials. Keep the flag disabled in shared and
+production setups, and restrict any hosted milestone demo to its reviewers.
+Disabling the flag leaves previously created accounts in the demo database.
+
+Open `/?qa=account` to show the signed-in user's email, open a question to
+evaluate an answer, and open **AI Evaluation History** to view the saved result.
+Use `/?qa=admin` and `/?qa=users` to show Q2A administration and the user directory.
+AI usage totals are available through the protected
+`GET /api/v1/admin/ai/usage` endpoint after signing in at the API origin.
+
 Both sites use the same frontend files from `qa-theme/`, `qa-content/`, and Q2A's
 existing page controllers. There is no separate demo design or duplicated frontend.
 On port 8081, a small PHP bridge forwards authentication to the Node REST API;
