@@ -11,6 +11,7 @@
     "test": "jest --runInBand --testPathIgnorePatterns=tests/parity --testPathIgnorePatterns=tests/reliability",
     "test:reliability": "jest --runInBand tests/reliability",
     "test:parity": "jest --runInBand tests/parity",
+    "test:mutation": "stryker run",
     "check": "node --check src/app.js && node --check src/services/auth.js && node --check src/repositories/users.js && node --check src/services/votes.js && node --check src/repositories/votes.js && node --check src/services/posts.js && node --check src/repositories/posts.js && node --check src/services/post-changes.js && node --check src/services/post-common.js && node --check src/services/favorites.js && node --check src/repositories/favorites.js && node --check src/routes/v1/favorites.js && node --check src/services/messages.js && node --check src/repositories/messages.js && node --check src/routes/v1/messages.js && node --check src/services/account.js && node --check src/repositories/account.js && node --check src/routes/v1/account.js && node --check src/q2a/mail.js && node --check src/q2a/paths.js && node --check src/q2a/notify.js && node --check src/services/feedback.js && node --check src/routes/v1/feedback.js && node --check src/services/user-admin.js && node --check src/repositories/user-admin.js && node --check src/routes/v1/user-admin.js && node --check src/services/site-admin.js && node --check src/repositories/site-admin.js && node --check src/routes/v1/site-admin.js && node --check src/services/recalc.js && node --check src/repositories/recalc.js && node --check src/reads/selects.js && node --check src/reads/execute.js && node --check src/reads/helpers.js && node --check src/routes/v1/internal.js && node --check src/services/uploads.js && node --check src/repositories/uploads.js && node --check src/routes/v1/uploads.js"
   },
   "dependencies": {
@@ -21,16 +22,20 @@
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.15.0",
     "nodemailer": "^6.9.16",
-    "sharp": "^0.33.5",
-    "validator": "^13.15.20"
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/jest-runner": "^10.1.1",
     "cheerio": "^1.1.2",
     "jest": "^30.2.0",
     "supertest": "^7.1.4"
   },
   "jest": {
     "testEnvironment": "node",
-    "testTimeout": 30000
+    "testTimeout": 30000,
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.stryker-tmp/"
+    ]
   }
 }

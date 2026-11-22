@@ -209,6 +209,18 @@ hostile read arguments, and the Node API being stopped. They reset both database
 scripts/reliability.sh
 ```
 
+Mutation testing checks the tests themselves: it plants small bugs in the Node code and expects the
+suites to fail. Stryker does this automatically for the in-process suite, and the canaries plant bugs in
+the running API container for the parity suites; see [the mutation testing notes](docs/mutation-testing.md).
+
+```sh
+cd node-api && npm run test:mutation
+```
+
+```sh
+scripts/mutation-canaries.sh
+```
+
 Alternatively, with Node 24 installed: `cd node-api`, `npm ci`, then `npm test`.
 The parity suite needs the Docker stack, because it talks to both sites and both databases.
 

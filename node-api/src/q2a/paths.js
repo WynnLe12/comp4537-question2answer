@@ -1,6 +1,6 @@
 // Port of qa_path() and qa_path_absolute() (qa-include/qa-base.php) for the links Node puts in
 // emails. Custom page slugs (qa_get_request_map()) are not applied.
-const { phpBool } = require('./php');
+const { phpBool, phpEmpty, phpString } = require('./php');
 
 const URL_FORMAT = { INDEX: 0, NEAT: 1, PARAM: 3, PARAMS: 4, SAFEST: 5 }; // QA_URL_FORMAT_*
 
@@ -13,18 +13,18 @@ function path(request, params, rooturl, neaturls, anchor = null) {
   const requestparts = String(request).split('/').map(rawurlencode);
   const requestpath = requestparts.join('/');
   switch (Number(neaturls)) {
-    case URL_FORMAT.INDEX: if (request) url += `index.php/${requestpath}`; break;
+    case URL_FORMAT.INDEX: if (!phpEmpty(request)) url += `index.php/${requestpath}`; break;
     case URL_FORMAT.NEAT: url += requestpath; break;
-    case URL_FORMAT.PARAM: if (request) paramsextra = `?qa=${requestpath}`; break;
+    case URL_FORMAT.PARAM: if (!phpEmpty(request)) paramsextra = `?qa=${requestpath}`; break;
     default: url += 'index.php'; // falls through to the PARAMS format, as in PHP
     // eslint-disable-next-line no-fallthrough
     case URL_FORMAT.PARAMS:
-      if (request) requestparts.forEach((part, index) => { paramsextra += `${paramsextra ? '&' : '?'}qa${index ? `_${index}` : ''}=${part}`; });
+      if (!phpEmpty(request)) requestparts.forEach((part, index) => { paramsextra += `${paramsextra ? '&' : '?'}qa${index ? `_${index}` : ''}=${part}`; });
   }
   for (const [key, value] of Object.entries(params ?? {})) {
-    paramsextra += `${paramsextra ? '&' : '?'}${rawurlencode(key)}=${rawurlencode(value ?? '')}`;
+    paramsextra += `${paramsextra ? '&' : '?'}${rawurlencode(key)}=${rawurlencode(Array.isArray(value) ? '' : phpString(value))}`;
   }
-  return url + paramsextra + (anchor ? `#${rawurlencode(anchor)}` : '');
+  return url + paramsextra + (phpEmpty(anchor) ? '' : `#${rawurlencode(anchor)}`);
 }
 
 const pathAbsolute = (options, request, params, anchor = null) => path(request, params, options.get('site_url'), options.get('neat_urls'), anchor);

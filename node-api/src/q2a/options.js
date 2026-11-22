@@ -1,12 +1,13 @@
 // Mirrors qa_get_options()/qa_default_option() from qa-include/app/options.php.
 // option-defaults.json is generated from Q2A's $fixed_defaults array, so values are identical.
 const fixedDefaults = require('../data/option-defaults.json');
+const { phpIsNumeric } = require('./php');
 
 // The dynamic (switch) defaults from qa_default_option() that migrated features rely on.
 function dynamicDefault(name, get) {
   const numericOr = (oldName, fallback) => {
     const old = get(oldName);
-    return old !== '' && !Number.isNaN(Number(old)) ? old : fallback;
+    return phpIsNumeric(old) ? old : fallback; // is_numeric($oldvalue)
   };
   switch (name) {
     case 'points_vote_up_q': case 'points_vote_down_q': return numericOr('points_vote_on_q', 1);

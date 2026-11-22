@@ -3,7 +3,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createHash, randomBytes, timingSafeEqual } = require('node:crypto');
-const isEmail = require('validator/lib/isEmail');
+const { emailValidate } = require('../q2a/text');
 const { sendEmail } = require('../q2a/mail');
 
 class AuthError extends Error {
@@ -27,7 +27,7 @@ function registrationInput(body) {
   const password = postText(body.password);
   const fields = {};
   if (!handle || ['.', '..'].includes(handle) || /[@+/]/.test(handle) || [...handle].length > 20 || /\banonymous\b/i.test(handle)) fields.handle = 'invalid';
-  if (!email || [...email].length > 80 || !isEmail(email, { allow_utf8_local_part: false, allow_ip_domain: true })) fields.email = 'invalid';
+  if (!email || [...email].length > 80 || !emailValidate(email)) fields.email = 'invalid';
   if ([...password].length < 8) fields.password = 'too_short';
   if (Object.keys(fields).length) throw new AuthError(400, 'validation_failed', fields);
   return { handle, email, password };

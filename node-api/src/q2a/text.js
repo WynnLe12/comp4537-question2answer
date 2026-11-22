@@ -1,6 +1,5 @@
 // Ports of Q2A's string helpers used by posting (qa-include/util/string.php, app/format.php,
 // plugins/qa-viewer-basic.php). utf8-punctuation.json is generated from $qa_utf8punctuation.
-const isEmail = require('validator/lib/isEmail');
 const punctuation = require('../data/utf8-punctuation.json');
 
 // qa_post_text(): trim PHP's ASCII whitespace and normalize CRLF/CR to LF.
@@ -138,8 +137,25 @@ function viewerText(content, format) {
   return text.replace(/^[ \t\n\r\0\x0B]+|[ \t\n\r\0\x0B]+$/g, '');
 }
 
-// qa_email_validate() uses PHP's FILTER_VALIDATE_EMAIL; validator's ASCII rules are the closest match.
-const emailValidate = email => isEmail(String(email), { allow_utf8_local_part: false, allow_ip_domain: true });
+// qa_email_validate(): PHP's FILTER_VALIDATE_EMAIL (ext/filter/logical_filters.c), the same pattern run the
+// same way: on the UTF-8 bytes (PHP's pattern has no u flag, so any non-ASCII byte fails where only ASCII
+// is allowed), case-insensitive, $ only at the very end, and at most 320 bytes. PCRE's . stops only at \n,
+// so the pattern says [^\n] where PHP's says . (JavaScript's . also stops at \r).
+const LOCAL_ATOM = String.raw`(?:[\x21\x23-\x27\x2A\x2B\x2D\x2F-\x39\x3D\x3F\x5E-\x7E]+)`;
+const LOCAL_QUOTED = String.raw`(?:\x22(?:[\x01-\x08\x0B\x0C\x0E-\x1F\x21\x23-\x5B\x5D-\x7F]|(?:\x5C[\x00-\x7F]))*\x22)`;
+const IPV4 = String.raw`(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))(?:\.(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))){3}`;
+const EMAIL = new RegExp('^' +
+  String.raw`(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){255,})` +
+  String.raw`(?!(?:(?:\x22?\x5C[\x00-\x7E]\x22?)|(?:\x22?[^\x5C\x22]\x22?)){65,}@)` +
+  `(?:${LOCAL_ATOM}|${LOCAL_QUOTED})(?:\\.(?:${LOCAL_ATOM}|${LOCAL_QUOTED}))*@` +
+  String.raw`(?:(?:(?![^\n]*[^.]{64,})(?:(?:(?:xn--)?[a-z0-9]+(?:-+[a-z0-9]+)*\.){1,126}){1,}(?:(?:[a-z][a-z0-9]*)|(?:(?:xn--)[a-z0-9]+))(?:-+[a-z0-9]+)*)` +
+  String.raw`|(?:\[(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){7})|(?:(?!(?:[^\n]*[a-f0-9][:\]]){7,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?)))` +
+  String.raw`|(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){5}:)|(?:(?![^\n]*(?:[a-f0-9]:){5,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3}:)?)))?` +
+  IPV4 + String.raw`))\]))` + '$', 'i');
+function emailValidate(email) {
+  const bytes = Buffer.from(String(email), 'utf8');
+  return bytes.length <= 320 && EMAIL.test(bytes.toString('latin1'));
+}
 
 // qa_combine_notify_email()
 const combineNotifyEmail = (userid, notify, email) => (notify ? (email ? email : (userid !== null && userid !== undefined ? '@' : null)) : null);
