@@ -1,0 +1,2751 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`a default avatar that could not be stored writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "blobid": null,
+    "height": 10,
+    "width": 30,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "blobCreate",
+      "<image>",
+      "jpeg",
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step after a clock jump writes 1`] = `
+{
+  "emails": [
+    {
+      "subject": "News",
+      "text": "Hello all
+
+
+Unsubscribe: http://site.test/unsubscribe?c=anncode&u=ann
+
+",
+      "to": "ann@x.test",
+    },
+    {
+      "subject": "News",
+      "text": "Hello all
+
+
+Unsubscribe: http://site.test/unsubscribe?c=newcode1&u=cid
+
+",
+      "to": "cid@x.test",
+    },
+  ],
+  "outcome": {
+    "active": true,
+    "sent": 2,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000030,
+    ],
+    [
+      "usersMailingNext",
+      1,
+      1,
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      4,
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      3,
+    ],
+    [
+      "userSetEmailcode",
+      "4",
+      "newcode1",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000001,
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step sends a batch, skipping users who opted out writes 1`] = `
+{
+  "emails": [
+    {
+      "subject": "News",
+      "text": "Hello all
+
+
+Unsubscribe: http://site.test/unsubscribe?c=anncode&u=ann
+
+",
+      "to": "ann@x.test",
+    },
+    {
+      "subject": "News",
+      "text": "Hello all
+
+
+Unsubscribe: http://site.test/unsubscribe?c=newcode1&u=cid
+
+",
+      "to": "cid@x.test",
+    },
+  ],
+  "outcome": {
+    "active": true,
+    "sent": 2,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000030,
+    ],
+    [
+      "usersMailingNext",
+      1,
+      6,
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      4,
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      3,
+    ],
+    [
+      "userSetEmailcode",
+      "4",
+      "newcode1",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1799999996,
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step skips unapproved users when users are moderated writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "active": true,
+    "sent": 0,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000030,
+    ],
+    [
+      "usersMailingNext",
+      1,
+      6,
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      4,
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      5,
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1799999994,
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step too soon sends nothing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "active": true,
+    "sent": 0,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step with no mailing running writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "active": false,
+    "sent": 0,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`a mailing step with no users left ends the mailing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "active": false,
+    "sent": 0,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000030,
+    ],
+    [
+      "usersMailingNext",
+      9,
+      6,
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_total_users",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`a title without points is reported, nothing changes writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "points": "required",
+    },
+    "titles": {
+      "10": "Regular",
+      "100": "Pro",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "100 Pro,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`add a user field whose tag and next tag are taken writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "fieldid": 50,
+    "title": "web-site-3",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldCreate",
+      "web-site-3",
+      "Web site",
+      0,
+      0,
+    ],
+    [
+      "userFieldMove",
+      50,
+      undefined,
+    ],
+  ],
+}
+`;
+
+exports[`add a user field whose tag is taken writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "fieldid": 50,
+    "title": "about-2",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldCreate",
+      "about-2",
+      "About",
+      0,
+      0,
+    ],
+    [
+      "userFieldMove",
+      50,
+      undefined,
+    ],
+  ],
+}
+`;
+
+exports[`add a user field writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "fieldid": 50,
+    "title": "favourite-food",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldCreate",
+      "favourite-food",
+      "Favourite Food",
+      5,
+      120,
+    ],
+    [
+      "userFieldMove",
+      50,
+      2,
+    ],
+  ],
+}
+`;
+
+exports[`add a user title writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "titles": {
+      "10": "Regular",
+      "100": "Pro",
+      "500": "Expert",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "500 Expert,100 Pro,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`add a widget writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "widgetid": 50,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "widgetCreate",
+      "Related Questions",
+      "question,qa",
+    ],
+    [
+      "widgetMove",
+      50,
+      "SL",
+      "2",
+    ],
+  ],
+}
+`;
+
+exports[`change a title keeping its name when the new one is empty writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "title": "required",
+    },
+    "titles": {
+      "10": "Regular",
+      "150": "Pro",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "150 Pro,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`change a title keeping its points when the new ones are taken writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "points": "exists",
+    },
+    "titles": {
+      "10": "Regular",
+      "100": "Pro+",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "100 Pro+,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`change a user title writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "titles": {
+      "10": "Regular",
+      "200": "Professional",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "200 Professional,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`delete a category, leaving its questions without one writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 4,
+    "deleted": true,
+    "parentid": null,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categoryReassign",
+      4,
+      null,
+    ],
+    [
+      "categoryDelete",
+      4,
+    ],
+  ],
+}
+`;
+
+exports[`delete a category, moving its questions writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 4,
+    "deleted": true,
+    "parentid": null,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categoryReassign",
+      4,
+      1,
+    ],
+    [
+      "categoryDelete",
+      4,
+    ],
+  ],
+}
+`;
+
+exports[`delete a page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "deleted": true,
+    "pageid": 7,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      7,
+    ],
+    [
+      "pageDelete",
+      7,
+    ],
+  ],
+}
+`;
+
+exports[`delete a user field writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "deleted": true,
+    "fieldid": 3,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldDelete",
+      3,
+    ],
+  ],
+}
+`;
+
+exports[`delete a widget writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "deleted": true,
+    "widgetid": 9,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "widget",
+      9,
+    ],
+    [
+      "widgetDelete",
+      9,
+    ],
+  ],
+}
+`;
+
+exports[`edit a link keeping its URL when the new one fails writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "url": "max_length",
+    },
+    "pageid": 8,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      8,
+    ],
+    [
+      "pageSetFields",
+      "8",
+      "Blog",
+      1,
+      "http://blog.test",
+      null,
+      null,
+      0,
+    ],
+    [
+      "pageMove",
+      "8",
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`edit a link writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 8,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      8,
+    ],
+    [
+      "pageSetFields",
+      "8",
+      "Blog",
+      1,
+      "http://blog2.test",
+      null,
+      null,
+      120,
+    ],
+    [
+      "pageMove",
+      "8",
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`edit a page keeping old values for fields that fail writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "heading": "max_length",
+      "name": "required",
+      "slug": "invalid",
+    },
+    "pageid": 7,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      7,
+    ],
+    [
+      "categoryWithBackpath",
+      "b/a",
+    ],
+    [
+      "pageWithSlug",
+      "a/b",
+    ],
+    [
+      "pageSetFields",
+      "7",
+      "About us",
+      0,
+      "about-us",
+      "About",
+      "kept",
+      0,
+    ],
+    [
+      "pageMove",
+      "7",
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`edit a page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 7,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      7,
+    ],
+    [
+      "categoryWithBackpath",
+      "about",
+    ],
+    [
+      "pageWithSlug",
+      "about",
+    ],
+    [
+      "pageSetFields",
+      "7",
+      "About",
+      0,
+      "about",
+      "About",
+      "new",
+      0,
+    ],
+    [
+      "pageMove",
+      "7",
+      "O",
+      "2",
+    ],
+  ],
+}
+`;
+
+exports[`edit a user field keeping its name when the new one is too long writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {
+      "name": "max_length",
+    },
+    "fieldid": 2,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldSetFields",
+      "2",
+      "Location",
+      0,
+      0,
+    ],
+    [
+      "userFieldMove",
+      "2",
+      undefined,
+    ],
+  ],
+}
+`;
+
+exports[`edit a user field writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "fieldid": 2,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+    [
+      "userFieldSetFields",
+      "2",
+      "Town",
+      2,
+      150,
+    ],
+    [
+      "userFieldMove",
+      "2",
+      1,
+    ],
+  ],
+}
+`;
+
+exports[`enable plugins writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "directories": [
+      "wysiwyg-editor",
+      "recaptcha-captcha",
+    ],
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "enabled_plugins",
+      "wysiwyg-editor;recaptcha-captcha",
+    ],
+  ],
+}
+`;
+
+exports[`move a category to the top writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 2,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "phones",
+    ],
+    [
+      "pageWithSlug",
+      "phones",
+    ],
+    [
+      "categoryRename",
+      "2",
+      "Phones",
+      "phones",
+    ],
+    [
+      "categorySetParent",
+      "2",
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`move a category under another writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 4,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      1,
+      "life",
+    ],
+    [
+      "categoryRename",
+      "4",
+      "Life",
+      "life",
+    ],
+    [
+      "categorySetParent",
+      "4",
+      1,
+    ],
+  ],
+}
+`;
+
+exports[`move a category's questions writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 1,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categoryReassign",
+      1,
+      4,
+    ],
+  ],
+}
+`;
+
+exports[`move a widget writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "widgetid": 9,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "widget",
+      9,
+    ],
+    [
+      "widgetSetFields",
+      "9",
+      "all",
+    ],
+    [
+      "widgetMove",
+      "9",
+      "FH",
+      "1",
+    ],
+  ],
+}
+`;
+
+exports[`new category whose slug is taken: category-<slug> writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 50,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      4,
+      "tech",
+    ],
+    [
+      "categorySlugToId",
+      4,
+      "category-tech",
+    ],
+    [
+      "categoryCreate",
+      4,
+      "Tech",
+      "category-tech",
+    ],
+    [
+      "categorySetContent",
+      50,
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`new category with a reserved slug writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 50,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "questions",
+    ],
+    [
+      "pageWithSlug",
+      "questions",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "category-questions",
+    ],
+    [
+      "pageWithSlug",
+      "category-questions",
+    ],
+    [
+      "categoryCreate",
+      null,
+      "Questions",
+      "category-questions",
+    ],
+    [
+      "categorySetContent",
+      50,
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`new category with a slug of a page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 50,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "about-us",
+    ],
+    [
+      "pageWithSlug",
+      "about-us",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "category-about-us",
+    ],
+    [
+      "pageWithSlug",
+      "category-about-us",
+    ],
+    [
+      "categoryCreate",
+      null,
+      "About us",
+      "category-about-us",
+    ],
+    [
+      "categorySetContent",
+      50,
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`new link in a new window writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 50,
+    "slug": null,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "pageCreate",
+      "Docs",
+      3,
+      "http://docs.test",
+      null,
+      null,
+      0,
+    ],
+    [
+      "pageMove",
+      50,
+      "M",
+      "1",
+    ],
+  ],
+}
+`;
+
+exports[`new page with a reserved slug writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 50,
+    "slug": "page-users",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categoryWithBackpath",
+      "users",
+    ],
+    [
+      "pageWithSlug",
+      "users",
+    ],
+    [
+      "categoryWithBackpath",
+      "page-users",
+    ],
+    [
+      "pageWithSlug",
+      "page-users",
+    ],
+    [
+      "pageCreate",
+      "Users",
+      0,
+      "page-users",
+      null,
+      null,
+      0,
+    ],
+    [
+      "pageMove",
+      50,
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`new page with a slug of a category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 50,
+    "slug": "page-tech",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categoryWithBackpath",
+      "tech",
+    ],
+    [
+      "pageWithSlug",
+      "tech",
+    ],
+    [
+      "categoryWithBackpath",
+      "page-tech",
+    ],
+    [
+      "pageWithSlug",
+      "page-tech",
+    ],
+    [
+      "pageCreate",
+      "Tech",
+      0,
+      "page-tech",
+      null,
+      null,
+      0,
+    ],
+    [
+      "pageMove",
+      50,
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`new page with a taken slug writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 50,
+    "slug": "page-about-us",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categoryWithBackpath",
+      "about-us",
+    ],
+    [
+      "pageWithSlug",
+      "about-us",
+    ],
+    [
+      "categoryWithBackpath",
+      "page-about-us",
+    ],
+    [
+      "pageWithSlug",
+      "page-about-us",
+    ],
+    [
+      "pageCreate",
+      "About us",
+      0,
+      "page-about-us",
+      null,
+      null,
+      0,
+    ],
+    [
+      "pageMove",
+      50,
+      "",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`new page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "pageid": 50,
+    "slug": "contact",
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categoryWithBackpath",
+      "contact",
+    ],
+    [
+      "pageWithSlug",
+      "contact",
+    ],
+    [
+      "pageCreate",
+      "Contact",
+      0,
+      "contact",
+      "Contact us",
+      "<p>Mail</p>",
+      150,
+    ],
+    [
+      "pageMove",
+      50,
+      "F",
+      "3",
+    ],
+  ],
+}
+`;
+
+exports[`new subcategory with a given slug writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 50,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      1,
+      "tabs",
+    ],
+    [
+      "categoryCreate",
+      1,
+      "Tablets",
+      "tabs",
+    ],
+    [
+      "categorySetContent",
+      50,
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`new top-level category, slug from the name writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 50,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "sports-&-games",
+    ],
+    [
+      "pageWithSlug",
+      "sports-&-games",
+    ],
+    [
+      "categoryCreate",
+      null,
+      "Sports & Games",
+      "sports-&-games",
+    ],
+    [
+      "categorySetContent",
+      50,
+      "All about sports",
+    ],
+    [
+      "categorySetPosition",
+      50,
+      2,
+    ],
+  ],
+}
+`;
+
+exports[`points already used are reported, nothing changes writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "titles": {
+      "10": "Regular",
+      "100": "Pro",
+      "50": "Half",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "100 Pro,50 Half,10 Regular",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a default avatar that is not an image writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "image_not_read",
+    "fields": undefined,
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a link without a URL writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "url": "required",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a name over 80 characters writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "name": "max_length",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+    ],
+    [
+      "pageWithSlug",
+      "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a new field name over 40 characters writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "name": "max_length",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a page heading over 800 characters writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "heading": "max_length",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categoryWithBackpath",
+      "long",
+    ],
+    [
+      "pageWithSlug",
+      "long",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a plugin directory with a slash writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "invalid_input",
+    "fields": {
+      "directories": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a sibling already has the name writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "name": "exists",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "tech",
+    ],
+    [
+      "pageWithSlug",
+      "tech",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "category-tech",
+    ],
+    [
+      "pageWithSlug",
+      "category-tech",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a slug over 200 characters, when editing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "slug": "max_length",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+    ],
+    [
+      "pageWithSlug",
+      "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a slug with a slash, when editing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "slug": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "a/b",
+    ],
+    [
+      "pageWithSlug",
+      "a/b",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a template name with odd characters writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "invalid_input",
+    "fields": {
+      "templates": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: a widget without a module writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "title": "required",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: an unknown parent writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "parentid": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: an unknown widget writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "widget_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "widget",
+      99,
+    ],
+  ],
+}
+`;
+
+exports[`refused: below admin writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "no_privileges",
+    "fields": undefined,
+    "status": 403,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+  ],
+}
+`;
+
+exports[`refused: deleting a category with subcategories writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "has_subcategories",
+    "fields": undefined,
+    "status": 403,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: deleting an unknown category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "category_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: deleting an unknown field writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "field_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+  ],
+}
+`;
+
+exports[`refused: deleting an unknown page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "page_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      99,
+    ],
+  ],
+}
+`;
+
+exports[`refused: deleting an unknown widget writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "widget_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "widget",
+      99,
+    ],
+  ],
+}
+`;
+
+exports[`refused: editing an unknown category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "category_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: editing an unknown field writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "field_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "userFields",
+    ],
+  ],
+}
+`;
+
+exports[`refused: editing an unknown page writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "page_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "page",
+      99,
+    ],
+  ],
+}
+`;
+
+exports[`refused: moving a category too deep writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "parentid": "too_deep",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: moving a category under its own offspring writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "parentid": "too_deep",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: moving questions into the same category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "reassignTo": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: moving questions of an unknown category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "category_not_found",
+    "fields": undefined,
+    "status": 404,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: moving questions to an unknown category writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "reassignTo": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+  ],
+}
+`;
+
+exports[`refused: no default avatar image writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "image": "required",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: no name writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "validation_failed",
+    "fields": {
+      "name": "required",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "0",
+    ],
+    [
+      "pageWithSlug",
+      "0",
+    ],
+    [
+      "categorySlugToId",
+      null,
+      "category-0",
+    ],
+    [
+      "pageWithSlug",
+      "category-0",
+    ],
+  ],
+}
+`;
+
+exports[`refused: plugin directories that are not a list writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "invalid_input",
+    "fields": {
+      "directories": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`refused: templates that are not a list writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "error": "invalid_input",
+    "fields": {
+      "templates": "invalid",
+    },
+    "status": 400,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`remove a user title writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "errors": {},
+    "titles": {
+      "100": "Pro",
+    },
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "points_to_titles",
+      "100 Pro",
+    ],
+  ],
+}
+`;
+
+exports[`rename a category keeping its slug writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 2,
+    "recalc": false,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      "1",
+      "phones",
+    ],
+    [
+      "categoryRename",
+      "2",
+      "Phones",
+      "phones",
+    ],
+    [
+      "categorySetContent",
+      "2",
+      null,
+    ],
+  ],
+}
+`;
+
+exports[`rename a category with subcategories (slug change asks for a recalc) writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "categoryid": 2,
+    "recalc": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "categories",
+    ],
+    [
+      "categorySlugToId",
+      "1",
+      "mobiles",
+    ],
+    [
+      "categoryRename",
+      "2",
+      "Mobiles",
+      "mobiles",
+    ],
+    [
+      "categorySetContent",
+      "2",
+      "c",
+    ],
+    [
+      "categorySetPosition",
+      "2",
+      1,
+    ],
+  ],
+}
+`;
+
+exports[`send a test mailing to yourself (making an unsubscribe code) writes 1`] = `
+{
+  "emails": [
+    {
+      "subject": "News",
+      "text": "Hello all
+
+
+Unsubscribe: http://site.test/unsubscribe?c=newcode1&u=admin
+
+",
+      "to": "admin@x.test",
+    },
+  ],
+  "outcome": {
+    "sent": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "findAccount",
+      1,
+    ],
+    [
+      "userSetEmailcode",
+      1,
+      "newcode1",
+    ],
+  ],
+}
+`;
+
+exports[`start a mailing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "started": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      1800000000,
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      "0",
+    ],
+    [
+      "countUsers",
+    ],
+    [
+      "setOption",
+      "mailing_total_users",
+      3,
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      0,
+    ],
+  ],
+}
+`;
+
+exports[`starting while a mailing is under way changes nothing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "started": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+  ],
+}
+`;
+
+exports[`stop a mailing writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "stopped": true,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "setOption",
+      "mailing_last_timestamp",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_last_userid",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_done_users",
+      "",
+    ],
+    [
+      "setOption",
+      "mailing_total_users",
+      "",
+    ],
+  ],
+}
+`;
+
+exports[`upload a default avatar (resized, replacing the old one) writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "blobid": "blob99",
+    "height": 10,
+    "width": 30,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "blobCreate",
+      "<image>",
+      "jpeg",
+    ],
+    [
+      "setOption",
+      "avatar_default_blobid",
+      "blob99",
+    ],
+    [
+      "setOption",
+      "avatar_default_width",
+      30,
+    ],
+    [
+      "setOption",
+      "avatar_default_height",
+      10,
+    ],
+    [
+      "setOption",
+      "avatar_default_show",
+      1,
+    ],
+    [
+      "blobDelete",
+      "old7",
+    ],
+  ],
+}
+`;
+
+exports[`upload a small default avatar with no old one writes 1`] = `
+{
+  "emails": [],
+  "outcome": {
+    "blobid": "blob99",
+    "height": 20,
+    "width": 60,
+  },
+  "writes": [
+    [
+      "findActor",
+      1,
+    ],
+    [
+      "loadOptions",
+    ],
+    [
+      "blobCreate",
+      "<image>",
+      "jpeg",
+    ],
+    [
+      "setOption",
+      "avatar_default_blobid",
+      "blob99",
+    ],
+    [
+      "setOption",
+      "avatar_default_width",
+      60,
+    ],
+    [
+      "setOption",
+      "avatar_default_height",
+      20,
+    ],
+    [
+      "setOption",
+      "avatar_default_show",
+      1,
+    ],
+  ],
+}
+`;

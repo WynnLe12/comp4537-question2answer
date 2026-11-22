@@ -1,0 +1,4463 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`builder: account by handle (qa_db_user_account_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT qa_users.userid, passsalt, HEX(passcheck) AS \`passcheck\`, passhash, email, level, emailcode, handle, UNIX_TIMESTAMP(created) AS \`created\`, sessioncode, sessionsource, flags, UNIX_TIMESTAMP(loggedin) AS \`loggedin\`, loginip, UNIX_TIMESTAMP(written) AS \`written\`, writeip, BINARY avatarblobid AS \`avatarblobid\`, avatarwidth, avatarheight, points, wallposts FROM qa_users LEFT JOIN qa_userpoints ON qa_userpoints.userid=qa_users.userid WHERE qa_users.handle='bob'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: account by id (qa_db_user_account_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT qa_users.userid, passsalt, HEX(passcheck) AS \`passcheck\`, passhash, email, level, emailcode, handle, UNIX_TIMESTAMP(created) AS \`created\`, sessioncode, sessionsource, flags, UNIX_TIMESTAMP(loggedin) AS \`loggedin\`, loginip, UNIX_TIMESTAMP(written) AS \`written\`, writeip, BINARY avatarblobid AS \`avatarblobid\`, avatarwidth, avatarheight, points, wallposts FROM qa_users LEFT JOIN qa_userpoints ON qa_userpoints.userid=qa_users.userid WHERE qa_users.userid='7'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: answer child posts (qa_db_full_a_child_posts_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parents ON qa_posts.parentid=parents.postid WHERE parents.parentid=10 AND LEFT(parents.type, 1)='A'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: blocked users (qa_db_users_with_flag_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_users.userid, handle, flags, level FROM qa_users WHERE (flags & 2) LIMIT 0,30",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: category by id (qa_db_full_category_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT categoryid, parentid, title, tags, qcount, content, backpath FROM qa_categories WHERE categoryid=2",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: category by slugs (qa_db_full_category_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT categoryid, parentid, title, tags, qcount, content, backpath FROM qa_categories WHERE backpath='phones/tech'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: category nav by id (qa_db_category_nav_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_categories.categoryid, qa_categories.parentid AS \`parentid\`, qa_categories.title AS \`title\`, qa_categories.tags AS \`tags\`, qa_categories.qcount AS \`qcount\`, qa_categories.position AS \`position\` FROM qa_categories JOIN (SELECT NULL AS parentkey UNION SELECT grandparent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid JOIN qa_categories AS grandparent ON parent.parentid=grandparent.categoryid WHERE qa_categories.categoryid=2 UNION SELECT parent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid WHERE qa_categories.categoryid=2 UNION SELECT parentid FROM qa_categories WHERE categoryid=2 UNION SELECT categoryid FROM qa_categories WHERE categoryid=2) y ON qa_categories.parentid<=>parentkey ORDER BY qa_categories.position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: category nav by post (qa_db_category_nav_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_categories.categoryid, MAX(qa_categories.parentid) AS \`parentid\`, MAX(qa_categories.title) AS \`title\`, MAX(qa_categories.tags) AS \`tags\`, MAX(qa_categories.qcount) AS \`qcount\`, MAX(qa_categories.position) AS \`position\`, COUNT(child.categoryid) AS \`childcount\`, MAX(qa_categories.content) AS \`content\`, MAX(qa_categories.backpath) AS \`backpath\` FROM qa_categories JOIN (SELECT NULL AS parentkey UNION SELECT grandparent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid JOIN qa_categories AS grandparent ON parent.parentid=grandparent.categoryid WHERE qa_categories.categoryid=(SELECT categoryid FROM qa_posts WHERE postid=10) UNION SELECT parent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid WHERE qa_categories.categoryid=(SELECT categoryid FROM qa_posts WHERE postid=10) UNION SELECT parentid FROM qa_categories WHERE categoryid=(SELECT categoryid FROM qa_posts WHERE postid=10) UNION SELECT categoryid FROM qa_categories WHERE categoryid=(SELECT categoryid FROM qa_posts WHERE postid=10)) y ON qa_categories.parentid<=>parentkey LEFT JOIN qa_categories AS child ON child.parentid=qa_categories.categoryid GROUP BY qa_categories.categoryid ORDER BY qa_categories.position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: category nav by slugs (qa_db_category_nav_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_categories.categoryid, MAX(qa_categories.parentid) AS \`parentid\`, MAX(qa_categories.title) AS \`title\`, MAX(qa_categories.tags) AS \`tags\`, MAX(qa_categories.qcount) AS \`qcount\`, MAX(qa_categories.position) AS \`position\`, COUNT(child.categoryid) AS \`childcount\`, MAX(qa_categories.content) AS \`content\`, MAX(qa_categories.backpath) AS \`backpath\` FROM qa_categories JOIN (SELECT NULL AS parentkey UNION SELECT grandparent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid JOIN qa_categories AS grandparent ON parent.parentid=grandparent.categoryid WHERE qa_categories.backpath='phones/tech' UNION SELECT parent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid WHERE qa_categories.backpath='phones/tech' UNION SELECT parentid FROM qa_categories WHERE backpath='phones/tech' UNION SELECT categoryid FROM qa_categories WHERE backpath='phones/tech') y ON qa_categories.parentid<=>parentkey LEFT JOIN qa_categories AS child ON child.parentid=qa_categories.categoryid GROUP BY qa_categories.categoryid ORDER BY qa_categories.position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: child posts (qa_db_full_child_posts_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.parentid=10",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: close post (qa_db_post_close_post_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "z",
+      "cookieid": {
+        "b64": "",
+      },
+      "count": "7",
+      "handle": "cat",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "C title",
+      "userid": "7",
+      "word": "sort",
+    },
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.postid=(SELECT closedbyid FROM qa_posts WHERE postid=13)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: duplicates (qa_db_post_duplicates_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.closedbyid=9",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: favorite categories (qa_db_user_favorite_categories_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        1,
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        0,
+        {
+          "_order_": "0",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT categoryid, title, tags, qcount, backpath, content FROM qa_categories JOIN qa_userfavorites ON qa_categories.categoryid=qa_userfavorites.entityid WHERE qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='C'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: favorite non-questions (qa_db_user_favorite_non_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT entitytype AS \`type\`, IF (entitytype='U', entityid, NULL) AS \`userid\`, qa_categories.backpath AS \`categorybackpath\`, qa_words.word AS \`tags\` FROM qa_userfavorites LEFT JOIN qa_words ON entitytype='T' AND wordid=entityid LEFT JOIN qa_categories ON entitytype='C' AND categoryid=entityid WHERE userid='6' AND entitytype!='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: favorite questions (qa_db_user_favorite_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='6' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_userfavorites AS selectfave ON qa_posts.postid=selectfave.entityid WHERE selectfave.userid='6' AND selectfave.entitytype='Q' AND qa_posts.type="Q" ORDER BY qa_posts.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: favorite tags (qa_db_user_favorite_tags_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT word, tagcount FROM qa_words JOIN qa_userfavorites ON qa_words.wordid=qa_userfavorites.entityid WHERE qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='T' ORDER BY qa_words.tagcount DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: favorite users (qa_db_user_favorite_users_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        1,
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        0,
+        {
+          "_order_": "0",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_users.userid, handle, points, flags, qa_users.email, BINARY avatarblobid AS \`avatarblobid\`, avatarwidth, avatarheight FROM qa_users JOIN qa_userpoints ON qa_users.userid=qa_userpoints.userid JOIN qa_userfavorites ON qa_users.userid=qa_userfavorites.entityid WHERE qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='U' ORDER BY qa_users.handle LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: flagged (qa_db_flagged_post_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(flagposts.type, 1) AS \`obasetype\`, INSTR(flagposts.type, '_HIDDEN')>0 AS \`ohidden\`, flagposts.postid AS \`opostid\`, flagposts.userid AS \`ouserid\`, flagposts.cookieid AS \`ocookieid\`, flagposts.name AS \`oname\`, flagposts.createip AS \`oip\`, UNIX_TIMESTAMP(flagposts.created) AS \`otime\`, flagposts.flagcount AS \`oflagcount\`, flagposts.content AS \`ocontent\`, flagposts.format AS \`oformat\`, UNIX_TIMESTAMP(flagposts.updated) AS \`oupdated\`, flagusers.flags AS \`oflags\`, flagusers.level AS \`olevel\`, flagusers.email AS \`oemail\`, flagusers.handle AS \`ohandle\`, BINARY flagusers.avatarblobid AS \`oavatarblobid\`, flagusers.avatarwidth AS \`oavatarwidth\`, flagusers.avatarheight AS \`oavatarheight\`, flaguserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=IF(LEFT(parentposts.type, 1)='Q', parentposts.postid, parentposts.parentid) JOIN qa_posts AS flagposts ON parentposts.postid=IF(LEFT(flagposts.type, 1)='Q', flagposts.postid, flagposts.parentid) LEFT JOIN qa_users AS flagusers ON flagposts.userid=flagusers.userid LEFT JOIN qa_userpoints AS flaguserpoints ON flagposts.userid=flaguserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE flagcount>0 AND type IN ('Q', 'A', 'C') ORDER BY qa_posts.flagcount DESC, qa_posts.created DESC LIMIT 0,20) y ON flagposts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: full post (qa_db_full_post_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "z",
+      "cookieid": {
+        "b64": "",
+      },
+      "count": "7",
+      "handle": "cat",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "C title",
+      "userid": "7",
+      "word": "sort",
+    },
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.postid=10",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: full post, missing (qa_db_full_post_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "z",
+      "cookieid": {
+        "b64": "",
+      },
+      "count": "7",
+      "handle": "cat",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "C title",
+      "userid": "7",
+      "word": "sort",
+    },
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.postid=999999999",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: hot questions with votes, full (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' ORDER BY qa_posts.hotness DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: inbox (qa_db_messages_inbox_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT messageid, fromuserid, touserid, content, format, UNIX_TIMESTAMP(qa_messages.created) AS \`created\`, ufrom.flags AS \`fromflags\`, ufrom.level AS \`fromlevel\`, ufrom.email AS \`fromemail\`, ufrom.handle AS \`fromhandle\`, BINARY ufrom.avatarblobid AS \`fromavatarblobid\`, ufrom.avatarwidth AS \`fromavatarwidth\`, ufrom.avatarheight AS \`fromavatarheight\`, uto.flags AS \`toflags\`, uto.level AS \`tolevel\`, uto.email AS \`toemail\`, uto.handle AS \`tohandle\`, BINARY uto.avatarblobid AS \`toavatarblobid\`, uto.avatarwidth AS \`toavatarwidth\`, uto.avatarheight AS \`toavatarheight\` FROM qa_messages LEFT JOIN qa_users ufrom ON fromuserid=ufrom.userid LEFT JOIN qa_users uto ON touserid=uto.userid WHERE touserid='6' AND type='PRIVATE' AND tohidden=0 ORDER BY qa_messages.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: ip limits (qa_db_ip_limits_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT action, period, count FROM qa_iplimits WHERE ip=UNHEX('c0000204')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: is favorite category (qa_db_is_favorite_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`flags\` FROM qa_userfavorites WHERE userid='6' AND entitytype='C' AND entityid=(SELECT categoryid FROM qa_categories WHERE backpath='phones/tech' LIMIT 1)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: is favorite question (qa_db_is_favorite_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`flags\` FROM qa_userfavorites WHERE userid='6' AND entitytype='Q' AND entityid='10'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: is favorite tag (qa_db_is_favorite_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`flags\` FROM qa_userfavorites WHERE userid='6' AND entitytype='T' AND entityid=(SELECT wordid FROM qa_words WHERE word='sql' LIMIT 1)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: is favorite user (qa_db_is_favorite_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`flags\` FROM qa_userfavorites WHERE userid='6' AND entitytype='U' AND entityid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: nav pages (qa_db_pages_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT pageid, title, flags, permit+0 AS \`permit\`, nav, tags, position, heading FROM qa_pages WHERE nav IN ('M','O','F','B') ORDER BY position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: newest users (qa_db_newest_users_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid, handle, flags, email, UNIX_TIMESTAMP(created) AS \`created\`, BINARY avatarblobid AS \`avatarblobid\`, avatarwidth, avatarheight FROM qa_users ORDER BY created DESC, userid DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: notices (qa_db_user_notices_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "0",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT noticeid, content, format, tags, UNIX_TIMESTAMP(created) AS \`created\` FROM qa_usernotices WHERE userid='7' ORDER BY created",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: options (qa_db_options_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "B title",
+        "x",
+      ],
+      [
+        "A title",
+        null,
+      ],
+      [
+        "C title",
+        "z",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT title, content FROM qa_options",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: outbox (qa_db_messages_outbox_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT messageid, fromuserid, touserid, content, format, UNIX_TIMESTAMP(qa_messages.created) AS \`created\`, ufrom.flags AS \`fromflags\`, ufrom.level AS \`fromlevel\`, ufrom.email AS \`fromemail\`, ufrom.handle AS \`fromhandle\`, BINARY ufrom.avatarblobid AS \`fromavatarblobid\`, ufrom.avatarwidth AS \`fromavatarwidth\`, ufrom.avatarheight AS \`fromavatarheight\`, uto.flags AS \`toflags\`, uto.level AS \`tolevel\`, uto.email AS \`toemail\`, uto.handle AS \`tohandle\`, BINARY uto.avatarblobid AS \`toavatarblobid\`, uto.avatarwidth AS \`toavatarwidth\`, uto.avatarheight AS \`toavatarheight\` FROM qa_messages LEFT JOIN qa_users ufrom ON fromuserid=ufrom.userid LEFT JOIN qa_users uto ON touserid=uto.userid WHERE fromuserid='5' AND type='PRIVATE' AND fromhidden=0 ORDER BY qa_messages.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: page by id (qa_db_page_full_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT pageid, title, flags, permit, nav, tags, position, heading, content FROM qa_pages WHERE pageid='3'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: page by slug (qa_db_page_full_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT pageid, title, flags, permit, nav, tags, position, heading, content FROM qa_pages WHERE tags='about'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: pages (qa_db_pages_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT pageid, title, flags, permit+0 AS \`permit\`, nav, tags, position, heading FROM qa_pages ORDER BY position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: parent question (qa_db_post_parent_q_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "z",
+      "cookieid": {
+        "b64": "",
+      },
+      "count": "7",
+      "handle": "cat",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "C title",
+      "userid": "7",
+      "word": "sort",
+    },
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.postid=(SELECT IF(LEFT(parent.type, 1)='A', parent.parentid, parent.postid) FROM qa_posts AS child LEFT JOIN qa_posts AS parent ON parent.postid=child.parentid WHERE child.postid=15 AND parent.type IN('Q','A'))",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: points (qa_db_user_points_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT points, qposts, aposts, cposts, aselects, aselecteds, qupvotes, qdownvotes, aupvotes, adownvotes, qvoteds, avoteds, upvoteds, downvoteds, bonus FROM qa_userpoints WHERE userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: points by id (qa_db_user_points_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT points, qposts, aposts, cposts, aselects, aselecteds, qupvotes, qdownvotes, aupvotes, adownvotes, qvoteds, avoteds, upvoteds, downvoteds, bonus FROM qa_userpoints WHERE userid='7'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: popular tags (qa_db_popular_tags_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "sql",
+        null,
+      ],
+      [
+        "list",
+        null,
+      ],
+      [
+        "sort",
+        null,
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT word, tagcount FROM qa_words JOIN (SELECT wordid FROM qa_words WHERE tagcount>0 ORDER BY tagcount DESC LIMIT 0,30) y ON qa_words.wordid=y.wordid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: popular tags, offset (qa_db_popular_tags_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "sql",
+        null,
+      ],
+      [
+        "list",
+        null,
+      ],
+      [
+        "sort",
+        null,
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT word, tagcount FROM qa_words JOIN (SELECT wordid FROM qa_words WHERE tagcount>0 ORDER BY tagcount DESC LIMIT 10,10) y ON qa_words.wordid=y.wordid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: post meta (qa_db_post_meta_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "x",
+  },
+  "sql": [
+    "SELECT title, content FROM qa_postmetas WHERE postid=10 AND title='qa_q_extra'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: post meta list (qa_db_post_meta_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "B title",
+        "x",
+      ],
+      [
+        "A title",
+        null,
+      ],
+      [
+        "C title",
+        "z",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT title, content FROM qa_postmetas WHERE postid=10 AND title IN ('qa_q_extra','qa_q_other')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: posts (qa_db_posts_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.postid IN (10,11,12)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: posts basetype (qa_db_posts_basetype_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        null,
+      ],
+      [
+        "11",
+        null,
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid, LEFT(type, 1) AS \`basetype\` FROM qa_posts WHERE postid IN (10,11,12)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: posts to questions (qa_db_posts_to_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\`, LEFT(childposts.type, 1) AS \`obasetype\`, childposts.postid AS \`opostid\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=IF(LEFT(parentposts.type, 1)='Q', parentposts.postid, parentposts.parentid) JOIN qa_posts AS childposts ON parentposts.postid=IF(LEFT(childposts.type, 1)='Q', childposts.postid, childposts.parentid) WHERE childposts.postid IN (10,11,12)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: profile (qa_db_user_profile_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "B title",
+        "x",
+      ],
+      [
+        "A title",
+        null,
+      ],
+      [
+        "C title",
+        "z",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT title, content FROM qa_userprofile WHERE userid='7'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: question count (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "_order_": "3",
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`count\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' ORDER BY qa_posts.created DESC LIMIT 0,20) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: questions by views in a category (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE catidpath2=(SELECT categoryid FROM qa_categories WHERE backpath='phones/tech' LIMIT 1) AND type='Q' ORDER BY qa_posts.views DESC, qa_posts.created DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: questions by votes, offset (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' ORDER BY qa_posts.netvotes DESC, qa_posts.created DESC LIMIT 5,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: questions from an ip (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE createip=UNHEX('c0000204') AND type='1' ORDER BY qa_posts.created DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: rank (qa_db_user_rank_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT 1+COUNT(*) AS \`rank\` FROM qa_userpoints WHERE points>COALESCE((SELECT points FROM qa_userpoints WHERE userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1)), 0)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent answers (qa_db_recent_a_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(aposts.type, 1) AS \`obasetype\`, INSTR(aposts.type, '_HIDDEN')>0 AS \`ohidden\`, aposts.postid AS \`opostid\`, aposts.userid AS \`ouserid\`, aposts.cookieid AS \`ocookieid\`, aposts.name AS \`oname\`, aposts.createip AS \`oip\`, UNIX_TIMESTAMP(aposts.created) AS \`otime\`, aposts.flagcount AS \`oflagcount\`, aposts.content AS \`ocontent\`, aposts.format AS \`oformat\`, UNIX_TIMESTAMP(aposts.updated) AS \`oupdated\`, ausers.flags AS \`oflags\`, ausers.level AS \`olevel\`, ausers.email AS \`oemail\`, ausers.handle AS \`ohandle\`, BINARY ausers.avatarblobid AS \`oavatarblobid\`, ausers.avatarwidth AS \`oavatarwidth\`, ausers.avatarheight AS \`oavatarheight\`, auserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS aposts ON qa_posts.postid=aposts.parentid LEFT JOIN qa_users AS ausers ON aposts.userid=ausers.userid LEFT JOIN qa_userpoints AS auserpoints ON aposts.userid=auserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='A' ORDER BY qa_posts.created DESC LIMIT 0,15) y ON aposts.postid=y.postid WHERE qa_posts.type='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent answers from an ip (qa_db_recent_a_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(aposts.type, 1) AS \`obasetype\`, INSTR(aposts.type, '_HIDDEN')>0 AS \`ohidden\`, aposts.postid AS \`opostid\`, aposts.userid AS \`ouserid\`, aposts.cookieid AS \`ocookieid\`, aposts.name AS \`oname\`, aposts.createip AS \`oip\`, UNIX_TIMESTAMP(aposts.created) AS \`otime\`, aposts.flagcount AS \`oflagcount\`, ausers.flags AS \`oflags\`, ausers.level AS \`olevel\`, ausers.email AS \`oemail\`, ausers.handle AS \`ohandle\`, BINARY ausers.avatarblobid AS \`oavatarblobid\`, ausers.avatarwidth AS \`oavatarwidth\`, ausers.avatarheight AS \`oavatarheight\`, auserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS aposts ON qa_posts.postid=aposts.parentid LEFT JOIN qa_users AS ausers ON aposts.userid=ausers.userid LEFT JOIN qa_userpoints AS auserpoints ON aposts.userid=auserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE createip=UNHEX('c0000204') AND type='1' ORDER BY qa_posts.created DESC LIMIT 0,15) y ON aposts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent comments (qa_db_recent_c_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(cposts.type, 1) AS \`obasetype\`, INSTR(cposts.type, '_HIDDEN')>0 AS \`ohidden\`, cposts.postid AS \`opostid\`, cposts.userid AS \`ouserid\`, cposts.cookieid AS \`ocookieid\`, cposts.name AS \`oname\`, cposts.createip AS \`oip\`, UNIX_TIMESTAMP(cposts.created) AS \`otime\`, cposts.flagcount AS \`oflagcount\`, cposts.content AS \`ocontent\`, cposts.format AS \`oformat\`, UNIX_TIMESTAMP(cposts.updated) AS \`oupdated\`, cusers.flags AS \`oflags\`, cusers.level AS \`olevel\`, cusers.email AS \`oemail\`, cusers.handle AS \`ohandle\`, BINARY cusers.avatarblobid AS \`oavatarblobid\`, cusers.avatarwidth AS \`oavatarwidth\`, cusers.avatarheight AS \`oavatarheight\`, cuserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=(CASE LEFT(parentposts.type, 1) WHEN 'A' THEN parentposts.parentid ELSE parentposts.postid END) JOIN qa_posts AS cposts ON parentposts.postid=cposts.parentid LEFT JOIN qa_users AS cusers ON cposts.userid=cusers.userid LEFT JOIN qa_userpoints AS cuserpoints ON cposts.userid=cuserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='C' ORDER BY qa_posts.created DESC LIMIT 0,15) y ON cposts.postid=y.postid WHERE qa_posts.type='Q' AND ((parentposts.type='Q') OR (parentposts.type='A'))",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent edits (qa_db_recent_edit_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(editposts.type, 1) AS \`obasetype\`, INSTR(editposts.type, '_HIDDEN')>0 AS \`ohidden\`, editposts.postid AS \`opostid\`, editposts.lastuserid AS \`ouserid\`, editposts.cookieid AS \`ocookieid\`, editposts.name AS \`oname\`, editposts.lastip AS \`oip\`, UNIX_TIMESTAMP(editposts.updated) AS \`otime\`, editposts.flagcount AS \`oflagcount\`, editposts.updatetype AS \`oupdatetype\`, editposts.content AS \`ocontent\`, editposts.format AS \`oformat\`, UNIX_TIMESTAMP(editposts.updated) AS \`oupdated\`, editusers.flags AS \`oflags\`, editusers.level AS \`olevel\`, editusers.email AS \`oemail\`, editusers.handle AS \`ohandle\`, BINARY editusers.avatarblobid AS \`oavatarblobid\`, editusers.avatarwidth AS \`oavatarwidth\`, editusers.avatarheight AS \`oavatarheight\`, edituserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=IF(LEFT(parentposts.type, 1)='Q', parentposts.postid, parentposts.parentid) JOIN qa_posts AS editposts ON parentposts.postid=IF(LEFT(editposts.type, 1)='Q', editposts.postid, editposts.parentid) LEFT JOIN qa_users AS editusers ON editposts.lastuserid=editusers.userid LEFT JOIN qa_userpoints AS edituserpoints ON editposts.lastuserid=edituserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type IN ('Q', 'A', 'C') ORDER BY qa_posts.updated DESC LIMIT 0,15) y ON editposts.postid=y.postid WHERE parentposts.type IN ('Q', 'A', 'C') AND qa_posts.type IN ('Q', 'A', 'C')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent edits incl. hidden (qa_db_recent_edit_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(editposts.type, 1) AS \`obasetype\`, INSTR(editposts.type, '_HIDDEN')>0 AS \`ohidden\`, editposts.postid AS \`opostid\`, editposts.lastuserid AS \`ouserid\`, editposts.cookieid AS \`ocookieid\`, editposts.name AS \`oname\`, editposts.lastip AS \`oip\`, UNIX_TIMESTAMP(editposts.updated) AS \`otime\`, editposts.flagcount AS \`oflagcount\`, editposts.updatetype AS \`oupdatetype\`, UNIX_TIMESTAMP(editposts.updated) AS \`oupdated\`, editusers.flags AS \`oflags\`, editusers.level AS \`olevel\`, editusers.email AS \`oemail\`, editusers.handle AS \`ohandle\`, BINARY editusers.avatarblobid AS \`oavatarblobid\`, editusers.avatarwidth AS \`oavatarwidth\`, editusers.avatarheight AS \`oavatarheight\`, edituserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=IF(LEFT(parentposts.type, 1)='Q', parentposts.postid, parentposts.parentid) JOIN qa_posts AS editposts ON parentposts.postid=IF(LEFT(editposts.type, 1)='Q', editposts.postid, editposts.parentid) LEFT JOIN qa_users AS editusers ON editposts.lastuserid=editusers.userid LEFT JOIN qa_userpoints AS edituserpoints ON editposts.lastuserid=edituserpoints.userid JOIN (SELECT postid FROM qa_posts WHERE lastip=UNHEX('c0000204') AND 1 ORDER BY qa_posts.updated DESC LIMIT 0,15) y ON editposts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent messages (qa_db_recent_messages_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT messageid, fromuserid, touserid, content, format, UNIX_TIMESTAMP(qa_messages.created) AS \`created\`, ufrom.flags AS \`fromflags\`, ufrom.level AS \`fromlevel\`, ufrom.email AS \`fromemail\`, ufrom.handle AS \`fromhandle\`, BINARY ufrom.avatarblobid AS \`fromavatarblobid\`, ufrom.avatarwidth AS \`fromavatarwidth\`, ufrom.avatarheight AS \`fromavatarheight\`, uto.flags AS \`toflags\`, uto.level AS \`tolevel\`, uto.email AS \`toemail\`, uto.handle AS \`tohandle\`, BINARY uto.avatarblobid AS \`toavatarblobid\`, uto.avatarwidth AS \`toavatarwidth\`, uto.avatarheight AS \`toavatarheight\` FROM qa_messages LEFT JOIN qa_users ufrom ON fromuserid=ufrom.userid LEFT JOIN qa_users uto ON touserid=uto.userid WHERE fromuserid='5' AND type='PRIVATE' AND touserid='6' ORDER BY qa_messages.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: recent questions (qa_db_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' ORDER BY qa_posts.created DESC LIMIT 0,20) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: related (qa_db_related_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, score FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid, SUM(score)+LOG(postid)/1000000 AS score FROM ((SELECT qa_titlewords.postid, LOG(10000/titlecount) AS score FROM qa_titlewords JOIN qa_words ON qa_titlewords.wordid=qa_words.wordid JOIN qa_titlewords AS source ON qa_titlewords.wordid=source.wordid WHERE source.postid=10 AND titlecount<10000) UNION ALL (SELECT qa_posttags.postid, 2*LOG(10000/tagcount) AS score FROM qa_posttags JOIN qa_words ON qa_posttags.wordid=qa_words.wordid JOIN qa_posttags AS source ON qa_posttags.wordid=source.wordid WHERE source.postid=10 AND tagcount<10000) UNION ALL (SELECT qa_posts.postid, LOG(10000/qa_categories.qcount) FROM qa_posts JOIN qa_categories ON qa_posts.categoryid=qa_categories.categoryid AND qa_posts.type='Q' WHERE qa_categories.categoryid=(SELECT categoryid FROM qa_posts WHERE postid=10) AND qa_categories.qcount<10000)) x WHERE postid!=10 GROUP BY postid ORDER BY score DESC LIMIT 10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: search (qa_db_search_posts_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\`, score, matchparts FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT questionid, SUM(score)+2*(LOG(10000)*(MAX(qa_posts.hotness)-(SELECT MIN(hotness) FROM qa_posts WHERE type='Q'))/((SELECT MAX(hotness) FROM qa_posts WHERE type='Q')-(SELECT MIN(hotness) FROM qa_posts WHERE type='Q')))+LOG(questionid)/1000000 AS score, GROUP_CONCAT(CONCAT_WS(':', matchposttype, matchpostid, ROUND(score,3))) AS matchparts FROM ((SELECT postid AS questionid, LOG(10000/titlecount) AS score, 'Q' AS matchposttype, postid AS matchpostid FROM qa_titlewords JOIN qa_words ON qa_titlewords.wordid=qa_words.wordid WHERE word IN ('sort','list') AND titlecount<10000) UNION ALL (SELECT questionid, (1-1/(1+count))*LOG(10000/contentcount)*(CASE qa_contentwords.type WHEN 'Q' THEN 1.0 WHEN 'A' THEN 0.5 ELSE 0.25 END) AS score, qa_contentwords.type AS matchposttype, qa_contentwords.postid AS matchpostid FROM qa_contentwords JOIN qa_words ON qa_contentwords.wordid=qa_words.wordid WHERE word IN ('sort','list') AND contentcount<10000) UNION ALL (SELECT postid AS questionid, 2*LOG(10000/tagwordcount) AS score, 'Q' AS matchposttype, postid AS matchpostid FROM qa_tagwords JOIN qa_words ON qa_tagwords.wordid=qa_words.wordid WHERE word IN ('sql','mysql') AND tagwordcount<10000) UNION ALL (SELECT postid AS questionid, LOG(10000/qposts) AS score, 'Q' AS matchposttype, postid AS matchpostid FROM qa_posts JOIN qa_users ON qa_posts.userid=qa_users.userid JOIN qa_userpoints ON qa_userpoints.userid=qa_users.userid WHERE handle IN ('bob') AND type='Q') UNION ALL (SELECT postid AS questionid, LOG(10000/qposts) AS score, 'Q' AS matchposttype, postid AS matchpostid FROM qa_posts JOIN qa_users ON qa_posts.userid=qa_users.userid JOIN qa_userpoints ON qa_userpoints.userid=qa_users.userid WHERE handle='bob' AND type='Q')) x LEFT JOIN qa_posts ON qa_posts.postid=questionid GROUP BY questionid ORDER BY score DESC LIMIT 0,10) y ON qa_posts.postid=y.questionid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: search, no handle (qa_db_search_posts_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, score, matchparts FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT questionid, SUM(score)+2*(LOG(10000)*(MAX(qa_posts.hotness)-(SELECT MIN(hotness) FROM qa_posts WHERE type='Q'))/((SELECT MAX(hotness) FROM qa_posts WHERE type='Q')-(SELECT MIN(hotness) FROM qa_posts WHERE type='Q')))+LOG(questionid)/1000000 AS score, GROUP_CONCAT(CONCAT_WS(':', matchposttype, matchpostid, ROUND(score,3))) AS matchparts FROM ((SELECT postid AS questionid, LOG(10000/titlecount) AS score, 'Q' AS matchposttype, postid AS matchpostid FROM qa_titlewords JOIN qa_words ON qa_titlewords.wordid=qa_words.wordid WHERE word IN ('sort','list') AND titlecount<10000)) x LEFT JOIN qa_posts ON qa_posts.postid=questionid GROUP BY questionid ORDER BY score DESC LIMIT 0,10) y ON qa_posts.postid=y.questionid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: slugs to category (qa_db_slugs_to_category_id_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": null,
+  },
+  "sql": [
+    "SELECT categoryid FROM qa_categories WHERE backpath='phones/tech'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: subcategories (qa_db_category_sub_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT categoryid, title, tags, qcount, position FROM qa_categories WHERE parentid<=>1 ORDER BY position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: tag questions (qa_db_tag_recent_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posttags WHERE wordid=(SELECT wordid FROM qa_words WHERE word='sql' AND word='sql' COLLATE utf8_bin LIMIT 1) ORDER BY postcreated DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: tag word (qa_db_tag_word_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT wordid, word, tagcount FROM qa_words WHERE word='sql' AND word='sql' COLLATE utf8_bin",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: top category nav (qa_db_category_nav_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "0",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_categories.categoryid, MAX(qa_categories.parentid) AS \`parentid\`, MAX(qa_categories.title) AS \`title\`, MAX(qa_categories.tags) AS \`tags\`, MAX(qa_categories.qcount) AS \`qcount\`, MAX(qa_categories.position) AS \`position\`, COUNT(child.categoryid) AS \`childcount\`, MAX(qa_categories.content) AS \`content\`, MAX(qa_categories.backpath) AS \`backpath\` FROM qa_categories JOIN (SELECT NULL AS parentkey UNION SELECT grandparent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid JOIN qa_categories AS grandparent ON parent.parentid=grandparent.categoryid WHERE qa_categories.categoryid=NULL UNION SELECT parent.parentid FROM qa_categories JOIN qa_categories AS parent ON qa_categories.parentid=parent.categoryid WHERE qa_categories.categoryid=NULL UNION SELECT parentid FROM qa_categories WHERE categoryid=NULL UNION SELECT categoryid FROM qa_categories WHERE categoryid=NULL) y ON qa_categories.parentid<=>parentkey LEFT JOIN qa_categories AS child ON child.parentid=qa_categories.categoryid GROUP BY qa_categories.categoryid ORDER BY qa_categories.position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: top users (qa_db_top_users_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "5",
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        "6",
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        "7",
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_users.userid, handle, points, flags, qa_users.email, BINARY avatarblobid AS \`avatarblobid\`, avatarwidth, avatarheight FROM qa_users JOIN (SELECT userid FROM qa_userpoints ORDER BY points DESC LIMIT 0,20) y ON qa_users.userid=y.userid JOIN qa_userpoints ON qa_users.userid=qa_userpoints.userid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: unanswered (qa_db_unanswered_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' AND acount=0 AND closedbyid IS NULL ORDER BY qa_posts.created DESC LIMIT 0,20) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: unselected (qa_db_unanswered_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.content AS \`content\`, qa_posts.notify AS \`notify\`, UNIX_TIMESTAMP(qa_posts.updated) AS \`updated\`, qa_posts.updatetype AS \`updatetype\`, qa_posts.format, qa_posts.lastuserid, qa_posts.lastip AS \`lastip\`, qa_posts.parentid, qa_posts.lastviewip AS \`lastviewip\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, lastusers.handle AS \`lasthandle\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_users AS lastusers ON qa_posts.lastuserid=lastusers.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE type='Q' AND selchildid IS NULL AND closedbyid IS NULL ORDER BY qa_posts.created DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: unupvoted in a category (qa_db_unanswered_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT postid FROM qa_posts WHERE catidpath2=(SELECT categoryid FROM qa_categories WHERE backpath='phones/tech' LIMIT 1) AND type='Q' AND amaxvote=0 AND closedbyid IS NULL ORDER BY qa_posts.created DESC LIMIT 0,10) y ON qa_posts.postid=y.postid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: updates (qa_db_user_updates_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(updateposts.type, 1) AS \`obasetype\`, fullevents.updatetype AS \`oupdatetype\`, INSTR(updateposts.type, '_HIDDEN')>0 AS \`ohidden\`, fullevents.lastpostid AS \`opostid\`, fullevents.lastuserid AS \`ouserid\`, UNIX_TIMESTAMP(fullevents.updated) AS \`otime\`, fullevents.entitytype='-' AS \`opersonal\`, updateposts.parentid AS \`oparentid\`, eventusers.flags AS \`oflags\`, eventusers.level AS \`olevel\`, eventusers.email AS \`oemail\`, eventusers.handle AS \`ohandle\`, BINARY eventusers.avatarblobid AS \`oavatarblobid\`, eventusers.avatarwidth AS \`oavatarwidth\`, eventusers.avatarheight AS \`oavatarheight\`, eventuserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='6' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT entitytype, questionid, lastpostid, updatetype, lastuserid, updated FROM qa_userevents WHERE userid='6' UNION SELECT qa_sharedevents.entitytype, questionid, lastpostid, updatetype, lastuserid, updated FROM qa_sharedevents JOIN qa_userfavorites ON qa_sharedevents.entitytype=qa_userfavorites.entitytype AND qa_sharedevents.entityid=qa_userfavorites.entityid AND qa_userfavorites.nouserevents=1 WHERE userid='6') fullevents ON qa_posts.postid=fullevents.questionid JOIN qa_posts AS updateposts ON updateposts.postid=fullevents.lastpostid AND (updateposts.type IN ('Q', 'A', 'C') OR fullevents.entitytype='-') AND (qa_posts.selchildid=fullevents.lastpostid OR NOT fullevents.updatetype<=>'S') AND qa_posts.type IN ('Q', 'Q_HIDDEN') LEFT JOIN qa_users AS eventusers ON fullevents.lastuserid=eventusers.userid LEFT JOIN qa_userpoints AS eventuserpoints ON fullevents.lastuserid=eventuserpoints.userid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: updates, content only (qa_db_user_updates_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(updateposts.type, 1) AS \`obasetype\`, fullevents.updatetype AS \`oupdatetype\`, INSTR(updateposts.type, '_HIDDEN')>0 AS \`ohidden\`, fullevents.lastpostid AS \`opostid\`, fullevents.lastuserid AS \`ouserid\`, UNIX_TIMESTAMP(fullevents.updated) AS \`otime\`, fullevents.entitytype='-' AS \`opersonal\`, updateposts.parentid AS \`oparentid\`, eventusers.flags AS \`oflags\`, eventusers.level AS \`olevel\`, eventusers.email AS \`oemail\`, eventusers.handle AS \`ohandle\`, BINARY eventusers.avatarblobid AS \`oavatarblobid\`, eventusers.avatarwidth AS \`oavatarwidth\`, eventusers.avatarheight AS \`oavatarheight\`, eventuserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='7' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='7' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_userevents AS fullevents ON qa_posts.postid=fullevents.questionid AND fullevents.userid='7' AND fullevents.entitytype='-' JOIN qa_posts AS updateposts ON updateposts.postid=fullevents.lastpostid AND (updateposts.type IN ('Q', 'A', 'C') OR fullevents.entitytype='-') AND (qa_posts.selchildid=fullevents.lastpostid OR NOT fullevents.updatetype<=>'S') AND qa_posts.type IN ('Q', 'Q_HIDDEN') LEFT JOIN qa_users AS eventusers ON fullevents.lastuserid=eventusers.userid LEFT JOIN qa_userpoints AS eventuserpoints ON fullevents.lastuserid=eventuserpoints.userid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: updates, favorites only (qa_db_user_updates_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(updateposts.type, 1) AS \`obasetype\`, fullevents.updatetype AS \`oupdatetype\`, INSTR(updateposts.type, '_HIDDEN')>0 AS \`ohidden\`, fullevents.lastpostid AS \`opostid\`, fullevents.lastuserid AS \`ouserid\`, UNIX_TIMESTAMP(fullevents.updated) AS \`otime\`, fullevents.entitytype='-' AS \`opersonal\`, updateposts.parentid AS \`oparentid\`, eventusers.flags AS \`oflags\`, eventusers.level AS \`olevel\`, eventusers.email AS \`oemail\`, eventusers.handle AS \`ohandle\`, BINARY eventusers.avatarblobid AS \`oavatarblobid\`, eventusers.avatarwidth AS \`oavatarwidth\`, eventusers.avatarheight AS \`oavatarheight\`, eventuserpoints.points AS \`opoints\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='6' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='6' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN (SELECT entitytype, questionid, lastpostid, updatetype, lastuserid, updated FROM qa_userevents WHERE userid='6' AND entitytype!='-' UNION SELECT qa_sharedevents.entitytype, questionid, lastpostid, updatetype, lastuserid, updated FROM qa_sharedevents JOIN qa_userfavorites ON qa_sharedevents.entitytype=qa_userfavorites.entitytype AND qa_sharedevents.entityid=qa_userfavorites.entityid AND qa_userfavorites.nouserevents=1 WHERE userid='6') fullevents ON qa_posts.postid=fullevents.questionid JOIN qa_posts AS updateposts ON updateposts.postid=fullevents.lastpostid AND (updateposts.type IN ('Q', 'A', 'C') OR fullevents.entitytype='-') AND (qa_posts.selchildid=fullevents.lastpostid OR NOT fullevents.updatetype<=>'S') AND qa_posts.type IN ('Q', 'Q_HIDDEN') LEFT JOIN qa_users AS eventusers ON fullevents.lastuserid=eventusers.userid LEFT JOIN qa_userpoints AS eventuserpoints ON fullevents.lastuserid=eventuserpoints.userid",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user answers (qa_db_user_recent_a_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(aposts.type, 1) AS \`obasetype\`, INSTR(aposts.type, '_HIDDEN')>0 AS \`ohidden\`, aposts.postid AS \`opostid\`, aposts.userid AS \`ouserid\`, aposts.cookieid AS \`ocookieid\`, aposts.name AS \`oname\`, aposts.createip AS \`oip\`, UNIX_TIMESTAMP(aposts.created) AS \`otime\`, aposts.flagcount AS \`oflagcount\`, aposts.upvotes AS \`oupvotes\`, aposts.downvotes AS \`odownvotes\`, aposts.netvotes AS \`onetvotes\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS aposts ON qa_posts.postid=aposts.parentid JOIN (SELECT postid FROM qa_posts WHERE  userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1) AND type='A' ORDER BY created DESC LIMIT 0,10) y ON aposts.postid=y.postid WHERE qa_posts.type='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user comments (qa_db_user_recent_c_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(cposts.type, 1) AS \`obasetype\`, INSTR(cposts.type, '_HIDDEN')>0 AS \`ohidden\`, cposts.postid AS \`opostid\`, cposts.userid AS \`ouserid\`, cposts.cookieid AS \`ocookieid\`, cposts.name AS \`oname\`, cposts.createip AS \`oip\`, UNIX_TIMESTAMP(cposts.created) AS \`otime\`, cposts.flagcount AS \`oflagcount\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=(CASE parentposts.type WHEN 'A' THEN parentposts.parentid ELSE parentposts.postid END) JOIN qa_posts AS cposts ON parentposts.postid=cposts.parentid JOIN (SELECT postid FROM qa_posts WHERE  userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1) AND type='C' ORDER BY created DESC LIMIT 10) y ON cposts.postid=y.postid WHERE qa_posts.type='Q' AND parentposts.type IN ('Q', 'A')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user edits (qa_db_user_recent_edit_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight, LEFT(editposts.type, 1) AS \`obasetype\`, INSTR(editposts.type, '_HIDDEN')>0 AS \`ohidden\`, editposts.postid AS \`opostid\`, editposts.lastuserid AS \`ouserid\`, editposts.cookieid AS \`ocookieid\`, editposts.name AS \`oname\`, editposts.lastip AS \`oip\`, UNIX_TIMESTAMP(editposts.updated) AS \`otime\`, editposts.flagcount AS \`oflagcount\`, editposts.updatetype AS \`oupdatetype\`, UNIX_TIMESTAMP(editposts.updated) AS \`oupdated\` FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid JOIN qa_posts AS parentposts ON qa_posts.postid=IF(LEFT(parentposts.type, 1)='Q', parentposts.postid, parentposts.parentid) JOIN qa_posts AS editposts ON parentposts.postid=IF(LEFT(editposts.type, 1)='Q', editposts.postid, editposts.parentid) JOIN (SELECT postid FROM qa_posts WHERE  lastuserid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1) AND type IN ('Q', 'A', 'C') ORDER BY updated DESC LIMIT 10) y ON editposts.postid=y.postid  WHERE parentposts.type IN ('Q', 'A', 'C') AND qa_posts.type IN ('Q', 'A', 'C')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user fields (qa_db_userfields_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "B title",
+        {
+          "_order_": "0",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        "A title",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        "C title",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT fieldid, title, content, flags, permit, position FROM qa_userfields",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user levels (qa_db_user_levels_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT entityid, entitytype, level FROM qa_userlevels WHERE userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user levels full (qa_db_user_levels_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT entityid, entitytype, level, title, backpath FROM qa_userlevels LEFT JOIN qa_categories ON qa_userlevels.entitytype='C' AND qa_userlevels.entityid=qa_categories.categoryid WHERE userid='6'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user limits (qa_db_user_limits_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT action, period, count FROM qa_userlimits WHERE userid='7'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: user questions (qa_db_user_recent_qs_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+      [
+        "11",
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_posts.postid, qa_posts.categoryid, qa_posts.type, LEFT(qa_posts.type, 1) AS \`basetype\`, INSTR(qa_posts.type, '_HIDDEN')>0 AS \`hidden\`, INSTR(qa_posts.type, '_QUEUED')>0 AS \`queued\`, qa_posts.acount, qa_posts.amaxvote, qa_posts.selchildid, qa_posts.closedbyid, qa_posts.upvotes, qa_posts.downvotes, qa_posts.netvotes, qa_posts.views, qa_posts.hotness, qa_posts.flagcount, qa_posts.title, qa_posts.tags, UNIX_TIMESTAMP(qa_posts.created) AS \`created\`, qa_posts.name, qa_categories.title AS \`categoryname\`, qa_categories.backpath AS \`categorybackpath\`, CONCAT_WS(',', qa_posts.catidpath1, qa_posts.catidpath2, qa_posts.catidpath3, qa_posts.categoryid) AS \`categoryids\`, qa_uservotes.vote AS \`uservote\`, qa_uservotes.flag AS \`userflag\`, qa_userfavorites.entityid<=>qa_posts.postid AS \`userfavoriteq\`, qa_posts.userid, qa_posts.cookieid, qa_posts.createip AS \`createip\`, qa_userpoints.points, qa_users.flags, qa_users.level, qa_users.email AS \`email\`, qa_users.handle AS \`handle\`, BINARY qa_users.avatarblobid AS \`avatarblobid\`, qa_users.avatarwidth, qa_users.avatarheight FROM qa_posts LEFT JOIN qa_categories ON qa_categories.categoryid=qa_posts.categoryid LEFT JOIN qa_uservotes ON qa_posts.postid=qa_uservotes.postid AND qa_uservotes.userid='5' LEFT JOIN qa_userfavorites ON qa_posts.postid=qa_userfavorites.entityid AND qa_userfavorites.userid='5' AND qa_userfavorites.entitytype='Q' LEFT JOIN qa_users ON qa_posts.userid=qa_users.userid LEFT JOIN qa_userpoints ON qa_posts.userid=qa_userpoints.userid WHERE qa_posts.userid=(SELECT userid FROM qa_users WHERE handle='bob' LIMIT 1) AND type='Q' ORDER BY qa_posts.created DESC LIMIT 0,10",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: users from level (qa_db_users_from_level_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "3",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "2",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_users.userid, handle, level FROM qa_users WHERE level >= 20 ORDER BY level DESC, handle LIMIT 0, 30",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: users from level count (qa_db_users_from_level_count_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT COUNT(*) AS \`count\` FROM qa_users WHERE level >= 20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: wall (qa_db_recent_messages_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT messageid, fromuserid, touserid, content, format, UNIX_TIMESTAMP(qa_messages.created) AS \`created\`, ufrom.flags AS \`fromflags\`, ufrom.level AS \`fromlevel\`, ufrom.email AS \`fromemail\`, ufrom.handle AS \`fromhandle\`, BINARY ufrom.avatarblobid AS \`fromavatarblobid\`, ufrom.avatarwidth AS \`fromavatarwidth\`, ufrom.avatarheight AS \`fromavatarheight\`, uto.flags AS \`toflags\`, uto.level AS \`tolevel\`, uto.email AS \`toemail\`, uto.handle AS \`tohandle\`, BINARY uto.avatarblobid AS \`toavatarblobid\`, uto.avatarwidth AS \`toavatarwidth\`, uto.avatarheight AS \`toavatarheight\` FROM qa_messages LEFT JOIN qa_users ufrom ON fromuserid=ufrom.userid LEFT JOIN qa_users uto ON touserid=uto.userid WHERE type='PUBLIC' AND touserid='7' ORDER BY qa_messages.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: wall inbox (qa_db_messages_inbox_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "_order_": "1",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT messageid, fromuserid, touserid, content, format, UNIX_TIMESTAMP(qa_messages.created) AS \`created\`, ufrom.flags AS \`fromflags\`, ufrom.level AS \`fromlevel\`, ufrom.email AS \`fromemail\`, ufrom.handle AS \`fromhandle\`, BINARY ufrom.avatarblobid AS \`fromavatarblobid\`, ufrom.avatarwidth AS \`fromavatarwidth\`, ufrom.avatarheight AS \`fromavatarheight\`, uto.flags AS \`toflags\`, uto.level AS \`tolevel\`, uto.email AS \`toemail\`, uto.handle AS \`tohandle\`, BINARY uto.avatarblobid AS \`toavatarblobid\`, uto.avatarwidth AS \`toavatarwidth\`, uto.avatarheight AS \`toavatarheight\` FROM qa_messages LEFT JOIN qa_users ufrom ON fromuserid=ufrom.userid LEFT JOIN qa_users uto ON touserid=uto.userid WHERE touserid='7' AND type='PUBLIC' AND tohidden=0 ORDER BY qa_messages.created DESC LIMIT 0,20",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`builder: widgets (qa_db_widgets_selectspec) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "_order_": "0",
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "_order_": "1",
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "_order_": "2",
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT widgetid, place, position, tags, title FROM qa_widgets ORDER BY position",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: active posters (qa_db_count_active_users) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(DISTINCT(userid)) FROM qa_posts",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: active voters (qa_db_count_active_users) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(DISTINCT(userid)) FROM qa_uservotes",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: anonymous answers (qa_db_count_posts) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts WHERE type='A' AND userid IS NULL",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: authors of posts (qa_db_posts_get_userids) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT DISTINCT userid FROM qa_posts WHERE postid IN (10,11,12) AND userid IS NOT NULL",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: blob (qa_db_blob_read) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT content, format, filename FROM qa_blobs WHERE blobid=18446744073709551615",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: blob exists (qa_db_blob_exists) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": true,
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_blobs WHERE blobid=18446744073709551615",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: blob missing (qa_db_blob_read) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT content, format, filename FROM qa_blobs WHERE blobid=1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: blobs in db (qa_db_has_blobs_in_db) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": true,
+  },
+  "sql": [
+    "SELECT blobid FROM qa_blobs WHERE content IS NOT NULL LIMIT 1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: blobs on disk (qa_db_has_blobs_on_disk) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": true,
+  },
+  "sql": [
+    "SELECT blobid FROM qa_blobs WHERE content IS NULL LIMIT 1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: cache miss (qa_db_cache_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT content FROM qa_cache WHERE type='i_reads' AND cacheid=1",
+    "UPDATE qa_cache SET lastread=NOW() WHERE type='i_reads' AND cacheid=1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: cached image (qa_db_cache_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT content FROM qa_cache WHERE type='i_reads' AND cacheid=42",
+    "UPDATE qa_cache SET lastread=NOW() WHERE type='i_reads' AND cacheid=42",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category by slug (qa_db_category_slug_to_id) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT categoryid FROM qa_categories WHERE parentid<=>1 AND tags='child-abc'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category by slug, none (qa_db_category_slug_to_id) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT categoryid FROM qa_categories WHERE parentid<=>NULL AND tags='no-such-slug'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category count (qa_db_count_categories) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_categories",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category depth (qa_db_category_child_depth) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": 0,
+  },
+  "sql": [
+    "SELECT COUNT(child1.categoryid) AS count1, COUNT(child2.categoryid) AS count2, COUNT(child3.categoryid) AS count3 FROM qa_categories AS child1 LEFT JOIN qa_categories AS child2 ON child2.parentid=child1.categoryid LEFT JOIN qa_categories AS child3 ON child3.parentid=child2.categoryid WHERE child1.parentid=1;",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category parent (qa_db_category_get_parent) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT parentid FROM qa_categories WHERE categoryid=2",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: category questions (qa_db_count_categoryid_qs) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts WHERE categoryid<=>2 AND type='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: cookie exists (qa_db_cookie_exists) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": true,
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_cookies WHERE cookieid=123456789012345678",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: cookie missing (qa_db_cookie_exists) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": true,
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_cookies WHERE cookieid=1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: dependents (qa_db_postids_count_dependents) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "10",
+        "7",
+      ],
+      [
+        "11",
+        "1",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid, COALESCE(childcount, 0) AS count FROM qa_posts LEFT JOIN (SELECT parentid, COUNT(*) AS childcount FROM qa_posts WHERE parentid IN (10,11,12) AND LEFT(type, 1) IN ('A', 'C') GROUP BY parentid) x ON postid=x.parentid WHERE postid IN (10,11,12)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: external login (qa_db_user_login_find) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_userlogins.userid, handle, email FROM qa_userlogins LEFT JOIN qa_users ON qa_userlogins.userid=qa_users.userid WHERE source='reads' AND identifiermd5=UNHEX('4011ec3447f8b4a9de654f22c0c28f37') AND identifier='ext-1'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: handles of no users (qa_db_user_get_userid_handles) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [],
+    "single": false,
+  },
+  "sql": [],
+  "status": 200,
+}
+`;
+
+exports[`helper: handles of users (qa_db_user_get_userid_handles) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "5",
+        "bob",
+      ],
+      [
+        "6",
+        "amy",
+      ],
+      [
+        "7",
+        "cat",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid, handle FROM qa_users WHERE userid IN (7,5,999999999)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: ip limits only (qa_db_limits_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "(SELECT 'ip' AS limitkey, period, count FROM qa_iplimits WHERE ip=UNHEX('c0000204') AND action='Q')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: ip visible posts (qa_db_get_ip_visible_postids) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid FROM qa_posts WHERE createip=UNHEX('c0000204') AND type IN ('Q', 'A', 'C', 'Q_QUEUED', 'A_QUEUED', 'C_QUEUED')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: last category position (qa_db_category_last_pos) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COALESCE(MAX(position), 0) FROM qa_categories WHERE parentid<=>1",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: last top category position (qa_db_category_last_pos) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COALESCE(MAX(position), 0) FROM qa_categories WHERE parentid<=>NULL",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: mysql version (qa_db_mysql_version) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT VERSION()",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: no limits asked (qa_db_limits_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [],
+    "single": false,
+  },
+  "sql": [],
+  "status": 200,
+}
+`;
+
+exports[`helper: no vote (qa_db_uservote_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT postid, userid, vote, flag, votecreated, voteupdated FROM qa_uservotes WHERE postid=11 AND userid=999999999",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: notices (qa_db_usernotices_list) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT noticeid, tags, UNIX_TIMESTAMP(created) AS created FROM qa_usernotices WHERE userid='7' ORDER BY created",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: one vote (qa_db_uservote_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": {
+      "content": "x",
+      "cookieid": {
+        "b64": "/wE=",
+      },
+      "count": "3",
+      "handle": "bob",
+      "netvotes": "2",
+      "postid": "10",
+      "title": "B title",
+      "userid": "5",
+      "word": "sql",
+    },
+  },
+  "sql": [
+    "SELECT postid, userid, vote, flag, votecreated, voteupdated FROM qa_uservotes WHERE postid=11 AND userid=5",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: post count (qa_db_count_posts) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: post meta (qa_db_meta_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT content FROM qa_postmetas WHERE postid='10' AND title='qa_q_extra'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: post meta list (qa_db_meta_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "B title",
+        "x",
+      ],
+      [
+        "A title",
+        null,
+      ],
+      [
+        "C title",
+        "z",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT title, content FROM qa_postmetas WHERE postid='10' AND title IN('qa_q_extra','qa_q_none')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: posts a user voted or flagged (qa_db_uservoteflag_user_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid FROM qa_uservotes WHERE userid=5 AND (vote!=0 OR flag!=0)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: prefixed tables (qa_db_list_tables) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SHOW TABLES WHERE \`Tables_in_q2a\` LIKE "qa\\_%"",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: question count (qa_db_count_posts) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts WHERE type='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: questions among posts (qa_db_posts_filter_q_postids) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid FROM qa_posts WHERE type='Q' AND postid IN (10,11,12)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: table size (qa_db_table_size) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": 0,
+  },
+  "sql": [
+    "SHOW TABLE STATUS LIKE 'qa_%'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: tables (qa_db_list_tables) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SHOW TABLES",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: unapproved users (qa_db_get_unapproved_users) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "5",
+        {
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "profile": {
+            "B title": "x",
+          },
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        "6",
+        {
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "profile": {},
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        "7",
+        {
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "profile": {
+            "C title": "z",
+          },
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT qa_users.userid, UNIX_TIMESTAMP(created) AS created, createip, email, handle, flags, title, content FROM qa_users LEFT JOIN qa_userprofile ON qa_users.userid=qa_userprofile.userid AND LENGTH(content)>0 WHERE level<10 AND NOT (flags&2) ORDER BY created DESC LIMIT 30",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: uncategorized questions (qa_db_count_categoryid_qs) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts WHERE categoryid<=>NULL AND type='Q'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user and ip limits (qa_db_limits_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        null,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "(SELECT 'user' AS limitkey, period, count FROM qa_userlimits WHERE userid='5' AND action='Q') UNION ALL (SELECT 'ip' AS limitkey, period, count FROM qa_iplimits WHERE ip=UNHEX('c0000204') AND action='Q')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user by email (qa_db_user_find_by_email) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid FROM qa_users WHERE email='bob@example.test'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user by email, none (qa_db_user_find_by_email) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid FROM qa_users WHERE email='nobody@example.invalid'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user by handle (qa_db_user_find_by_handle) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid FROM qa_users WHERE handle='bob'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user comments (qa_db_count_posts) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_posts WHERE type='C' AND userid IS NOT NULL",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user count (qa_db_count_users) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT COUNT(*) FROM qa_users",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user meta, none (qa_db_meta_get) SQL and result 1`] = `
+{
+  "result": {
+    "single": true,
+    "value": "10",
+  },
+  "sql": [
+    "SELECT content FROM qa_usermetas WHERE userid='7' AND title='nothing'",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: user visible posts (qa_db_get_user_visible_postids) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        "10",
+      ],
+      [
+        1,
+        "11",
+      ],
+      [
+        2,
+        "10",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid FROM qa_posts WHERE userid=7 AND type IN ('Q', 'A', 'C', 'Q_QUEUED', 'A_QUEUED', 'C_QUEUED')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: users of handles (qa_db_user_get_handle_userids) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "bob",
+        "5",
+      ],
+      [
+        "amy",
+        "6",
+      ],
+      [
+        "cat",
+        "7",
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT handle, userid FROM qa_users WHERE handle IN ('bob','no-such-handle')",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: voters and flaggers (qa_db_uservoteflag_posts_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        0,
+        {
+          "content": "x",
+          "cookieid": {
+            "b64": "/wE=",
+          },
+          "count": "3",
+          "handle": "bob",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "B title",
+          "userid": "5",
+          "word": "sql",
+        },
+      ],
+      [
+        1,
+        {
+          "content": null,
+          "cookieid": {
+            "b64": "YWI=",
+          },
+          "count": "1",
+          "handle": "amy",
+          "netvotes": "10",
+          "postid": "11",
+          "title": "A title",
+          "userid": "6",
+          "word": "list",
+        },
+      ],
+      [
+        2,
+        {
+          "content": "z",
+          "cookieid": {
+            "b64": "",
+          },
+          "count": "7",
+          "handle": "cat",
+          "netvotes": "2",
+          "postid": "10",
+          "title": "C title",
+          "userid": "7",
+          "word": "sort",
+        },
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT postid, handle, vote, flag, votecreated, voteupdated FROM qa_uservotes LEFT JOIN qa_users ON qa_uservotes.userid=qa_users.userid WHERE postid IN (11,10,11,12) AND (vote!=0 OR flag!=0)",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`helper: votes on a post (qa_db_uservote_post_get) SQL and result 1`] = `
+{
+  "result": {
+    "entries": [
+      [
+        "5",
+        null,
+      ],
+      [
+        "6",
+        null,
+      ],
+      [
+        "7",
+        null,
+      ],
+    ],
+    "single": false,
+  },
+  "sql": [
+    "SELECT userid, vote FROM qa_uservotes WHERE postid=11 AND vote!=0",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`qa_db_post_select() qa_sort_by() compares numbers as numbers and text as text 1`] = `
+[
+  4,
+  1,
+  0,
+  3,
+  2,
+]
+`;
+
+exports[`selects helpers slugsToBackpath() and countSpec() 1`] = `
+{
+  "arguments": [
+    1,
+  ],
+  "columns": [
+    [
+      "count",
+      "COUNT(*)",
+    ],
+  ],
+  "single": true,
+  "sortasc": "x",
+  "source": "^posts",
+}
+`;
+
+exports[`the internal route the image cache stores what the bridge sends 1`] = `
+[
+  [
+    {
+      "sql": "DELETE FROM qa_cache WHERE lastread<NOW()-INTERVAL 86400 SECOND",
+    },
+  ],
+  [
+    "INSERT INTO qa_cache (type, cacheid, content, created, lastread) VALUES (?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE content = VALUES(content), created = VALUES(created), lastread = VALUES(lastread)",
+    [
+      "i_64",
+      "42",
+      {
+        "data": [
+          105,
+          109,
+          103,
+        ],
+        "type": "Buffer",
+      },
+    ],
+  ],
+]
+`;

@@ -236,17 +236,24 @@ in-process tests at all.
 | `site-admin.js` | 8% | 26% (93% of what the tests reach) | 25 | 932 |
 | **All services** | 11% | **77%** (91% of what the tests reach) | 538 | 985 |
 
+### Write-log and SQL snapshots
+
+The code whose correctness is a long sequence of writes or a piece of SQL is pinned by Jest snapshots.
+The parity, reliability and fuzz suites compare those same writes and queries with PHP's, so a snapshot
+records behaviour that matches PHP, and any change shows up as a diff. Update the snapshots
+(`npx jest -u <file>`) only for a change the parity suites also accept.
+
+| Test file | What each snapshot holds |
+| --- | --- |
+| `post-changes-writes.test.js` | 112 post changes: every repository call in order, with its arguments, and every email |
+| `site-admin-writes.test.js` | 83 admin actions (categories, pages and links, widgets, user titles, user fields, mailings, plugins, the default avatar), the same way, with the clock and random codes fixed |
+| `reads.test.js` | every read parity case (each `db/selects.php` builder and `db/*.php` helper the pages call) through the bridge's internal route: the SQL sent and the processed result |
+| `repositories.test.js` | every method of every repository (373 methods): its SQL and parameters in order, and its result. Sample arguments come from the parameter names; random 64-bit IDs are masked |
+
+Snapshots live in `node-api/tests/integration/__snapshots__/`.
+
 What is left, and why:
-- `post-changes.js` also has write-log tests (`tests/integration/post-changes-writes.test.js`): 112
-  scenarios (edits, status changes, conversions, deletions, closings, flags, and the refused ones),
-  each recording every repository call in order with its arguments, plus every email sent, as a Jest
-  snapshot. The post-change parity suite compares these same writes with PHP's, so a snapshot records
-  behaviour that matches PHP, and any change to a write shows up as a diff. Update the snapshots
-  (`npx jest -u tests/integration/post-changes-writes.test.js`) only for a change the parity suite
-  also accepts. The 170 survivors left are mostly changes nothing can observe, or states narrower than
-  the scenarios.
-- `site-admin.js`: the categories, pages, widgets, user titles and user fields admin has no in-process
-  tests (the "no coverage" mutants). The admin parity suites cover it.
-- `reads/` and `repositories/` are SQL. Fake-database tests would only check the SQL text, so they are
-  left to the parity and reliability suites (and the read fuzzer), which run them against MySQL and
-  compare with PHP.
+- Surviving mutants that change nothing anyone can observe (equivalent mutants), and states narrower than
+  any scenario. The HTML report (`node-api/reports/mutation/index.html`) lists them beside their lines.
+- SQL snapshots check that a statement stays the same, not what it does. What it does is checked by the
+  parity suites against MySQL and PHP.
