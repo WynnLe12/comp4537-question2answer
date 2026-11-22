@@ -162,6 +162,36 @@ foreach (array(null, 5) as $userid) foreach (array(false, true, 0, 1, '1', '') a
     $out['combineNotifyEmail'][] = array($userid, $notify, $email, qa_combine_notify_email($userid, $notify, $email));
 }
 
+// --- services/site-admin.js: qa_default_option() for every option an admin can reset ---
+// The editor and captcha defaults come from installed modules (the bridge passes them), so they are left out.
+$settable = json_decode(file_get_contents('/tmp/admin-options.json'), true)['settable'];
+$settable = array_merge($settable, array('points_vote_up_q', 'points_vote_down_q', 'points_vote_up_a', 'points_vote_down_a',
+    'points_per_q_voted_up', 'points_per_q_voted_down', 'points_per_a_voted_up', 'points_per_a_voted_down', 'permit_retag_cat'));
+$resetOptionSets = array(
+    array('site_title' => 'My <Site> & "Co"', 'site_url' => 'http://example.test/qa/', 'from_email' => 'from@example.test', 'site_theme' => 'Snow',
+        'custom_sidebar' => '', 'custom_header' => '', 'custom_footer' => '', 'custom_in_head' => '', 'ask_needs_login' => '1', 'answer_needs_login' => '0',
+        'comment_needs_login' => '', 'permit_edit_q' => '70', 'points_vote_on_q' => '0x10', 'points_vote_on_a' => '3', 'points_per_q_voted' => 'Infinity', 'points_per_a_voted' => ''),
+    array('site_title' => "Bob's \"Place\"", 'site_url' => 'https://x.test/', 'from_email' => 'f@x.test', 'site_theme' => 'Classic',
+        'custom_sidebar' => 'side', 'custom_header' => 'head', 'custom_footer' => 'foot', 'custom_in_head' => '<meta>', 'ask_needs_login' => '', 'answer_needs_login' => '1',
+        'comment_needs_login' => '1', 'permit_edit_q' => '100', 'points_vote_on_q' => '7', 'points_vote_on_a' => ' 2', 'points_per_q_voted' => '1.5', 'points_per_a_voted' => '-3'),
+);
+$hosts = array(array('www.example.test', '/index.php', ''), array('qa.example.co.uk', '/qa/index.php', 'on'), array('1e3.example.test', '/a/b/index.php', ''),
+    array('123.example.test', '/index.php', ''), array('localhost', '/index.php', ''), array('example.test', '/index.php', 'off'), array('abcd.ef', '/x/index.php', ''),
+    array('questions.site.test', '/index.php', ''), array('ab.cd', '/index.php', ''));
+foreach ($resetOptionSets as $set) foreach ($hosts as $host) {
+    $_SERVER['HTTP_HOST'] = $host[0];
+    $_SERVER['SCRIPT_NAME'] = $host[1];
+    if ($host[2] === '') unset($_SERVER['HTTPS']); else $_SERVER['HTTPS'] = $host[2];
+    $defaults = array();
+    foreach ($settable as $name) {
+        if (in_array($name, array('editor_for_qs', 'editor_for_as', 'captcha_module'))) continue;
+        set_options($set);
+        $value = qa_default_option($name);
+        $defaults[$name] = isset($value) ? (string)$value : null;
+    }
+    $out['resetDefaults'][] = array($set, $host, $defaults);
+}
+
 // --- mail.js: strtr() with an array, as qa_send_notification() substitutes ---
 $subSets = array(
     array(),

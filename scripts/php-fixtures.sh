@@ -6,6 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# The generators that check admin options read Node's list of them.
+docker compose cp node-api/src/data/admin-options.json php:/tmp/admin-options.json >/dev/null 2>&1
 for generator in node-api/tests/fixtures/php-*.php; do
   name=$(basename "$generator" .php)
   docker compose cp "$generator" "php:/tmp/$name.php" >/dev/null 2>&1

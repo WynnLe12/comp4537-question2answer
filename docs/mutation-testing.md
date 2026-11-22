@@ -96,7 +96,7 @@ If PHP prints a warning or error into the output, the script refuses to write th
 | Generator | PHP functions | Node test |
 | --- | --- | --- |
 | `php-permissions.php` | `qa_permit_value_error`, `qa_permit_error`, `qa_limits_calc_remaining`, `qa_block_ip_match`, `qa_is_ip_blocked`, `qa_user_permit_error`, the category-level functions, `qa_user_moderation_reason`, `qa_post_is_by_user` (about 15,000 cases) | `tests/integration/permissions.test.js` |
-| `php-helpers.php` | PHP's number and boolean conversions, `qa_db_points_calculations` and the points statement, `qa_default_option`, `qa_path`, `qa_q_request`, `qa_q_path`, the text helpers (`qa_string_to_words`, block words, `qa_slugify`, tags, `qa_email_validate` with 921 addresses), `qa_combine_notify_email`, `strtr` | `tests/integration/q2a-helpers.test.js` |
+| `php-helpers.php` | PHP's number and boolean conversions, `qa_db_points_calculations` and the points statement, `qa_default_option`, `qa_path`, `qa_q_request`, `qa_q_path`, the text helpers (`qa_string_to_words`, block words, `qa_slugify`, tags, `qa_email_validate` with 921 addresses), `qa_combine_notify_email`, `strtr`; `qa_default_option` for every option an admin can reset (225 options, 18 site and option combinations) | `tests/integration/q2a-helpers.test.js`, `tests/integration/site-admin-defaults.test.js` |
 
 Each Node test checks one function's whole table of cases and lists every case where Node differs.
 Running one test per function, not one per case, also keeps Stryker fast (about 30 tests per mutant, not
@@ -106,10 +106,14 @@ The rest of the in-process code is tested directly:
 - `tests/integration/routes.test.js`: every v1 route, with recording services.
 - `tests/integration/app.test.js`: CORS, security headers, body limits, errors, 404, health check.
 - `tests/integration/mail-notify.test.js`: every notification email, with a recording SMTP transport.
+- `tests/integration/services-*.test.js`, `ai-services.test.js`, `site-admin-defaults.test.js`: the
+  services, driven directly with a recording fake repository (`tests/integration/fake-repository.js`),
+  and the AI provider with `fetch` replaced. The parity suites have already checked these services
+  against PHP, so these tests pin each of their rules and writes.
 
 ### What the PHP comparison found
 
-Four places where Node did not match PHP. All were fixed, and the parity suites still pass:
+Places where Node did not match PHP. All were fixed, and the parity suites still pass:
 
 - **Email validation** (`text.emailValidate`, also used for registration in `services/auth.js`). Node
   approximated PHP's `FILTER_VALIDATE_EMAIL` with the `validator` package, and they disagreed on 4 of the
@@ -122,6 +126,14 @@ Four places where Node did not match PHP. All were fixed, and the parity suites 
 - **URLs** (`paths.js`). PHP tests the request and anchor with `empty()`, and `empty('0')` is true. PHP
   also writes parameter values with `(string)`, so `false` becomes `''` and `true` becomes `'1'`. Node now
   does both.
+- **Resetting admin options** (`services/site-admin.js`). Found by comparing every reset default with
+  PHP's `qa_default_option()`:
+  - The vote-points fallback had the same `Number()` bug as `options.js`.
+  - The default terms and sidebar texts did not HTML-escape the language string the way
+    `qa_lang_html_sub()` does, so "Terms & Conditions" was saved with a bare `&`.
+  - Single quotes in the site title were not escaped, while PHP 8's `htmlspecialchars()` escapes them.
+  - The default `from_email` dropped a first host part such as `1e3`, which PHP's `is_numeric()` counts
+    as a number and keeps. The same check in `options.js` is fixed too.
 - **Dead code.** `flagtohide` in `services/post-common.js` was computed but never read (found by a
   canary; removed).
 
@@ -187,5 +199,23 @@ Many of the remaining survivors are equivalent mutants. For example, dropping `^
 that starts with a greedy `(.*)`, or an IPv4 fast path that gives the same answer as the general path.
 Nothing can kill those.
 
-**Not covered yet:** the services (`src/services`, 365 survivors in the first run: site administration,
-the AI provider, auth, votes, messages, user administration). These need tests with a fake repository.
+### The services
+
+Stryker over the services that have in-process tests, before and after the service tests:
+
+| | Survived before | Survived after | Score on code the tests reach, after |
+| --- | --- | --- | --- |
+| `auth.js` | 56 | 14 | 94% |
+| `votes.js` | 50 | 4 | 98% |
+| `favorites.js` | 9 | 0 | 100% |
+| `messages.js` | 31 | 6 | 97% |
+| `user-admin.js` | 31 | 11 | 97% |
+| `site-admin.js` | 72 | 25 | 93% |
+| `ai.js` | 26 | 4 | 97% |
+| `aiProvider.js` | 65 | 4 | 98% |
+| `post-common.js` | 21 | 21 | 62% |
+| **Together** | **361** | **89** | **95%** (68% before) |
+
+Not done: `post-common.js`. Its survivors are constants (the field limits and the event codes) used by
+the post services, which only the parity suites exercise. The categories, pages, widgets and user-fields
+parts of `site-admin.js` are also left to the parity suites (the "no coverage" mutants).

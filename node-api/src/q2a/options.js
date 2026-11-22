@@ -20,7 +20,7 @@ function dynamicDefault(name, get) {
       let host = '';
       try { host = new URL(get('site_url')).host; } catch { host = ''; }
       const parts = host.split('.');
-      if (parts.length > 2 && parts[0].length < 5 && !/^[0-9]+$/.test(parts[0])) parts.shift(); // e.g. www. or qa.
+      if (parts.length > 2 && parts[0].length < 5 && !phpIsNumeric(parts[0])) parts.shift(); // e.g. www. or qa. (is_numeric())
       return `no-reply@${parts.length > 1 ? parts.join('.') : 'example.com'}`;
     }
     case 'mailing_from_email': return get('from_email');
