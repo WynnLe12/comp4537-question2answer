@@ -509,11 +509,16 @@ function qa_page_q_answer_view($question, $answer, $isselected, $usershtml, $for
 	if ($answer['queued'])
 		$a_view['error'] = $answer['isbyuser'] ? qa_lang_html('question/a_your_waiting_approval') : qa_lang_html('question/a_waiting_your_approval');
 
-	if ($userid && function_exists('node_bridge_api') && $question['type'] === 'Q' && $answer['type'] === 'A') {
-		$a_view['ai_evaluation'] = array(
-			'answerid' => $answerid,
-			'code' => qa_get_form_security_code('ai-evaluation'),
-		);
+	if (function_exists('node_bridge_api') && $question['type'] === 'Q' && $answer['type'] === 'A') {
+		$result = node_bridge_api('GET', '/api/v1/ai/answers/' . (int)$answerid . '/evaluation', null, '', null, 2);
+		if (isset($result['data']['evaluation'])) {
+			$a_view['ai_evaluation_result'] = $result['data']['evaluation'];
+		} elseif ($userid && !qa_user_permit_error()) {
+			$a_view['ai_evaluation'] = array(
+				'answerid' => $answerid,
+				'code' => qa_get_form_security_code('ai-evaluation'),
+			);
+		}
 	}
 
 	$a_view['main_form_tags'] = 'method="post" action="' . qa_self_html() . '"';

@@ -7,7 +7,7 @@ require_once QA_INCLUDE_DIR . 'db/selects.php';
 header('Cache-Control: no-store');
 
 /**
- * Resolve the visible answer and send its plain text to the Node API.
+ * Resolve the visible answer and ask Node to evaluate its saved content.
  */
 function qa_ajax_ai_evaluation()
 {
@@ -42,8 +42,6 @@ function qa_ajax_ai_evaluation()
 	$result = node_bridge_api('POST', '/api/v1/ai/evaluate', array(
 		'questionId' => (int)$question['postid'],
 		'answerId' => (int)$answer['postid'],
-		'question' => trim($question['title'] . "\n\n" . qa_viewer_text($question['content'], $question['format'])),
-		'answer' => trim(qa_viewer_text($answer['content'], $answer['format'])),
 	), '', null, 40);
 
 	// Q2A AJAX errors keep HTTP 200 and carry their application error code in JSON.

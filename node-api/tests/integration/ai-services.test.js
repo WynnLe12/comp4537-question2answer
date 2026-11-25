@@ -209,7 +209,7 @@ describe('the AI service refuses bad input before calling OpenAI', () => {
     const error = await failure(createAiService(pool, { transaction: jest.fn() }).evaluate({ ...ok, question: 'q'.repeat(5000), answer: 'a'.repeat(10000) }));
     expect(error).toMatchObject({ status: 503, code: 'ai_provider_unavailable' });
     const posts = { transaction: jest.fn(async () => {}) };
-    expect(await failure(createAiService(pool, posts).evaluate({ ...ok, questionId: 1, answerId: 4294967295 }))).toMatchObject({ status: 503 });
+    expect(await failure(createAiService(pool, posts).evaluate({ ...ok, questionId: 1 }))).toMatchObject({ status: 503 });
     expect(posts.transaction).toHaveBeenCalled(); // the posts are checked before the provider
   });
   test('history needs a positive whole user ID', async () => {

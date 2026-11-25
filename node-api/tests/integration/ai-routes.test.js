@@ -21,6 +21,7 @@ describe('AI REST API routes', () => {
     beforeEach(() => {
         aiService = {
             evaluate: jest.fn(),
+            getAnswerEvaluation: jest.fn(),
             getHistory: jest.fn()
         };
 
@@ -110,6 +111,17 @@ describe('AI REST API routes', () => {
             questionId: 10,
             answerId: 20
         });
+    });
+
+    test('reads a shared evaluation by answer ID for a guest', async () => {
+        aiService.getAnswerEvaluation.mockResolvedValue({ evaluationId: 1, score: 85 });
+        const response = await request(app).get('/api/v1/ai/answers/20/evaluation').expect(200);
+
+        expect(response.body).toEqual({ evaluation: { evaluationId: 1, score: 85 } });
+        expect(aiService.getAnswerEvaluation).toHaveBeenCalledWith({
+            identity: null, ip: '127.0.0.1', cookieid: null, answerId: 20
+        });
+        expect(aiService.evaluate).not.toHaveBeenCalled();
     });
 
     test('retrieves evaluation history for the logged-in user', async () => {

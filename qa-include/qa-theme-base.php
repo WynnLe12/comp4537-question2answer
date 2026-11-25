@@ -2366,9 +2366,29 @@ class qa_html_theme_base
 		$this->output_raw($a_item['content']);
 		$this->output('</div>');
 
-		if (isset($a_item['ai_evaluation'])) {
+		if (isset($a_item['ai_evaluation_result'])) {
+			$this->ai_evaluation_result($a_item['ai_evaluation_result']);
+		} elseif (isset($a_item['ai_evaluation'])) {
 			$this->ai_evaluation_control($a_item['ai_evaluation']['code'], $a_item['ai_evaluation']['answerid']);
 		}
+	}
+
+	public function ai_evaluation_result($evaluation)
+	{
+		$this->output(
+			'<div class="qa-ai-evaluation"><section class="qa-ai-results" aria-label="AI Evaluation">',
+			'<p class="qa-ai-results-title">AI Evaluation</p>',
+			'<p>Estimated answer quality: ' . qa_html($evaluation['score']) . '/100</p>',
+			'<p>' . qa_html($evaluation['feedback']) . '</p>'
+		);
+		if (!empty($evaluation['suggestions'])) {
+			$this->output('<strong>Suggestions</strong><ul>');
+			foreach ($evaluation['suggestions'] as $suggestion) {
+				$this->output('<li>' . qa_html($suggestion) . '</li>');
+			}
+			$this->output('</ul>');
+		}
+		$this->output('</section></div>');
 	}
 
 	/**
@@ -2382,7 +2402,7 @@ class qa_html_theme_base
 			'<button type="button" class="qa-ai-button"><span aria-hidden="true">✦</span>'
 				. '<span class="qa-ai-button-label">Evaluate with AI</span></button>',
 			'<p role="status"></p>',
-			'<div class="qa-ai-results" hidden></div>',
+			'<section class="qa-ai-results" aria-label="AI Evaluation" hidden></section>',
 			'</div>'
 		);
 	}

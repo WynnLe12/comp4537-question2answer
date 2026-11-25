@@ -826,6 +826,33 @@ exports[`account repository every method's statements 1`] = `
 
 exports[`ai repository every method's statements 1`] = `
 {
+  "getAnswerEvaluation": {
+    "result": {
+      "evaluationId": 77,
+      "feedback": "Good answer",
+      "modelName": "test-model",
+      "score": 85,
+      "suggestions": [
+        "Add an example",
+      ],
+    },
+    "statements": [
+      [
+        "SELECT evaluation_id AS evaluationId, score, feedback, suggestions, model_name AS modelName
+                 FROM node_ai_evaluations
+                 WHERE answer_id = ? AND question_id = ?
+                   AND BINARY question_text = BINARY ? AND BINARY answer_text = BINARY ?
+                 ORDER BY evaluation_id DESC
+                 LIMIT 1",
+        [
+          7,
+          7,
+          "question-value",
+          "answer-value",
+        ],
+      ],
+    ],
+  },
   "getEvaluationsByUser": {
     "result": [
       {
@@ -995,6 +1022,23 @@ exports[`ai repository every method's statements 1`] = `
       ],
       [
         "COMMIT",
+      ],
+    ],
+  },
+  "withAnswerLock": {
+    "result": "evaluated",
+    "statements": [
+      [
+        "SELECT GET_LOCK(SHA2(CONCAT(DATABASE(), ':q2a-ai-answer:', ?), 256), 32) AS locked",
+        [
+          7,
+        ],
+      ],
+      [
+        "SELECT RELEASE_LOCK(SHA2(CONCAT(DATABASE(), ':q2a-ai-answer:', ?), 256))",
+        [
+          7,
+        ],
       ],
     ],
   },

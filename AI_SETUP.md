@@ -56,7 +56,12 @@ tables and rows. If initialization fails, inspect `docker compose logs seed-node
 
 Requires an authenticated Q2A user.
 
-Request:
+For a saved Q2A answer, send `{"answerId": 20}`. The API uses the
+current saved question and answer text. It returns a matching saved evaluation
+when available and omits `tokensUsed` on reuse. Reuse does not add a provider
+usage record or a new personal history entry.
+
+To evaluate standalone text, send:
 
 ```json
 {
@@ -79,6 +84,13 @@ Successful response:
   "tokensUsed": 351
 }
 ```
+
+### GET /api/v1/ai/answers/:answerId/evaluation
+
+Returns `{"evaluation": null}` if there is no saved evaluation for the current
+question and answer text. Otherwise, `evaluation` contains the saved score,
+feedback, suggestions, model name, and evaluation ID. The viewer must have
+access to the question and answer. Reading an evaluation never calls the provider.
 
 ### GET /api/v1/ai/evaluations
 

@@ -261,10 +261,12 @@ if ($formtype == 'q_edit') { // ...in edit mode
 	))); // as far as I know, META keywords have zero effect on search rankings or listings, but many people have asked for this
 }
 
-if ($userid && function_exists('node_bridge_api')) {
-	$qa_content['script_rel'][] = 'qa-content/qa-ai-evaluation.js?' . filemtime(QA_INCLUDE_DIR . '../qa-content/qa-ai-evaluation.js');
+if (function_exists('node_bridge_api')) {
+	if ($userid) {
+		$qa_content['script_rel'][] = 'qa-content/qa-ai-evaluation.js?' . filemtime(QA_INCLUDE_DIR . '../qa-content/qa-ai-evaluation.js');
+	}
 	$qa_content['head_lines'][] = '<style>
-		.qa-body-js-off .qa-ai-evaluation { display: none; }
+		.qa-body-js-off .qa-ai-evaluation > button { display: none; }
 		.qa-ai-evaluation { margin-block: 0.75em; }
 		.qa-ai-evaluation .qa-ai-button {
 			display: inline-flex;
@@ -283,7 +285,23 @@ if ($userid && function_exists('node_bridge_api')) {
 		.qa-ai-evaluation .qa-ai-button:focus-visible { outline: 2px solid #164665; outline-offset: 2px; }
 		.qa-ai-evaluation .qa-ai-button:disabled { opacity: 0.65; cursor: wait; }
 		.qa-ai-evaluation [role="status"]:empty { margin: 0; }
-		.qa-ai-results { overflow-wrap: anywhere; }
+		.qa-ai-evaluation .qa-ai-results {
+			padding: 0.85em 1em;
+			border: 1px solid #abc8da;
+			border-inline-start: 4px solid #39779d;
+			border-radius: 6px;
+			background: #eef7fc;
+			color: #183849;
+			overflow-wrap: anywhere;
+		}
+		.qa-ai-results > .qa-ai-results-title {
+			margin: 0 0 0.45em;
+			color: #164665;
+			font-size: 1.1em;
+			font-weight: 700;
+		}
+		.qa-ai-results > :last-child { margin-bottom: 0; }
+		.qa-ai-results a { color: #164665; }
 	</style>';
 }
 

@@ -6,6 +6,7 @@
 		expired_form: 'Reload this page and try again.',
 		invalid_input: 'The question or answer is empty or too long to evaluate.',
 		post_unavailable: 'This question or answer is no longer available for evaluation.',
+		evaluation_busy: 'An evaluation is already in progress. Try again shortly.',
 	};
 	const unavailable = 'AI evaluation is temporarily unavailable. Please try again.';
 	const rateLimitMessages = {
@@ -55,6 +56,7 @@
 
 	function renderEvaluation(parent, evaluation)
 	{
+		appendText(parent, 'p', 'AI Evaluation').className = 'qa-ai-results-title';
 		appendText(parent, 'p', 'Estimated answer quality: ' + evaluation.score + '/100');
 		appendText(parent, 'p', evaluation.feedback);
 
@@ -113,8 +115,8 @@
 			historyLink.href = panel.dataset.historyUrl;
 			results.replaceChildren(content);
 			results.hidden = false;
-			status.textContent = 'Evaluation saved.';
-			button.querySelector('.qa-ai-button-label').textContent = 'Evaluate again';
+			status.textContent = '';
+			button.remove();
 		} catch {
 			status.textContent = unavailable;
 		} finally {

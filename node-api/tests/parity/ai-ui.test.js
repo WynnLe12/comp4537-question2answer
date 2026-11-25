@@ -16,7 +16,6 @@ function evaluationUi(payload, retryAfter = null) {
     appendChild(child) { this.children.push(child); },
   });
   const status = element();
-  const label = element();
   const results = { hidden: true, replaceChildren(fragment) { this.children = fragment.children; } };
   const button = {
     disabled: false,
@@ -24,7 +23,7 @@ function evaluationUi(payload, retryAfter = null) {
       dataset: { answerId: '2', code: 'form-code', historyUrl: '/?qa=ai-evaluation-history' },
       querySelector: selector => selector === '[role="status"]' ? status : results,
     },
-    querySelector: () => label,
+    remove() { this.removed = true; },
   };
   let onClick;
   const fetch = jest.fn().mockResolvedValue({
@@ -45,7 +44,7 @@ function evaluationUi(payload, retryAfter = null) {
     qa_request: '1',
   });
   const click = () => onClick({ target: { closest: () => button } });
-  return { button, status, label, results, fetch, click };
+  return { button, status, results, fetch, click };
 }
 
 test('renders a successful evaluation and sends only one request per in-flight click', async () => {
@@ -57,13 +56,14 @@ test('renders a successful evaluation and sends only one request per in-flight c
   expect(view.fetch).toHaveBeenCalledTimes(1);
   expect(view.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST', credentials: 'same-origin' });
   expect(view.fetch.mock.calls[0][1].body.get('qa_operation')).toBe('ai_evaluation');
-  expect(view.status.textContent).toBe('Evaluation saved.');
+  expect(view.status.textContent).toBe('');
   expect(view.results.hidden).toBe(false);
   expect(view.results.children.map(child => child.textContent)).toEqual([
-    'Estimated answer quality: 86/100', 'Accurate <em>literal</em> feedback.', 'Suggestions', '', 'View my AI history',
+    'AI Evaluation', 'Estimated answer quality: 86/100', 'Accurate <em>literal</em> feedback.', 'Suggestions', '', 'View my AI history',
   ]);
-  expect(view.results.children[3].children[0].textContent).toBe('Add an example.');
-  expect(view.label.textContent).toBe('Evaluate again');
+  expect(view.results.children[0].className).toBe('qa-ai-results-title');
+  expect(view.results.children[4].children[0].textContent).toBe('Add an example.');
+  expect(view.button.removed).toBe(true);
   expect(view.button.disabled).toBe(false);
 });
 

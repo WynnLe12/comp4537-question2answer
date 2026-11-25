@@ -1,7 +1,47 @@
+const { ApiError } = require('../errors');
+
 const EVALUATION_ENDPOINT = '/api/v1/ai/evaluate';
+const ANSWER_LOCK = "SHA2(CONCAT(DATABASE(), ':q2a-ai-answer:', ?), 256)";
 
 function createAiRepository(pool) {
     return {
+        async getAnswerEvaluation({ questionId, answerId, question, answer }, db = pool) {
+            const [[row]] = await db.execute(
+                `SELECT evaluation_id AS evaluationId, score, feedback, suggestions, model_name AS modelName
+                 FROM node_ai_evaluations
+                 WHERE answer_id = ? AND question_id = ?
+                   AND BINARY question_text = BINARY ? AND BINARY answer_text = BINARY ?
+                 ORDER BY evaluation_id DESC
+                 LIMIT 1`,
+                [answerId, questionId, question, answer]
+            );
+            if (!row) return null;
+            const suggestions = typeof row.suggestions === 'string' ? JSON.parse(row.suggestions) : row.suggestions;
+            return { ...row, suggestions: suggestions ?? [] };
+        },
+
+        // Serialize cache misses across API instances using the same database.
+        async withAnswerLock(answerId, work) {
+            const connection = await pool.getConnection();
+            let locked = false;
+            try {
+                const [[result]] = await connection.execute(`SELECT GET_LOCK(${ANSWER_LOCK}, 32) AS locked`, [answerId]);
+                locked = result.locked === 1;
+                if (!locked) throw new ApiError(503, 'evaluation_busy');
+                return await work(connection);
+            } finally {
+                if (locked) {
+                    try {
+                        await connection.execute(`SELECT RELEASE_LOCK(${ANSWER_LOCK})`, [answerId]);
+                    } catch (error) {
+                        connection.destroy();
+                        throw error;
+                    }
+                }
+                connection.release();
+            }
+        },
+
         // Save a successful AI evaluation and usage record.
         async saveEvaluation({
             userId,
@@ -14,8 +54,8 @@ function createAiRepository(pool) {
             suggestions,
             modelName,
             tokensUsed
-        }) {
-            const connection = await pool.getConnection();
+        }, lockedConnection) {
+            const connection = lockedConnection ?? await pool.getConnection();
 
             try {
                 await connection.beginTransaction();
@@ -62,7 +102,7 @@ function createAiRepository(pool) {
                 await connection.rollback();
                 throw error;
             } finally {
-                connection.release();
+                if (!lockedConnection) connection.release();
             }
         },
 
@@ -147,8 +187,8 @@ function createAiRepository(pool) {
         },
 
         // Record AI requests that failed.
-        async logFailedRequest(userId, statusCode) {
-            await pool.execute(
+        async logFailedRequest(userId, statusCode, db = pool) {
+            await db.execute(
                 `INSERT INTO node_ai_usage
                 (userid, evaluation_id, endpoint,
                 status_code, tokens_used)

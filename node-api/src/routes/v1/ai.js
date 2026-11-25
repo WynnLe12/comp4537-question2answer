@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { readToken, requireApiRequest } = require('../../http/cookies');
-const { clientIp } = require('../../http/request');
+const { clientIp, postIdParam, readVisitorCookie } = require('../../http/request');
 const { ApiError } = require('../../errors');
 const { rateLimit } = require('express-rate-limit');
 const { AiProviderError } = require('../../services/aiProvider');
@@ -29,7 +29,18 @@ function aiRoutes({ aiService, identify }) {
 
     router.use(requireApiRequest);
 
-    // Require an authenticated Q2A user for all AI routes.
+    router.get('/answers/:answerId/evaluation', async (req, res) => {
+        const token = readToken(req);
+        const evaluation = await aiService.getAnswerEvaluation({
+            identity: token ? await identify(token) : null,
+            ip: clientIp(req.ip),
+            cookieid: readVisitorCookie(req),
+            answerId: postIdParam(req.params.answerId)
+        });
+        res.json({ evaluation });
+    });
+
+    // Generation, personal history and usage require a signed-in user.
     router.use(async (req, res, next) => {
         try {
             const token = readToken(req);

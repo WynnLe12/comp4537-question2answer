@@ -72,6 +72,10 @@ function recordingPool(selectLimit = 3) {
   const answer = (sql, params) => {
     log.push(params === undefined ? [sql] : [sql, params]);
     const text = typeof sql === 'string' ? sql : sql.sql;
+    if (text.startsWith('SELECT GET_LOCK(SHA2(')) return [[{ locked: 1 }]];
+    if (text.startsWith('SELECT evaluation_id AS evaluationId')) {
+      return [[{ evaluationId: 77, score: 85, feedback: 'Good answer', suggestions: '["Add an example"]', modelName: 'test-model' }]];
+    }
     if (/^\s*(SELECT|SHOW)/i.test(text)) { selects++; return [selects <= selectLimit ? [row()] : [], []]; }
     return [{ insertId: 77, affectedRows: 1, changedRows: 1 }, undefined];
   };
@@ -92,6 +96,8 @@ const OVERRIDES = {
   orderedMove: ['qa_categories', 'categoryid', 3, 2, 'parentid<=>?', [1]],
   orderedDelete: ['qa_categories', 'categoryid', 3, 'parentid<=>?', [1]],
   find: ['handle', 'bob'],
+  saveEvaluation: [{ userId: 7 }],
+  withAnswerLock: [7, async () => 'evaluated'],
 };
 
 async function methodNames(create) {

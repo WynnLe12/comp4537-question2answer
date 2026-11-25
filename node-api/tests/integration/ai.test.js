@@ -49,6 +49,8 @@ describe('AI answer evaluation service', () => {
 
         repository = {
             saveEvaluation: jest.fn().mockResolvedValue(1),
+            getAnswerEvaluation: jest.fn().mockResolvedValue(null),
+            withAnswerLock: jest.fn((_answerId, work) => work()),
             getEvaluationsByUser: jest.fn().mockResolvedValue([]),
             logFailedRequest: jest.fn().mockResolvedValue()
         };
@@ -56,9 +58,9 @@ describe('AI answer evaluation service', () => {
         createAiRepository.mockReturnValue(repository);
 
         posts = new Map([
-            [10, { postid: 10, basetype: 'Q', userid: 2 }],
+            [10, { postid: 10, basetype: 'Q', userid: 2, title: input.question }],
             [11, { postid: 11, basetype: 'Q', userid: 2 }],
-            [20, { postid: 20, basetype: 'A', parentid: 10, userid: 2 }],
+            [20, { postid: 20, basetype: 'A', parentid: 10, userid: 2, content: input.answer }],
             [30, { postid: 30, basetype: 'C', parentid: 20, userid: 2 }]
         ]);
         options = new Map([
@@ -94,7 +96,7 @@ describe('AI answer evaluation service', () => {
                 userId: 1,
                 score: 85,
                 tokensUsed: 150
-            })
+            }), undefined
         );
     });
 
@@ -166,9 +168,38 @@ describe('AI answer evaluation service', () => {
         await expect(aiService.evaluate({ ...input, ...ids })).resolves.toEqual({ ...result, evaluationId: 1 });
         expect(evaluateAnswer).toHaveBeenCalledWith(input.question, input.answer);
         expect(repository.saveEvaluation).toHaveBeenCalledWith(expect.objectContaining({
-            userId: 1, questionId: null, answerId: null, ...ids
-        }));
+            userId: 1, questionId: 10, answerId: ids.answerId ?? null
+        }), undefined);
         expect(queries.findPost).toHaveBeenCalledWith(10);
+    });
+
+    test('reuses a saved evaluation across viewers and evaluates only the current saved text', async () => {
+        const cached = { ...result, evaluationId: 3 };
+        repository.getAnswerEvaluation.mockResolvedValue(cached);
+        const linked = { answerId: 20, questionId: 10, question: input.question, answer: input.answer };
+
+        await expect(aiService.getAnswerEvaluation({ identity: null, answerId: 20 })).resolves.toEqual(cached);
+        await expect(aiService.evaluate({ identity, answerId: 20, answer: 'Untrusted override' })).resolves.toEqual(cached);
+        expect(repository.getAnswerEvaluation).toHaveBeenNthCalledWith(1, linked);
+        expect(repository.getAnswerEvaluation).toHaveBeenNthCalledWith(2, expect.objectContaining(linked), undefined);
+        expect(evaluateAnswer).not.toHaveBeenCalled();
+        expect(repository.saveEvaluation).not.toHaveBeenCalled();
+
+        posts.get(20).content = 'Updated answer.';
+        repository.getAnswerEvaluation.mockResolvedValue(null);
+        evaluateAnswer.mockResolvedValue(result);
+        await expect(aiService.evaluate({ identity, answerId: 20 })).resolves.toHaveProperty('evaluationId', 1);
+        expect(repository.getAnswerEvaluation).toHaveBeenLastCalledWith(
+            expect.objectContaining({ ...linked, answer: 'Updated answer.' }), undefined
+        );
+        expect(evaluateAnswer).toHaveBeenCalledWith(input.question, 'Updated answer.');
+    });
+
+    test('a guest cannot fetch a shared evaluation for a restricted question', async () => {
+        options.set('permit_view_q_page', PERMIT.USERS);
+        await expect(aiService.getAnswerEvaluation({ identity: null, answerId: 20 }))
+            .rejects.toMatchObject({ status: 404, code: 'post_unavailable' });
+        expect(repository.getAnswerEvaluation).not.toHaveBeenCalled();
     });
 
     test('honors category permissions and post ownership when applying visibility rules', async () => {
@@ -187,6 +218,8 @@ describe('AI answer evaluation service', () => {
         posts.set(questionId, { postid: questionId, basetype: 'Q', userid: 2 });
         evaluateAnswer.mockResolvedValue(result);
         await expect(aiService.evaluate({ ...input, questionId })).resolves.toHaveProperty('evaluationId', 1);
+        posts.set(questionId, { ...posts.get(20), postid: questionId });
+        await expect(aiService.evaluate({ identity, answerId: questionId })).resolves.toHaveProperty('evaluationId', 1);
     });
 
     test('handles AI provider failures', async () => {
@@ -203,7 +236,7 @@ describe('AI answer evaluation service', () => {
         });
 
         expect(repository.logFailedRequest)
-            .toHaveBeenCalledWith(1, 502);
+            .toHaveBeenCalledWith(1, 502, undefined);
 
         expect(repository.saveEvaluation).not.toHaveBeenCalled();
     });

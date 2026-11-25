@@ -10,10 +10,12 @@ The service evaluates Q2A answers, generates quality scores
 and feedback, and records API usage.
 
 On the migrated site (http://localhost:8081 in Docker Compose),
-sign in and open a question. Use **Evaluate with AI** on a published
-answer to send its text and the question to OpenAI and see the score,
-feedback, and suggestions. **AI Evaluation History** in the account menu lists your
-saved evaluations.
+sign in and open a question. Use **Evaluate with AI** on a published answer
+to generate a score, feedback, and suggestions. The saved result replaces the
+button and appears beneath the answer for anyone who can view it, including
+guests. If the question or answer text changes, the button returns for eligible
+users unless an evaluation already matches that text. **AI Evaluation History**
+in the account menu lists evaluations you generated.
 
 For installation, configuration, database migration,
 and API testing instructions, see [AI_SETUP.md](AI_SETUP.md).
